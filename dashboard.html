@@ -595,15 +595,9 @@
         const timer = PerformanceMonitor.start('DashboardController.carregarDadosDashboard');
         
         try {
-          // Usa a função otimizada com cache
           const planilhaId = new URLSearchParams(window.location.search).get("id");
-          const dados = await obterDadosControleCompletos(planilhaId);
-          
-          // Valida integridade dos dados
-          const validacao = validarIntegridadeDados(dados);
-          if (!validacao.valido) {
-            console.warn('Problemas na validação dos dados:', validacao.erros);
-          }
+          const response = await fetch(`${this.apiUrl}?action=obterDadosDashboard&planilhaId=${planilhaId}`);
+          const dados = await response.json();
           
           if (dados.status === "Sucesso") {
             this.renderizarDashboard(dados.dados);
@@ -633,9 +627,9 @@
       atualizarCards(totais) {
         document.getElementById('total-produtos').textContent = totais.produtos.toLocaleString('pt-BR');
         document.getElementById('valor-inventario').textContent = 
-          'R$ ' + totais.valorInventario.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-        document.getElementById('produtos-vencidos').textContent = totais.perdas.toLocaleString('pt-BR');
-        document.getElementById('vence-hoje').textContent = totais.vendas.toLocaleString('pt-BR');
+          'R$ ' + totais.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        document.getElementById('produtos-vencidos').textContent = totais.vencidos.toLocaleString('pt-BR');
+        document.getElementById('vence-hoje').textContent = totais.vencendoHoje.toLocaleString('pt-BR');
       }
 
       configurarFiltros(setores) {
@@ -671,10 +665,10 @@
         this.charts.vendasPerdas = new Chart(document.getElementById("graf-vendas-perdas"), {
           type: "doughnut",
           data: {
-            labels: graficos.vendasVsPerdas.map(item => item.label),
+            labels: graficos.vendasPerdas.map(item => item.label),
             datasets: [{
-              data: graficos.vendasVsPerdas.map(item => item.value),
-              backgroundColor: ["#2c3e50", "#e74c3c"],
+              data: graficos.vendasPerdas.map(item => item.value),
+              backgroundColor: graficos.vendasPerdas.map(item => item.color),
               borderWidth: 0
             }]
           },
@@ -696,10 +690,10 @@
         this.charts.setores = new Chart(document.getElementById("graf-setores"), {
           type: "bar",
           data: {
-            labels: graficos.distribucaoSetores.map(item => item.label),
+            labels: graficos.setores.map(item => item.label),
             datasets: [{
               label: "Valor (R$)",
-              data: graficos.distribucaoSetores.map(item => item.value),
+              data: graficos.setores.map(item => item.value),
               backgroundColor: "#3498db",
               borderRadius: 8
             }]
@@ -731,9 +725,9 @@
         this.charts.vencimentos = new Chart(document.getElementById("graf-vencimentos"), {
           type: "pie",
           data: {
-            labels: graficos.tendenciaVencimentos.map(item => item.label),
+            labels: graficos.vencimentos.map(item => item.label),
             datasets: [{
-              data: graficos.tendenciaVencimentos.map(item => item.value),
+              data: graficos.vencimentos.map(item => item.value),
               backgroundColor: ["#e74c3c", "#f39c12", "#f1c40f"],
               borderWidth: 0
             }]
