@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ativação</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0d283d;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      max-width: 400px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 15px;
+    }
+    h2 {
+      text-align: center;
+      color: #0d283d;
+      margin: 0 0 20px;
+    }
+    label {
+      font-weight: bold;
+      color: #333;
+    }
+    input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #0d283d;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      align-self: stretch;
+      display: flex;
+      justify-content: center;
+    }
+    button:hover {
+      background-color: #164372;
+    }
+    #progress-container {
+      display: none;
+      margin-top: 15px;
+    }
+    .progress-bar {
+      width: 100%;
+      background-color: #ccc;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    .progress-bar-fill {
+      height: 20px;
+      width: 0%;
+      background-color: #0d283d;
+      transition: width 0.3s ease-in-out;
+    }
+    #porcentagem {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    #mensagem {
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="container">
+    <h2>Ativação do Aplicativo</h2>
+    <label for="nome">Nome completo:</label>
+    <input type="text" id="nome" placeholder="Seu nome completo" required>
+
+    <label for="pedido">Número da compra:</label>
+    <input type="text" id="pedido" placeholder="Número do pedido" required>
+
+    <label for="link">Link da planilha:</label>
+    <input type="text" id="link" placeholder="Cole aqui o link da planilha" required>
+
+    <label for="scriptUrl">Link do Apps Script:</label>
+    <input type="text" id="scriptUrl" placeholder="Cole aqui o link do Apps Script publicado" required>
+
+    <button id="botaoAtivar">🔓 Ativar Aplicativo</button>
+
+    <div id="mensagem"></div>
+
+    <div id="progress-container">
+      <div id="porcentagem">0%</div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" id="barra"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbzz7hxByEU9Q-DRABVCs03tlXdEoLlGr6BaUzMFRz4XFX2QzLSZ44bWUq1DSrglDnKg/exec";
+
+    function extrairScriptId(url) {
+      const match = url.match(/\/s\/([a-zA-Z0-9-_]+)/);
+      return match ? match[1] : null;
+    }
+
+    function extrairId(link) {
+      const regex = /\/d\/([a-zA-Z0-9-_]+)/;
+      const match = link.match(regex);
+      return match ? match[1] : null;
+    }
+
+    function animarBarra(callback) {
+      let porcentagem = 0;
+      const barra = document.getElementById("barra");
+      const texto = document.getElementById("porcentagem");
+      const intervalo = setInterval(() => {
+        porcentagem += 5;
+        barra.style.width = porcentagem + "%";
+        texto.textContent = porcentagem + "%";
+        if (porcentagem >= 100) {
+          clearInterval(intervalo);
+          callback();
+        }
+      }, 80);
+    }
+
+    function copiarLink() {
+      const input = document.getElementById("linkGerado");
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value)
+        .then(() => alert("🔗 Link copiado com sucesso!"))
+        .catch(() => alert("❌ Não foi possível copiar o link."));
+    }
+
+    function enviarAtivacao() {
+      const nome = document.getElementById("nome").value.trim();
+      const link = document.getElementById("link").value.trim();
+      const pedido = document.getElementById("pedido").value.trim();
+      const scriptUrl = document.getElementById("scriptUrl").value.trim();
+
+      if (!nome || !link || !pedido || !scriptUrl) {
+        document.getElementById("mensagem").innerText = "Preencha todos os campos corretamente.";
+        return;
+      }
+
+      const idPlanilha = extrairId(link);
+      const idScript = extrairScriptId(scriptUrl);
+
+      if (!idPlanilha || !idScript) {
+        document.getElementById("mensagem").innerText = "Link inválido.";
+        return;
+      }
+
+      localStorage.setItem("scriptUrl", scriptUrl);
+      document.getElementById("progress-container").style.display = "block";
+
+      animarBarra(() => {
+        const url = `${endpoint}?action=solicitarAtivacao&nome=${encodeURIComponent(nome)}&pedido=${encodeURIComponent(pedido)}&link=${encodeURIComponent(link)}`;
+
+        fetch(url)
+          .then(response => response.json())
+          .then(resposta => {
+            const mensagemTexto = typeof resposta === "string" ? resposta : resposta.mensagem;
+            const container = document.getElementById("container");
+
+            if (mensagemTexto && mensagemTexto.toLowerCase().includes("ativada")) {
+              const appUrl = `https://datacertaweb.github.io/app/aplicativo.html?id=${idScript}`;
+              container.innerHTML = `
+                <h2 style="color:#0d283d;margin-bottom:15px;">✅ Planilha ativada com sucesso!</h2>
+                <p style="margin-bottom: 10px;">Clique no botão abaixo para copiar o link do seu app:</p>
+                <input id="linkGerado" value="${appUrl}" readonly style="width:100%;padding:10px;font-size:14px;border:1px solid #ccc;border-radius:5px;margin-bottom:10px;">
+                <button onclick="copiarLink()" style="width: 100%; margin-bottom:10px; padding:12px; font-size:16px; border-radius:5px; border:none; background-color:#0d283d; color:white; cursor:pointer;">📋 Copiar Link</button>
+                <a href="${appUrl}" target="_blank" style="width: 100%; text-decoration:none ; display: inline-block;">
+                  <button style="width: 100%; padding:12px; font-size:16px; border-radius:5px; border:none; background-color:#1ba755; color:white; cursor:pointer;">🚀 Abrir App Agora</button>
+                </a>
+              `;
+            } else {
+              document.getElementById("mensagem").innerText = mensagemTexto || "Erro ao ativar. Verifique os dados.";
+            }
+          })
+          .catch(() => {
+            document.getElementById("mensagem").innerText = "Erro ao ativar. Tente novamente.";
+          });
+      });
+    }
+
+    document.getElementById("botaoAtivar").addEventListener("click", enviarAtivacao);
+  </script>
+</body>
+</html>
