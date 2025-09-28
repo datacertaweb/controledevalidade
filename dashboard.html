@@ -652,10 +652,29 @@
         document.getElementById('vence-hoje').textContent = totais.vencendoHoje.toLocaleString('pt-BR');
       }
 
-      configurarFiltros(setores) {
+      async configurarFiltros(setores) {
         const select = document.getElementById('setor');
         select.innerHTML = '<option value="">Todos os Setores</option>';
-        
+      
+        try {
+          // Carregar setores dinamicamente da API
+          const response = await fetch(`${this.scriptUrl}?action=getSetores`);
+          const data = await response.json();
+      
+          if (data.status === "Sucesso" && data.setores) {
+            data.setores.forEach(setor => {
+              const option = document.createElement('option');
+              option.value = setor;
+              option.textContent = setor;
+              select.appendChild(option);
+            });
+            return; // já populado dinamicamente
+          }
+        } catch (error) {
+          console.warn('Erro ao carregar setores dinamicamente:', error);
+        }
+      
+        // Fallback para setores provenientes dos dados atuais
         Object.keys(setores).forEach(setor => {
           const option = document.createElement('option');
           option.value = setor;
@@ -768,9 +787,15 @@
       }
 
       configurarEventos() {
-        document.getElementById('setor').addEventListener('change', (e) => {
-          console.log('Filtro selecionado:', e.target.value);
-          // Implementar filtragem se necessário
+        document.getElementById('setor').addEventListener('change', async (e) => {
+          const setorSelecionado = e.target.value;
+          console.log('Filtro selecionado:', setorSelecionado);
+      
+          if (setorSelecionado) {
+            await this.carregarDadosComFiltro(setorSelecionado);
+          } else {
+            await this.carregarDadosDashboard();
+          }
         });
       }
 
@@ -783,6 +808,46 @@
         document.getElementById('loading-indicator').style.display = 'none';
         const errorContainer = document.getElementById('error-container');
         errorContainer.innerHTML = `<div class="error-message">${mensagem}</div>`;
+      }
+
+      async carregarDadosComFiltro(setorFiltro) {
+        const startTime = Date.now();
+        try {
+          if (!this.scriptUrl) {
+            this.exibirErro("Não foi possível construir a URL da API.");
+            return;
+          }
+          this.mostrarLoadingCards();
+          const url = `${this.scriptUrl}?action=getDashboardData&setor=${encodeURIComponent(setorFiltro)}`;
+          console.log("Fazendo requisição filtrada para:", url);
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          const text = await response.text();
+          let dados;
+          try {
+            dados = JSON.parse(text);
+          } catch (parseError) {
+            throw new Error("Resposta não é JSON válido: " + parseError.message);
+          }
+          if (dados.status === "Sucesso") {
+            this.renderizarDashboard(dados.dados);
+            console.log(`Dashboard filtrado carregado em ${Date.now() - startTime}ms`);
+          } else {
+            throw new Error(dados.mensagem || 'Erro ao carregar dados filtrados');
+          }
+        } catch (error) {
+          this.exibirErro(`Erro ao filtrar dashboard: ${error.message}`);
+          console.error("Erro detalhado:", error);
+        }
+      }
+
+      mostrarLoadingCards() {
+        document.getElementById('total-produtos').innerHTML = '<div class="loading"></div>';
+        document.getElementById('valor-inventario').innerHTML = '<div class="loading"></div>';
+        document.getElementById('produtos-vencidos').innerHTML = '<div class="loading"></div>';
+        document.getElementById('vence-hoje').innerHTML = '<div class="loading"></div>';
       }
     }
 
