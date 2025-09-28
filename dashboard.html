@@ -571,6 +571,12 @@
           return null;
         }
         
+        // Validação adicional conforme ler.txt
+        if (planilhaId.length < 10) {
+          this.exibirErro("ID da planilha parece inválido.");
+          return null;
+        }
+        
         return `https://script.google.com/macros/s/${planilhaId}/exec`;
       }
 
@@ -592,41 +598,43 @@
       }
 
       async carregarDadosDashboard() {
-        const timer = PerformanceMonitor.start('DashboardController.carregarDadosDashboard');
+        const startTime = Date.now();
         
         try {
-          const planilhaId = new URLSearchParams(window.location.search).get("id");
-          const response = await fetch(`${this.scriptUrl}?action=getDashboardData&planilhaId=${planilhaId}`);
+          if (!this.scriptUrl) {
+            this.exibirErro("Não foi possível construir a URL da API.");
+            return;
+          }
+          
+          const url = `${this.scriptUrl}?action=getDashboardData`;
+          console.log("Fazendo requisição para:", url);
+          const response = await fetch(url);
           
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
           
-          const contentType = response.headers.get("content-type");
-          if (!contentType || !contentType.includes("application/json")) {
-            const text = await response.text();
-            console.error("Resposta não é JSON:", text);
-            throw new Error("Resposta do servidor não é JSON válido");
-          }
+          // Ler como texto primeiro para garantir parse seguro
+          const text = await response.text();
+          console.log("Resposta bruta:", text.substring(0, 200) + "...");
           
-          const dados = await response.json();
+          let dados;
+          try {
+            dados = JSON.parse(text);
+          } catch (parseError) {
+            throw new Error("Resposta não é JSON válido: " + parseError.message);
+          }
           
           if (dados.status === "Sucesso") {
             this.renderizarDashboard(dados.dados);
             this.ocultarLoading();
-            
-            const duracao = PerformanceMonitor.end(timer);
-            logPerformance('Dashboard Load', duracao, { 
-              totalProdutos: dados.dados.totais?.produtos || 0,
-              cached: CacheManager.get(`dados_controle_${planilhaId}`) !== null
-            });
+            console.log(`Dashboard carregado em ${Date.now() - startTime}ms`);
           } else {
             throw new Error(dados.mensagem || 'Erro ao carregar dados');
           }
         } catch (error) {
-          PerformanceMonitor.end(timer);
-          this.exibirErro("Erro ao carregar dados do dashboard");
-          console.error(error);
+          this.exibirErro(`Erro ao carregar dashboard: ${error.message}`);
+          console.error("Erro detalhado:", error);
         }
       }
 
