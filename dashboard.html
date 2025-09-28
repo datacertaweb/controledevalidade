@@ -449,6 +449,35 @@
   </div>
 
   <script>
+    // === PERFORMANCE MONITOR ===
+    class PerformanceMonitor {
+      static timers = new Map();
+      
+      static start(label) {
+        const timer = {
+          label,
+          startTime: performance.now()
+        };
+        this.timers.set(label, timer);
+        return timer;
+      }
+      
+      static end(timer) {
+        if (!timer || !this.timers.has(timer.label)) {
+          return 0;
+        }
+        
+        const endTime = performance.now();
+        const duration = endTime - timer.startTime;
+        this.timers.delete(timer.label);
+        
+        // Log performance for debugging (optional)
+        console.log(`Performance: ${timer.label} took ${duration.toFixed(2)}ms`);
+        
+        return duration;
+      }
+    }
+
     // === SISTEMA DE NAVEGAÇÃO SIDEBAR ===
     class SidebarController {
       constructor() {
