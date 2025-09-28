@@ -232,13 +232,13 @@
       <p>Sistema de Controle</p>
     </div>
     <nav class="sidebar-menu">
-      <a href="aplicativo.html" class="active">
+      <a href="#" onclick="window.location.href=`aplicativo.html?id=${planilhaId}`" class="active">
         <i>🏠</i> Início
       </a>
-      <a href="dashboard.html">
+      <a href="#" onclick="window.location.href=`dashboard.html?id=${planilhaId}`">
         <i>📊</i> Dashboard
       </a>
-      <a href="consulta.html">
+      <a href="#" onclick="window.location.href=`consulta.html?id=${planilhaId}`">
         <i>🔍</i> Consulta Produtos
       </a>
       <a href="#" onclick="sidebarController.logout()">
