@@ -596,7 +596,19 @@
         
         try {
           const planilhaId = new URLSearchParams(window.location.search).get("id");
-          const response = await fetch(`${this.apiUrl}?action=obterDadosDashboard&planilhaId=${planilhaId}`);
+          const response = await fetch(`${this.scriptUrl}?action=getDashboardData&planilhaId=${planilhaId}`);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const contentType = response.headers.get("content-type");
+          if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text();
+            console.error("Resposta não é JSON:", text);
+            throw new Error("Resposta do servidor não é JSON válido");
+          }
+          
           const dados = await response.json();
           
           if (dados.status === "Sucesso") {
