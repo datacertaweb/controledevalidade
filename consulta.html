@@ -683,11 +683,11 @@
           const response = await fetch(`${this.apiUrl}?action=getConsultaData`);
           const data = await response.json();
 
-          if (data.success) {
-            this.produtos = data.produtos || [];
+          if (data.status === "Sucesso") {
+            this.produtos = data.dados || [];
             this.produtosFiltrados = [...this.produtos];
           } else {
-            throw new Error(data.message || 'Erro ao carregar dados');
+            throw new Error(data.mensagem || 'Erro ao carregar dados');
           }
         } catch (error) {
           console.error('Erro ao carregar dados:', error);
