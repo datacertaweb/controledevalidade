@@ -85,24 +85,23 @@
 
     .menu-toggle {
       position: fixed;
-      top: 50%;
-      left: 15px;
-      transform: translateY(-50%);
+      top: 12px;
+      left: 12px;
+      transform: none;
       z-index: 1001;
       background-color: #2c3e50;
       color: white;
       border: none;
-      padding: 12px 15px;
+      padding: 10px 12px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 18px;
+      font-size: 16px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      transition: all 0.3s ease;
+      transition: background-color 0.3s ease;
     }
 
     .menu-toggle:hover {
       background: #34495e;
-      transform: scale(1.05);
     }
 
     .overlay {
@@ -124,8 +123,9 @@
     }
 
     .container {
-      max-width: 1200px;
+      max-width: min(1200px, 100% - 24px);
       margin: 0 auto;
+      padding: 12px;
       background: white;
       border-radius: 20px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
@@ -434,6 +434,10 @@
     }
 
     @media (max-width: 480px) {
+      body { padding-top: 60px; }
+      .container { padding: 10px; border-radius: 12px; }
+    }
+
       header {
         padding: 15px 10px;
       }
@@ -450,7 +454,7 @@
       table {
         min-width: 500px;
       }
-    }
+    
 
     /* Loading animation */
     .loading {
