@@ -936,10 +936,10 @@
 
     // Inicialização
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('Inicializando Dashboard...');
       new SidebarController();
-      if (document.querySelector('.dashboard-container')) {
-        new DashboardController();
-      }
+      // Este arquivo é exclusivo da página de dashboard, então inicializamos sempre
+      new DashboardController();
     });
   </script>
 </body>
