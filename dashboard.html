@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <title>DataCerta - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   
   <style>
     * {
@@ -15,7 +16,7 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       padding: 15px;
       padding-top: 70px;
@@ -119,7 +120,6 @@
       text-align: left;
       transition: all 0.3s ease;
       border-left: 4px solid transparent;
-      /* Evitar quebra de linha e manter visual limpo */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -180,14 +180,26 @@
       margin-bottom: 30px;
       text-align: center;
       text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      padding: 20px 0;
-      background: rgba(255,255,255,0.9);
+      padding: 20px;
+      background: rgba(255,255,255,0.95);
       border-radius: 15px;
       backdrop-filter: blur(10px);
-      /* Evitar linhas quebradas no título */
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      animation: slideDown 0.6s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .loading {
@@ -207,13 +219,21 @@
     }
 
     .error-message {
-      background: #e74c3c;
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
       color: white;
-      padding: 15px;
-      border-radius: 8px;
+      padding: 20px;
+      border-radius: 15px;
       margin: 20px 0;
       text-align: center;
       font-weight: 600;
+      box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+      animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
     }
 
     .cards-section {
@@ -222,8 +242,8 @@
 
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
       align-items: stretch;
       margin-bottom: 30px;
       justify-content: center;
@@ -240,49 +260,103 @@
       transition: all 0.3s ease;
       border-left: 5px solid #2c3e50;
       backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.6s ease forwards;
+      opacity: 0;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.1s; border-left-color: #3498db; }
+    .card:nth-child(2) { animation-delay: 0.2s; border-left-color: #27ae60; }
+    .card:nth-child(3) { animation-delay: 0.3s; border-left-color: #e74c3c; }
+    .card:nth-child(4) { animation-delay: 0.4s; border-left-color: #f39c12; }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
     }
 
     .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2);
     }
 
     .card h3 {
       font-size: 14px;
       color: #7f8c8d;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      /* Evitar quebra de linha no título dos cards */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .card p {
-      font-size: clamp(18px, 3vw, 24px);
+      font-size: clamp(20px, 3vw, 28px);
       font-weight: bold;
       color: #2c3e50;
       line-height: 1.2;
-      /* Evitar quebra de linha nos valores dos cards */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
+    .card .icon {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      opacity: 0.2;
+    }
+
     .filtro-section {
       margin-bottom: 30px;
       text-align: center;
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .filtro {
-      background: rgba(255,255,255,0.9);
-      padding: 20px;
+      background: rgba(255,255,255,0.95);
+      padding: 25px;
       border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
       display: inline-block;
       backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .filtro:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
     }
 
     .filtro label {
@@ -290,7 +364,6 @@
       color: #2c3e50;
       margin-right: 10px;
       font-size: 16px;
-      /* Evitar quebra de linha no label do filtro */
       white-space: nowrap;
     }
 
@@ -304,35 +377,43 @@
       font-weight: 500;
       transition: all 0.3s ease;
       cursor: pointer;
-      min-width: 150px;
+      min-width: 200px;
     }
 
     .filtro select:focus {
       outline: none;
       border-color: #2c3e50;
       box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+      transform: translateY(-1px);
     }
 
     .graficos {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
       gap: 25px;
+      margin-bottom: 30px;
     }
 
     .chart-container {
       background: rgba(255,255,255,0.95);
-      padding: 25px;
+      padding: 30px;
       border-radius: 15px;
       box-shadow: 0 8px 25px rgba(0,0,0,0.1);
       transition: all 0.3s ease;
       backdrop-filter: blur(10px);
       position: relative;
       overflow: hidden;
+      animation: fadeInUp 0.8s ease forwards;
+      opacity: 0;
     }
 
+    .chart-container:nth-child(1) { animation-delay: 0.5s; }
+    .chart-container:nth-child(2) { animation-delay: 0.6s; }
+    .chart-container:nth-child(3) { animation-delay: 0.7s; }
+
     .chart-container:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
     }
 
     .chart-container::before {
@@ -342,13 +423,66 @@
       left: 0;
       right: 0;
       height: 4px;
-      background: linear-gradient(90deg, #2c3e50, #f1c40f, #d9534f);
+      background: linear-gradient(90deg, #3498db, #27ae60, #f39c12, #e74c3c);
+    }
+
+    .chart-title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     canvas {
       width: 100% !important;
       height: auto !important;
-      max-height: 400px;
+      max-height: 350px;
+    }
+
+    /* Summary Stats Section */
+    .summary-section {
+      background: rgba(255,255,255,0.95);
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      margin-bottom: 30px;
+      animation: fadeIn 1s ease;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      text-align: center;
+    }
+
+    .summary-item {
+      padding: 15px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      transition: all 0.3s ease;
+    }
+
+    .summary-item:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #c3cfe2, #f5f7fa);
+    }
+
+    .summary-item h4 {
+      font-size: 12px;
+      color: #7f8c8d;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .summary-item p {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2c3e50;
     }
 
     @media (max-width: 768px) {
@@ -367,6 +501,20 @@
       body {
         padding-top: 60px;
       }
+
+      .graficos {
+        grid-template-columns: 1fr;
+      }
+
+      .cards {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+      }
+
+      header {
+        font-size: 24px;
+        padding-left: 48px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -374,9 +522,15 @@
         width: 100vw;
         left: -100vw;
       }
-    }
-    @media (max-width: 768px) {
-      header { padding-left: 48px; }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
     }
   </style>
 </head>
@@ -418,7 +572,7 @@
 
     <div id="loading-indicator" style="text-align: center; margin: 50px 0;">
       <div class="loading"></div>
-      <span>Carregando dados do dashboard...</span>
+      <span style="font-size: 18px; color: white; font-weight: 500;">Carregando dados do dashboard...</span>
     </div>
 
     <div id="error-container"></div>
@@ -427,20 +581,45 @@
       <section class="cards-section">
         <div class="cards">
           <div class="card">
+            <span class="icon">📦</span>
             <h3>Total de Produtos</h3>
             <p id="total-produtos">-</p>
           </div>
           <div class="card">
+            <span class="icon">💰</span>
             <h3>Valor do Inventário</h3>
             <p id="valor-inventario">R$ -</p>
           </div>
           <div class="card">
+            <span class="icon">⚠️</span>
             <h3>Produtos Vencidos</h3>
             <p id="produtos-vencidos">-</p>
           </div>
           <div class="card">
+            <span class="icon">🔔</span>
             <h3>Vence Hoje</h3>
             <p id="vence-hoje">-</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-section">
+        <div class="summary-grid">
+          <div class="summary-item">
+            <h4>Taxa de Perda</h4>
+            <p id="taxa-perda">0%</p>
+          </div>
+          <div class="summary-item">
+            <h4>Produtos OK</h4>
+            <p id="produtos-ok">0</p>
+          </div>
+          <div class="summary-item">
+            <h4>Vence em 7 dias</h4>
+            <p id="vence-semana">0</p>
+          </div>
+          <div class="summary-item">
+            <h4>Valor em Risco</h4>
+            <p id="valor-risco">R$ 0</p>
           </div>
         </div>
       </section>
@@ -456,16 +635,19 @@
 
       <section class="graficos">
         <div class="chart-container">
+          <h3 class="chart-title">Status dos Produtos</h3>
           <div class="chart-responsive">
             <canvas id="graf-vendas-perdas"></canvas>
           </div>
         </div>
         <div class="chart-container">
+          <h3 class="chart-title">Distribuição por Setores</h3>
           <div class="chart-responsive">
             <canvas id="graf-setores"></canvas>
           </div>
         </div>
         <div class="chart-container">
+          <h3 class="chart-title">Análise de Vencimentos</h3>
           <div class="chart-responsive">
             <canvas id="graf-vencimentos"></canvas>
           </div>
@@ -475,6 +657,9 @@
   </div>
 
   <script>
+    // Registrar o plugin de data labels globalmente
+    Chart.register(ChartDataLabels);
+
     // === PERFORMANCE MONITOR ===
     class PerformanceMonitor {
       static timers = new Map();
@@ -497,7 +682,6 @@
         const duration = endTime - timer.startTime;
         this.timers.delete(timer.label);
         
-        // Log performance for debugging (optional)
         console.log(`Performance: ${timer.label} took ${duration.toFixed(2)}ms`);
         
         return duration;
@@ -517,19 +701,16 @@
       }
       
       inicializarEventos() {
-        // Toggle sidebar
         this.toggleBtn.addEventListener('click', () => this.toggleSidebar());
         this.closeBtn.addEventListener('click', () => this.fecharSidebar());
         this.overlay.addEventListener('click', () => this.fecharSidebar());
         
-        // Fechar com ESC
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape' && this.sidebar.classList.contains('active')) {
             this.fecharSidebar();
           }
         });
         
-        // Prevenir fechamento acidental em mobile
         this.sidebar.addEventListener('click', (e) => {
           e.stopPropagation();
         });
@@ -539,11 +720,9 @@
         const planilhaId = new URLSearchParams(window.location.search).get("id");
         const baseUrl = `?id=${planilhaId}`;
         
-        // Configurar links de navegação
         document.getElementById('nav-registro').href = `aplicativo.html${baseUrl}`;
         document.getElementById('nav-consulta').href = `consulta.html${baseUrl}`;
         
-        // Logout
         document.getElementById('nav-logout').addEventListener('click', () => {
           this.logout();
         });
@@ -583,7 +762,6 @@
     // === DASHBOARD CONTROLLER ===
     class DashboardController {
       constructor() {
-        // Inicialização normal sem registro global do plugin
         this.scriptUrl = this.obterScriptUrl();
         this.charts = {
           vendasPerdas: null,
@@ -602,7 +780,6 @@
           return null;
         }
         
-        // Validação adicional conforme ler.txt
         if (planilhaId.length < 10) {
           this.exibirErro("ID da planilha parece inválido.");
           return null;
@@ -645,7 +822,6 @@
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
           
-          // Ler como texto primeiro para garantir parse seguro
           const text = await response.text();
           console.log("Resposta bruta:", text.substring(0, 200) + "...");
           
@@ -671,6 +847,7 @@
 
       renderizarDashboard(dados) {
         this.atualizarCards(dados.totais);
+        this.atualizarEstatisticasExtras(dados);
         this.configurarFiltros(dados.setores);
         this.gerarGraficos(dados.graficos);
       }
@@ -678,9 +855,32 @@
       atualizarCards(totais) {
         document.getElementById('total-produtos').textContent = totais.produtos.toLocaleString('pt-BR');
         document.getElementById('valor-inventario').textContent = 
-          'R$ ' + totais.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+          'R$ ' + totais.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('produtos-vencidos').textContent = totais.vencidos.toLocaleString('pt-BR');
         document.getElementById('vence-hoje').textContent = totais.vencendoHoje.toLocaleString('pt-BR');
+      }
+
+      atualizarEstatisticasExtras(dados) {
+        const totais = dados.totais;
+        const vencimentos = dados.vencimentos || {};
+        
+        // Taxa de perda
+        const taxaPerda = totais.produtos > 0 ? 
+          ((totais.vencidos / totais.produtos) * 100).toFixed(1) : 0;
+        document.getElementById('taxa-perda').textContent = `${taxaPerda}%`;
+        
+        // Produtos OK
+        const produtosOk = vencimentos.ok || 0;
+        document.getElementById('produtos-ok').textContent = produtosOk.toLocaleString('pt-BR');
+        
+        // Vence em 7 dias
+        const venceSemana = vencimentos.vencendoSemana || 0;
+        document.getElementById('vence-semana').textContent = venceSemana.toLocaleString('pt-BR');
+        
+        // Valor em risco (produtos vencidos + vencendo hoje)
+        const valorRisco = ((totais.vencidos + totais.vencendoHoje) * (totais.valor / totais.produtos)) || 0;
+        document.getElementById('valor-risco').textContent = 
+          'R$ ' + valorRisco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
 
       async configurarFiltros(setores) {
@@ -688,7 +888,6 @@
         select.innerHTML = '<option value="">Todos os Setores</option>';
       
         try {
-          // Carregar setores dinamicamente da API
           const response = await fetch(`${this.scriptUrl}?action=getSetores`);
           const data = await response.json();
       
@@ -699,13 +898,12 @@
               option.textContent = setor;
               select.appendChild(option);
             });
-            return; // já populado dinamicamente
+            return;
           }
         } catch (error) {
           console.warn('Erro ao carregar setores dinamicamente:', error);
         }
       
-        // Fallback para setores provenientes dos dados atuais
         Object.keys(setores).forEach(setor => {
           const option = document.createElement('option');
           option.value = setor;
@@ -715,7 +913,7 @@
       }
 
       gerarGraficos(graficos) {
-        // Destrói gráficos existentes para evitar reuso de canvas
+        // Destrói gráficos existentes
         if (this.charts.vendasPerdas && typeof this.charts.vendasPerdas.destroy === 'function') {
           this.charts.vendasPerdas.destroy();
         }
@@ -725,7 +923,7 @@
         if (this.charts.vencimentos && typeof this.charts.vencimentos.destroy === 'function') {
           this.charts.vencimentos.destroy();
         }
-        // Limpa o conteúdo dos canvases para garantir estado inicial
+        
         ['graf-vendas-perdas', 'graf-setores', 'graf-vencimentos'].forEach(id => {
           const canvas = document.getElementById(id);
           if (canvas) {
@@ -736,7 +934,7 @@
           }
         });
 
-        // Configurações comuns
+        // Configurações comuns melhoradas
         const commonOptions = {
           responsive: true,
           maintainAspectRatio: false,
@@ -746,16 +944,21 @@
               labels: {
                 padding: 20,
                 usePointStyle: true,
-                font: { size: 12, weight: '600' }
+                font: { 
+                  size: 14, 
+                  weight: '600',
+                  family: "'Segoe UI', sans-serif"
+                },
+                color: '#2c3e50'
               }
             },
             tooltip: {
               enabled: true,
               mode: 'index',
               intersect: false,
-              backgroundColor: 'rgba(0,0,0,0.8)',
-              padding: 10,
-              cornerRadius: 4,
+              backgroundColor: 'rgba(44, 62, 80, 0.9)',
+              padding: 12,
+              cornerRadius: 8,
               titleFont: { size: 14, weight: 'bold' },
               bodyFont: { size: 13 },
               displayColors: true,
@@ -766,70 +969,150 @@
                     label += ': ';
                   }
                   if (context.parsed.y !== undefined) {
-                    label += 'R$ ' + context.parsed.y.toLocaleString('pt-BR');
+                    label += 'R$ ' + context.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits: 2});
                   } else if (context.parsed !== undefined) {
                     label += context.parsed.toLocaleString('pt-BR');
                   }
+                  
+                  // Adicionar percentual para gráficos de pizza/donut
+                  if (context.chart.config.type === 'doughnut' || context.chart.config.type === 'pie') {
+                    const sum = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percent = ((context.parsed / sum) * 100).toFixed(1);
+                    label += ` (${percent}%)`;
+                  }
+                  
                   return label;
                 }
+              }
+            },
+            datalabels: {
+              display: true,
+              color: '#fff',
+              font: {
+                weight: 'bold',
+                size: 12
+              },
+              formatter: (value, ctx) => {
+                // Para gráficos de pizza/donut, mostrar valor e percentual
+                if (ctx.chart.config.type === 'doughnut' || ctx.chart.config.type === 'pie') {
+                  const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((value / sum) * 100).toFixed(1);
+                  return value > 0 ? `${value}\n(${percentage}%)` : '';
+                }
+                // Para gráficos de barra, mostrar valor formatado
+                else if (ctx.chart.config.type === 'bar') {
+                  return value > 0 ? 'R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 0}) : '';
+                }
+                return value;
               }
             }
           }
         };
 
-        // Gráfico Vendas vs Perdas
+        // Gráfico Status dos Produtos (Donut melhorado)
         this.charts.vendasPerdas = new Chart(document.getElementById("graf-vendas-perdas"), {
           type: "doughnut",
           data: {
             labels: graficos.vendasPerdas.map(item => item.label),
             datasets: [{
               data: graficos.vendasPerdas.map(item => item.value),
-              backgroundColor: graficos.vendasPerdas.map(item => item.color),
-              borderWidth: 0
+              backgroundColor: [
+                'rgba(39, 174, 96, 0.9)',   // Verde para OK
+                'rgba(243, 156, 18, 0.9)',  // Laranja para Vencendo
+                'rgba(231, 76, 60, 0.9)'    // Vermelho para Vencidos
+              ],
+              borderColor: [
+                'rgba(39, 174, 96, 1)',
+                'rgba(243, 156, 18, 1)',
+                'rgba(231, 76, 60, 1)'
+              ],
+              borderWidth: 2,
+              hoverOffset: 20
             }]
           },
           options: {
             ...commonOptions,
+            cutout: '50%',
             plugins: {
               ...commonOptions.plugins,
-              title: {
-                display: true,
-                text: 'Vendas vs Perdas',
-                font: { size: 16, weight: 'bold' },
-                color: '#2c3e50'
+              datalabels: {
+                ...commonOptions.plugins.datalabels,
+                anchor: 'center',
+                align: 'center',
+                offset: 0,
+                font: {
+                  size: 14,
+                  weight: 'bold'
+                },
+                color: '#fff',
+                textStrokeColor: 'rgba(0, 0, 0, 0.5)',
+                textStrokeWidth: 2
               }
             }
           }
         });
 
-        // Gráfico Distribuição por Setores
+        // Gráfico Distribuição por Setores (Barras horizontais melhorado)
         this.charts.setores = new Chart(document.getElementById("graf-setores"), {
           type: "bar",
           data: {
             labels: graficos.setores.map(item => item.label),
             datasets: [{
-              label: "Valor (R$)",
+              label: "Valor Total",
               data: graficos.setores.map(item => item.value),
-              backgroundColor: "#3498db",
-              borderRadius: 8
+              backgroundColor: 'rgba(52, 152, 219, 0.8)',
+              borderColor: 'rgba(52, 152, 219, 1)',
+              borderWidth: 2,
+              borderRadius: 8,
+              barThickness: 'flex',
+              maxBarThickness: 50
             }]
           },
           options: {
             ...commonOptions,
+            indexAxis: 'y',
             plugins: {
               ...commonOptions.plugins,
-              title: {
-                display: true,
-                text: 'Distribuição por Setores',
-                font: { size: 16, weight: 'bold' },
-                color: '#2c3e50'
+              datalabels: {
+                ...commonOptions.plugins.datalabels,
+                anchor: 'end',
+                align: 'end',
+                offset: 5,
+                color: '#2c3e50',
+                font: {
+                  size: 11,
+                  weight: '600'
+                },
+                formatter: (value) => {
+                  return value > 0 ? 'R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 0}) : '';
+                }
               }
             },
             scales: {
-              y: {
+              x: {
+                grid: {
+                  display: true,
+                  color: 'rgba(0, 0, 0, 0.05)'
+                },
                 ticks: {
                   callback: function(value) {
                     return "R$ " + value.toLocaleString('pt-BR');
+                  },
+                  color: '#2c3e50',
+                  font: {
+                    size: 12
+                  }
+                }
+              },
+              y: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  color: '#2c3e50',
+                  font: {
+                    size: 12,
+                    weight: '500'
                   }
                 }
               }
@@ -837,27 +1120,53 @@
           }
         });
 
-        // Gráfico Tendência de Vencimentos
+        // Gráfico Análise de Vencimentos (Pizza com gradientes)
         this.charts.vencimentos = new Chart(document.getElementById("graf-vencimentos"), {
           type: "pie",
           data: {
             labels: graficos.vencimentos.map(item => item.label),
             datasets: [{
               data: graficos.vencimentos.map(item => item.value),
-              backgroundColor: ["#e74c3c", "#f39c12", "#f1c40f"],
-              borderWidth: 0,
-              hoverOffset: 15
+              backgroundColor: [
+                'rgba(231, 76, 60, 0.9)',   // Vermelho para Vencidos
+                'rgba(243, 156, 18, 0.9)',  // Laranja para Vence Hoje
+                'rgba(241, 196, 15, 0.9)',  // Amarelo para Vence em 7 dias
+                'rgba(39, 174, 96, 0.9)'    // Verde para OK
+              ],
+              borderColor: [
+                'rgba(231, 76, 60, 1)',
+                'rgba(243, 156, 18, 1)',
+                'rgba(241, 196, 15, 1)',
+                'rgba(39, 174, 96, 1)'
+              ],
+              borderWidth: 2,
+              hoverOffset: 25
             }]
           },
           options: {
             ...commonOptions,
             plugins: {
               ...commonOptions.plugins,
-              title: {
-                display: true,
-                text: 'Status de Vencimentos',
-                font: { size: 16, weight: 'bold' },
-                color: '#2c3e50'
+              datalabels: {
+                ...commonOptions.plugins.datalabels,
+                anchor: 'end',
+                align: 'start',
+                offset: 10,
+                font: {
+                  size: 12,
+                  weight: 'bold'
+                },
+                color: '#2c3e50',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                borderColor: '#2c3e50',
+                borderRadius: 4,
+                borderWidth: 1,
+                padding: 4,
+                formatter: (value, ctx) => {
+                  const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((value / sum) * 100).toFixed(1);
+                  return value > 0 ? `${value} (${percentage}%)` : '';
+                }
               }
             }
           }
@@ -898,15 +1207,17 @@
             this.exibirErro("Não foi possível construir a URL da API.");
             return;
           }
-          if (typeof this.mostrarLoadingCards === 'function') {
-            this.mostrarLoadingCards();
-          }
+          
+          this.mostrarLoadingCards();
+          
           const url = `${this.scriptUrl}?action=getDashboardData&setor=${encodeURIComponent(setorFiltro)}`;
           console.log("Fazendo requisição filtrada para:", url);
           const response = await fetch(url);
+          
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
+          
           const text = await response.text();
           let dados;
           try {
@@ -914,6 +1225,7 @@
           } catch (parseError) {
             throw new Error("Resposta não é JSON válido: " + parseError.message);
           }
+          
           if (dados.status === "Sucesso") {
             this.renderizarDashboard(dados.dados);
             console.log(`Dashboard filtrado carregado em ${Date.now() - startTime}ms`);
@@ -931,6 +1243,10 @@
         document.getElementById('valor-inventario').innerHTML = '<div class="loading"></div>';
         document.getElementById('produtos-vencidos').innerHTML = '<div class="loading"></div>';
         document.getElementById('vence-hoje').innerHTML = '<div class="loading"></div>';
+        document.getElementById('taxa-perda').innerHTML = '<div class="loading"></div>';
+        document.getElementById('produtos-ok').innerHTML = '<div class="loading"></div>';
+        document.getElementById('vence-semana').innerHTML = '<div class="loading"></div>';
+        document.getElementById('valor-risco').innerHTML = '<div class="loading"></div>';
       }
     }
 
@@ -938,7 +1254,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       console.log('Inicializando Dashboard...');
       new SidebarController();
-      // Este arquivo é exclusivo da página de dashboard, então inicializamos sempre
       new DashboardController();
     });
   </script>
