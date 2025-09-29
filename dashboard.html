@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <title>DataCerta - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -22,31 +22,31 @@
     }
 
     .container {
-      max-width: 1400px;
+      max-width: min(1400px, 100% - 24px);
       margin: 0 auto;
+      padding: 12px;
     }
 
     /* === SIDEBAR STYLES === */
     .sidebar-toggle {
       position: fixed;
-      top: 50%;
-      left: 15px;
-      transform: translateY(-50%);
+      top: 12px;
+      left: 12px;
+      transform: none;
       z-index: 1001;
       background-color: #2c3e50;
       color: white;
       border: none;
-      padding: 12px 15px;
+      padding: 10px 12px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 18px;
+      font-size: 16px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      transition: all 0.3s ease;
+      transition: background-color 0.3s ease;
     }
 
     .sidebar-toggle:hover {
       background-color: #34495e;
-      transform: scale(1.05);
     }
 
     .sidebar {
@@ -214,8 +214,9 @@
 
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      align-items: stretch;
       margin-bottom: 30px;
     }
 
@@ -352,6 +353,9 @@
         width: 100vw;
         left: -100vw;
       }
+    }
+    @media (max-width: 768px) {
+      header { padding-left: 48px; }
     }
   </style>
 </head>
