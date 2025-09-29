@@ -277,6 +277,23 @@
       top: 0;
       z-index: 10;
     }
+    
+    /* Menu Toggle Button - Fixo no canto superior esquerdo */
+    .menu-toggle {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      width: 40px;
+      height: 40px;
+      background-color: #0D283D;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1001;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
 
     td {
       font-size: 14px;
@@ -584,7 +601,6 @@
               <th>Código</th>
               <th>Descrição</th>
               <th>Quantidade</th>
-              <th>Setor</th>
               <th>Status de Validade</th>
             </tr>
           </thead>
@@ -828,11 +844,10 @@
           tr.className = 'fade-in';
           
           tr.innerHTML = `
-            <td><strong>${p.codigo}</strong></td>
-            <td>${p.descricao}</td>
-            <td><strong>${p.quantidade}</strong></td>
-            <td>${p.setor}</td>
-            <td>${this.formatarStatus(p.validade, p.diasVencimento)}</td>
+            <td data-label="Código"><strong>${p.codigo}</strong></td>
+            <td data-label="Descrição">${p.descricao}</td>
+            <td data-label="Quantidade"><strong>${p.quantidade}</strong></td>
+            <td data-label="Status de Validade">${this.formatarStatus(p.validade, p.diasVencimento)}</td>
           `;
           corpo.appendChild(tr);
         });
