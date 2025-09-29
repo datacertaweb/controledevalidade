@@ -119,6 +119,10 @@
       text-align: left;
       transition: all 0.3s ease;
       border-left: 4px solid transparent;
+      /* Evitar quebra de linha e manter visual limpo */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .sidebar-item:hover {
@@ -180,6 +184,10 @@
       background: rgba(255,255,255,0.9);
       border-radius: 15px;
       backdrop-filter: blur(10px);
+      /* Evitar linhas quebradas no título */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .loading {
@@ -218,6 +226,9 @@
       gap: 12px;
       align-items: stretch;
       margin-bottom: 30px;
+      justify-content: center;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .card {
@@ -243,6 +254,10 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      /* Evitar quebra de linha no título dos cards */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .card p {
@@ -250,6 +265,10 @@
       font-weight: bold;
       color: #2c3e50;
       line-height: 1.2;
+      /* Evitar quebra de linha nos valores dos cards */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .filtro-section {
@@ -271,6 +290,8 @@
       color: #2c3e50;
       margin-right: 10px;
       font-size: 16px;
+      /* Evitar quebra de linha no label do filtro */
+      white-space: nowrap;
     }
 
     .filtro select {
@@ -294,7 +315,7 @@
 
     .graficos {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 25px;
     }
 
@@ -562,8 +583,13 @@
     // === DASHBOARD CONTROLLER ===
     class DashboardController {
       constructor() {
+        // Inicialização normal sem registro global do plugin
         this.scriptUrl = this.obterScriptUrl();
-        this.charts = {};
+        this.charts = {
+          vendasPerdas: null,
+          setores: null,
+          vencimentos: null
+        };
         this.inicializar();
       }
 
@@ -722,6 +748,31 @@
                 usePointStyle: true,
                 font: { size: 12, weight: '600' }
               }
+            },
+            tooltip: {
+              enabled: true,
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              padding: 10,
+              cornerRadius: 4,
+              titleFont: { size: 14, weight: 'bold' },
+              bodyFont: { size: 13 },
+              displayColors: true,
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed.y !== undefined) {
+                    label += 'R$ ' + context.parsed.y.toLocaleString('pt-BR');
+                  } else if (context.parsed !== undefined) {
+                    label += context.parsed.toLocaleString('pt-BR');
+                  }
+                  return label;
+                }
+              }
             }
           }
         };
@@ -794,7 +845,8 @@
             datasets: [{
               data: graficos.vencimentos.map(item => item.value),
               backgroundColor: ["#e74c3c", "#f39c12", "#f1c40f"],
-              borderWidth: 0
+              borderWidth: 0,
+              hoverOffset: 15
             }]
           },
           options: {
@@ -811,21 +863,24 @@
           }
         });
       }
-
-      configurarEventos() {
-        document.getElementById('setor').addEventListener('change', async (e) => {
-          const setorSelecionado = e.target.value;
-          console.log('Filtro selecionado:', setorSelecionado);
       
-          if (setorSelecionado) {
-            await this.carregarDadosComFiltro(setorSelecionado);
-          } else {
-            await this.carregarDadosDashboard();
-          }
-        });
+      configurarEventos() {
+        const seletorSetor = document.getElementById('setor');
+        if (seletorSetor) {
+          seletorSetor.addEventListener('change', async (e) => {
+            const setorSelecionado = e.target.value;
+            console.log('Filtro selecionado:', setorSelecionado);
+        
+            if (setorSelecionado) {
+              await this.carregarDadosComFiltro(setorSelecionado);
+            } else {
+              await this.carregarDadosDashboard();
+            }
+          });
+        }
       }
 
-      ocultarLoading() {
+      ocultarLoading(){
         document.getElementById('loading-indicator').style.display = 'none';
         document.getElementById('dashboard-content').style.display = 'block';
       }
@@ -843,7 +898,9 @@
             this.exibirErro("Não foi possível construir a URL da API.");
             return;
           }
-          this.mostrarLoadingCards();
+          if (typeof this.mostrarLoadingCards === 'function') {
+            this.mostrarLoadingCards();
+          }
           const url = `${this.scriptUrl}?action=getDashboardData&setor=${encodeURIComponent(setorFiltro)}`;
           console.log("Fazendo requisição filtrada para:", url);
           const response = await fetch(url);
@@ -880,7 +937,9 @@
     // Inicialização
     document.addEventListener('DOMContentLoaded', () => {
       new SidebarController();
-      new DashboardController();
+      if (document.querySelector('.dashboard-container')) {
+        new DashboardController();
+      }
     });
   </script>
 </body>
