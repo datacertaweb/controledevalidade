@@ -573,12 +573,6 @@
           <label for="setor">Setor</label>
           <select id="setor">
             <option value="">Todos os setores</option>
-            <option value="Frios">Frios</option>
-            <option value="Mercearia">Mercearia</option>
-            <option value="Padaria">Padaria</option>
-            <option value="Perfumaria">Perfumaria</option>
-            <option value="Geladeira">Geladeira</option>
-            <option value="Suplementos">Suplementos</option>
           </select>
         </div>
 
@@ -693,6 +687,7 @@
 
       async init() {
         await this.carregarDados();
+        await this.carregarSetores();
         this.configurarEventos();
         this.renderizarTabela();
         this.atualizarEstatisticas();
@@ -731,6 +726,51 @@
           { codigo: "7896004401386", descricao: "IOGURTE NATURAL 170G", quantidade: 20, validade: "VENCE EM 5 DIAS", setor: "Frios", diasVencimento: 5 }
         ];
         this.produtosFiltrados = [...this.produtos];
+      }
+
+      async carregarSetores() {
+        const select = document.getElementById('setor');
+        if (!select) return;
+        
+        // Reset para estado inicial
+        select.innerHTML = '<option value="">Todos os setores</option>';
+        
+        try {
+          // Busca setores da aba CONTROLE (coluna H a partir da linha 4) via endpoint dedicado
+          const response = await fetch(`${this.apiUrl}?action=getSetores`);
+          const data = await response.json();
+          
+          if (data.status === 'Sucesso' && Array.isArray(data.setores)) {
+            const setores = data.setores
+              .map(s => String(s).trim())
+              .filter(s => s.length > 0);
+            const unicos = [...new Set(setores)];
+            
+            unicos.forEach(setor => {
+              const option = document.createElement('option');
+              option.value = setor;
+              option.textContent = setor;
+              select.appendChild(option);
+            });
+            return; // Já populado com dados da planilha
+          }
+        } catch (err) {
+          console.warn('Erro ao carregar setores da API:', err);
+        }
+        
+        // Fallback: extrair setores dos produtos carregados
+        const setoresProdutos = [...new Set(
+          (this.produtos || [])
+            .map(p => (p && p.setor ? String(p.setor).trim() : ''))
+            .filter(Boolean)
+        )].sort((a,b) => a.localeCompare(b));
+        
+        setoresProdutos.forEach(setor => {
+          const option = document.createElement('option');
+          option.value = setor;
+          option.textContent = setor;
+          select.appendChild(option);
+        });
       }
 
       configurarEventos() {
