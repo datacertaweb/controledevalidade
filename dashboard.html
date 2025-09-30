@@ -248,8 +248,8 @@
 
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
       align-items: stretch;
       margin-bottom: 30px;
       justify-content: center;
@@ -259,7 +259,7 @@
 
     .card {
       background: rgba(255,255,255,0.95);
-      padding: 25px 20px;
+      padding: 20px;
       border-radius: 15px;
       box-shadow: 0 8px 25px rgba(0,0,0,0.1);
       text-align: center;
@@ -268,8 +268,10 @@
       backdrop-filter: blur(10px);
       position: relative;
       overflow: hidden;
-      animation: fadeInUp 0.6s ease forwards;
-      opacity: 0;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .card:nth-child(1) { animation-delay: 0.1s; border-left-color: #3498db; }
@@ -310,25 +312,22 @@
     }
 
     .card h3 {
-      font-size: 14px;
+      font-size: 13px;
       color: #7f8c8d;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      line-height: 1.2;
     }
 
     .card p {
-      font-size: clamp(20px, 3vw, 28px);
+      font-size: clamp(18px, 4vw, 24px);
       font-weight: bold;
       color: #2c3e50;
       line-height: 1.2;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .card .icon {
@@ -402,15 +401,14 @@
 
     .chart-container {
       background: rgba(255,255,255,0.95);
-      padding: 30px;
+      padding: 25px;
       border-radius: 15px;
       box-shadow: 0 8px 25px rgba(0,0,0,0.1);
       transition: all 0.3s ease;
       backdrop-filter: blur(10px);
       position: relative;
       overflow: hidden;
-      animation: fadeInUp 0.8s ease forwards;
-      opacity: 0;
+      min-height: 400px;
     }
 
     .chart-container:nth-child(1) { animation-delay: 0.5s; }
@@ -444,7 +442,7 @@
 
     canvas {
       width: 100% !important;
-      height: auto !important;
+      height: 300px !important;
       max-height: 350px;
     }
 
@@ -524,11 +522,13 @@
       }
 
       .card {
-        padding: 16px 12px;
+        padding: 15px 12px;
+        min-height: 100px;
       }
 
       .card h3 {
-        font-size: 12px;
+        font-size: 11px;
+        margin-bottom: 8px;
       }
 
       .card p {
@@ -542,7 +542,12 @@
       }
       
       .chart-container {
-        padding: 20px 16px;
+        padding: 16px;
+        min-height: 300px;
+      }
+      
+      canvas {
+        height: 250px !important;
       }
       
       .filtro {
@@ -589,6 +594,7 @@
       
       .card {
         padding: 12px 8px;
+        min-height: 90px;
       }
       
       header {
@@ -598,7 +604,12 @@
       }
       
       .chart-container {
-        padding: 16px 12px;
+        padding: 12px;
+        min-height: 280px;
+      }
+      
+      canvas {
+        height: 220px !important;
       }
       
       .chart-title {
@@ -1065,7 +1076,7 @@
           }
         });
 
-        // Configurações comuns melhoradas
+        // Configurações comuns otimizadas
         const commonOptions = {
           responsive: true,
           maintainAspectRatio: false,
@@ -1073,25 +1084,26 @@
             legend: {
               position: 'top',
               labels: {
-                padding: 20,
+                padding: 12,
                 usePointStyle: true,
                 font: { 
-                  size: 14, 
-                  weight: '600',
+                  size: 11, 
+                  weight: '500',
                   family: "'Segoe UI', sans-serif"
                 },
-                color: '#2c3e50'
+                color: '#2c3e50',
+                boxWidth: 10
               }
             },
             tooltip: {
               enabled: true,
               mode: 'index',
               intersect: false,
-              backgroundColor: 'rgba(44, 62, 80, 0.9)',
-              padding: 12,
-              cornerRadius: 8,
-              titleFont: { size: 14, weight: 'bold' },
-              bodyFont: { size: 13 },
+              backgroundColor: 'rgba(44, 62, 80, 0.95)',
+              padding: 8,
+              cornerRadius: 6,
+              titleFont: { size: 11, weight: 'bold' },
+              bodyFont: { size: 10 },
               displayColors: true,
               callbacks: {
                 label: function(context) {
@@ -1100,7 +1112,7 @@
                     label += ': ';
                   }
                   if (context.parsed.y !== undefined) {
-                    label += 'R$ ' + context.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                    label += context.parsed.y.toLocaleString('pt-BR');
                   } else if (context.parsed !== undefined) {
                     label += context.parsed.toLocaleString('pt-BR');
                   }
@@ -1117,25 +1129,34 @@
               }
             },
             datalabels: {
-              display: true,
+              display: function(context) {
+                // Mostrar apenas se o valor for maior que 3% do total ou valor absoluto > 0
+                if (context.chart.config.type === 'doughnut' || context.chart.config.type === 'pie') {
+                  const sum = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = (context.parsed / sum) * 100;
+                  return percentage > 3;
+                }
+                return context.parsed > 0;
+              },
               color: '#fff',
               font: {
                 weight: 'bold',
-                size: 12
+                size: 9
               },
               formatter: (value, ctx) => {
-                // Para gráficos de pizza/donut, mostrar valor e percentual
+                // Para gráficos de pizza/donut, mostrar apenas valor se significativo
                 if (ctx.chart.config.type === 'doughnut' || ctx.chart.config.type === 'pie') {
-                  const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = ((value / sum) * 100).toFixed(1);
-                  return value > 0 ? `${value}\n(${percentage}%)` : '';
+                  return value > 0 ? value : '';
                 }
-                // Para gráficos de barra, mostrar valor formatado
-                else if (ctx.chart.config.type === 'bar') {
-                  return value > 0 ? 'R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 0}) : '';
-                }
-                return value;
+                // Para barras, mostrar valor formatado apenas se > 0
+                return value > 0 ? value.toLocaleString('pt-BR') : '';
               }
+            }
+          },
+          layout: {
+            padding: {
+              top: 5,
+              bottom: 5
             }
           }
         };
