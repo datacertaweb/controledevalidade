@@ -14,7 +14,7 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
       padding: 8px;
       padding-top: 60px;
@@ -374,11 +374,15 @@
       border-left: 4px solid #e74c3c;
     }
 
+    /* Cards com espaçamento e posicionamento correto */
     .stats-cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 15px;
       margin-bottom: 25px;
+      position: relative;
+      z-index: 10;
+      clear: both;
     }
 
     .stat-card {
@@ -389,6 +393,9 @@
       text-align: center;
       backdrop-filter: blur(10px);
       border-left: 5px solid #2c3e50;
+      position: relative;
+      z-index: 11;
+      transform: translateZ(0);
     }
 
     .stat-card h4 {
@@ -608,7 +615,7 @@
       margin-right: 8px;
     }
 
-    /* Animações otimizadas - removendo conflitos */
+    /* Animações otimizadas - sem conflitos */
     @keyframes slideUp {
       from {
         opacity: 0;
@@ -625,22 +632,14 @@
       animation: slideUp 0.4s ease-out;
     }
 
-    /* Remover animações conflitantes dos elementos internos */
+    /* Garantir que cards não tenham animações conflitantes */
     .stats-cards,
     .filtros-section,
-    .table-container {
-      animation: none;
-    }
-
-    /* Cards com posicionamento fixo */
-    .stats-cards {
-      position: relative;
-      z-index: 1;
-    }
-
+    .table-container,
     .stat-card {
-      position: relative;
-      z-index: 2;
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
     }
 
     /* Status badges responsivos */
