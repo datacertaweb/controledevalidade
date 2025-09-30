@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>DataCerta - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
@@ -12,42 +12,48 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      padding: 15px;
-      padding-top: 70px;
+      padding: 8px;
+      padding-top: 60px;
+      margin: 0;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
 
     .container {
-      max-width: min(1400px, 100% - 24px);
+      max-width: min(1400px, 100vw - 16px);
       margin: 0 auto;
-      padding: 12px;
+      padding: 8px;
     }
 
     /* === SIDEBAR STYLES === */
     .sidebar-toggle {
       position: fixed;
-      top: 12px;
-      left: 12px;
+      top: 10px;
+      left: 10px;
       transform: none;
       z-index: 1001;
-      background-color: #2c3e50;
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
       color: white;
       border: none;
       padding: 10px 12px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       font-size: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      transition: background-color 0.3s ease;
+      box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
+      transition: all 0.3s ease;
+      touch-action: manipulation;
     }
 
     .sidebar-toggle:hover {
-      background-color: #34495e;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(44, 62, 80, 0.4);
     }
 
     .sidebar {
@@ -487,50 +493,175 @@
 
     @media (max-width: 768px) {
       .sidebar {
-        width: 280px;
-        left: -280px;
+        width: 100vw;
+        left: -100vw;
       }
       
       .sidebar-toggle {
-        top: 15px;
-        left: 15px;
-        padding: 10px 12px;
-        font-size: 16px;
+        top: 8px;
+        left: 8px;
+        padding: 8px 10px;
+        font-size: 14px;
       }
 
       body {
-        padding-top: 60px;
+        padding: 4px;
+        padding-top: 55px;
+      }
+      
+      .container {
+        padding: 4px;
       }
 
       .graficos {
         grid-template-columns: 1fr;
+        gap: 16px;
       }
 
       .cards {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 15px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .card {
+        padding: 16px 12px;
+      }
+
+      .card h3 {
+        font-size: 12px;
+      }
+
+      .card p {
+        font-size: clamp(16px, 4vw, 20px);
       }
 
       header {
-        font-size: 24px;
-        padding-left: 48px;
+        font-size: clamp(20px, 5vw, 28px);
+        padding: 16px 12px;
+        margin-bottom: 20px;
+      }
+      
+      .chart-container {
+        padding: 20px 16px;
+      }
+      
+      .filtro {
+        padding: 16px;
+        width: 100%;
+      }
+      
+      .filtro select {
+        min-width: 150px;
+        width: 100%;
+      }
+      
+      .summary-section {
+        padding: 16px;
+      }
+      
+      .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
       }
     }
 
     @media (max-width: 480px) {
-      .sidebar {
-        width: 100vw;
-        left: -100vw;
+      body {
+        padding: 2px;
+        padding-top: 52px;
+      }
+      
+      .container {
+        padding: 2px;
+      }
+      
+      .sidebar-toggle {
+        top: 6px;
+        left: 6px;
+        padding: 6px 8px;
+        font-size: 13px;
       }
 
       .cards {
         grid-template-columns: 1fr;
+        gap: 8px;
       }
-
+      
+      .card {
+        padding: 12px 8px;
+      }
+      
+      header {
+        font-size: clamp(18px, 4vw, 24px);
+        padding: 12px 8px;
+        margin-bottom: 16px;
+      }
+      
+      .chart-container {
+        padding: 16px 12px;
+      }
+      
+      .chart-title {
+        font-size: 16px;
+        margin-bottom: 16px;
+      }
+      
+      .filtro {
+        padding: 12px;
+      }
+      
+      .filtro label {
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .filtro select {
+        padding: 10px 16px;
+        font-size: 15px;
+      }
+      
+      .summary-section {
+        padding: 12px;
+      }
+      
       .summary-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        grid-template-columns: 1fr;
+        gap: 8px;
       }
+      
+      .summary-item {
+        padding: 12px;
+      }
+      
+      .summary-item p {
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .card p {
+        font-size: clamp(14px, 4vw, 18px);
+      }
+      
+      .chart-container {
+        padding: 12px 8px;
+      }
+      
+      .filtro {
+        padding: 8px;
+      }
+    }
+    
+    /* Melhorias para dispositivos touch */
+    input, select, button {
+      -webkit-appearance: none;
+      touch-action: manipulation;
+    }
+    
+    /* Animações mais suaves */
+    .card, .chart-container, .filtro, .summary-section {
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
   </style>
 </head>
