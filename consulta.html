@@ -608,16 +608,39 @@
       margin-right: 8px;
     }
 
-    /* Efeitos visuais aprimorados */
+    /* Animações otimizadas - removendo conflitos */
     @keyframes slideUp {
       from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(20px);
       }
       to {
         opacity: 1;
         transform: translateY(0);
       }
+    }
+
+    /* Aplicar animação apenas no container principal */
+    .container {
+      animation: slideUp 0.4s ease-out;
+    }
+
+    /* Remover animações conflitantes dos elementos internos */
+    .stats-cards,
+    .filtros-section,
+    .table-container {
+      animation: none;
+    }
+
+    /* Cards com posicionamento fixo */
+    .stats-cards {
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-card {
+      position: relative;
+      z-index: 2;
     }
 
     /* Status badges responsivos */
@@ -673,9 +696,9 @@
   <div class="overlay" id="overlay" onclick="sidebarController.close()"></div>
 
   <div class="container">
-    <header class="fade-in">📅 Produtos a Vencer</header>
+    <header>📅 Produtos a Vencer</header>
 
-    <div class="stats-cards fade-in">
+    <div class="stats-cards">
       <div class="stat-card">
         <h4>Total de Produtos</h4>
         <p id="total-produtos">-</p>
@@ -694,7 +717,7 @@
       </div>
     </div>
 
-    <section class="filtros-section fade-in">
+    <section class="filtros-section">
       <div class="filtros">
         <div class="input-group">
           <label for="dias">Dias até Vencer</label>
@@ -719,7 +742,7 @@
       </div>
     </section>
 
-    <div class="table-container fade-in">
+    <div class="table-container">
       <div class="table-wrapper">
         <table>
           <thead>
@@ -1012,8 +1035,6 @@
 
         produtosPaginados.forEach((p, index) => {
           const tr = document.createElement("tr");
-          tr.style.animationDelay = (index * 0.05) + 's';
-          tr.className = 'fade-in';
           
           tr.innerHTML = `
             <td data-label="Código"><strong>${p.codigo}</strong></td>
