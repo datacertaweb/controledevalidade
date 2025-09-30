@@ -178,6 +178,14 @@
       display: block;
     }
     
+    /* Animação de bounce para o header */
+    @keyframes bounceIn {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.05); }
+      70% { transform: scale(0.9); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
     /* Animações de entrada */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
@@ -222,12 +230,11 @@
   </style>
 </head>
 <body>
-   <header> DataCerta 📊 </header>
+   <header style="animation: bounceIn 1s ease-out;"> DataCerta 📊 </header>
   <div id="login-container">
     <h2>Entre no Aplicativo</h2>
     <input type="text" id="username" placeholder="Usuário" autocomplete="off" required />
-    <input type="number" id="password" placeholder="Senha" maxlength="6" autocomplete="off"
-      inputmode="numeric" pattern="\d*" style="-webkit-text-security: disc;" required />
+    <input type="password" id="password" placeholder="Senha" autocomplete="off" required />
     <button onclick="login()">
       <span class="button-text">Entrar</span>
       <div class="loader"></div>
@@ -326,12 +333,6 @@
       
       if (!password) {
         errorMsg.textContent = "Digite sua senha.";
-        showFieldError(passwordInput);
-        return;
-      }
-      
-      if (password.length !== 6) {
-        errorMsg.textContent = "A senha deve ter exatamente 6 dígitos.";
         showFieldError(passwordInput);
         return;
       }
