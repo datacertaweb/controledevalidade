@@ -154,7 +154,13 @@ async function saveUsuario(e) {
 
     // Auto-gerar email fictício se não fornecido
     if (!email && username) {
-        email = `${username}@datacerta.app`;
+        // Sanitizar username para formato de email válido
+        const sanitizedUsername = username
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+            .replace(/\s+/g, '.') // Espaços viram pontos
+            .replace(/[^a-z0-9._-]/g, ''); // Remove caracteres inválidos
+        email = `${sanitizedUsername}@datacerta.app`;
     }
 
     if (!email) {
