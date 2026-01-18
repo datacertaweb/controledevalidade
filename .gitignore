@@ -3,6 +3,9 @@ node_modules/
 
 # Arquivos de banco de dados (SENSÍVEL - não subir!)
 database/
+
+# Supabase local (Edge Functions já estão no Cloud)
+supabase/
 *.sql
 
 # Documentação interna

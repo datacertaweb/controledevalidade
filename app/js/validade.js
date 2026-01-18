@@ -7,9 +7,16 @@ let lojas = [];
 let locais = [];
 let produtos = [];
 let estoque = [];
-let selectedLoja = null;
-let selectedLocal = null;
-let selectedStatus = null;
+
+// Filtros - agora suportam multi-seleção
+let selectedLojas = [];
+let selectedLocais = [];
+let selectedStatus = [];
+let dataInicio = null;
+let dataFim = null;
+// Paginação
+let currentPage = 1;
+let itemsPerPage = 25;
 
 window.addEventListener('supabaseReady', initValidade);
 setTimeout(() => { if (window.supabaseClient) initValidade(); }, 500);
@@ -53,46 +60,165 @@ async function loadLojas() {
 
     lojas = data || [];
 
-    // Filtro
-    const filterLoja = document.getElementById('filterLoja');
-    filterLoja.innerHTML = '<option value="">Todas as lojas</option>' +
-        lojas.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
+    // Renderizar Dropdown Customizado de Lojas
+    const lojaOptions = lojas.map(l => ({ value: l.id, label: l.nome }));
+    renderMultiSelect('dropdownLoja', lojaOptions, selectedLojas, (selected) => {
+        selectedLojas = selected;
+        currentPage = 1;
+        filterAndRender();
+    });
 
     // Modal
     const estoqueLoja = document.getElementById('estoqueLoja');
     estoqueLoja.innerHTML = '<option value="">Selecione...</option>' +
         lojas.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
+
+    // Carregar todos os locais de todas as lojas
+    await loadAllLocais();
+
+    // Inicializar Dropdown de Status
+    const statusOptions = [
+        { value: 'expired', label: 'Vencidos' },
+        { value: 'critical', label: 'Críticos' },
+        { value: 'warning', label: 'Alerta' },
+        { value: 'ok', label: 'OK' }
+    ];
+    renderMultiSelect('dropdownStatus', statusOptions, selectedStatus, (selected) => {
+        selectedStatus = selected;
+        currentPage = 1;
+        filterAndRender();
+    });
 }
 
-async function loadLocais(lojaId) {
-    if (!lojaId) {
-        locais = [];
-        document.getElementById('filterLocal').innerHTML = '<option value="">Todos os locais</option>';
-        document.getElementById('filterLocal').disabled = true;
-        document.getElementById('estoqueLocal').innerHTML = '<option value="">Selecione a loja primeiro</option>';
+let allLocais = []; // Todos os locais da empresa
+
+async function loadAllLocais() {
+    // Buscar locais de todas as lojas da empresa
+    const lojasIds = lojas.map(l => l.id);
+
+    if (lojasIds.length === 0) {
+        allLocais = [];
         return;
     }
 
     const { data } = await supabaseClient
         .from('locais')
         .select('*')
-        .eq('loja_id', lojaId)
+        .in('loja_id', lojasIds)
         .eq('ativo', true)
-        .order('ordem');
+        .order('nome');
 
-    locais = data || [];
+    allLocais = data || [];
 
-    document.getElementById('filterLocal').innerHTML = '<option value="">Todos os locais</option>' +
-        locais.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
-    document.getElementById('filterLocal').disabled = false;
+    // Popular filtro de local - agrupar por nome único (sem duplicatas)
+    const uniqueLocais = [...new Set(allLocais.map(l => l.nome))].sort();
+    const localOptions = uniqueLocais.map(nome => ({ value: nome, label: nome }));
 
+    renderMultiSelect('dropdownLocal', localOptions, selectedLocais, (selected) => {
+        selectedLocais = selected;
+        currentPage = 1;
+        filterAndRender();
+    });
+
+    locais = allLocais;
+}
+
+// Função Genérica para Multi-Select Dropdown
+function renderMultiSelect(containerId, options, selectedValues, onChangeCallback) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Criar estrutura se não existir ou limpar atual
+    container.innerHTML = '';
+
+    const count = selectedValues.length;
+    const labelText = count === 0 ? 'Todos' : (count === options.length ? 'Todos' : `${count} selecionado(s)`);
+
+    // Botão Principal
+    const btn = document.createElement('div');
+    btn.className = 'dropdown-btn';
+    btn.innerHTML = `<span>${labelText}</span>`;
+
+    // Conteúdo Dropdown
+    const content = document.createElement('div');
+    content.className = 'dropdown-content';
+
+    options.forEach(opt => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        const isSelected = selectedValues.includes(opt.value);
+
+        item.innerHTML = `
+            <input type="checkbox" value="${opt.value}" ${isSelected ? 'checked' : ''}>
+            <span>${opt.label}</span>
+        `;
+
+        // Evento de clique no item (toggle checkbox)
+        item.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'INPUT') {
+                const checkbox = item.querySelector('input');
+                checkbox.checked = !checkbox.checked;
+            }
+
+            // Atualizar seleção
+            const checkbox = item.querySelector('input');
+            const value = checkbox.value;
+
+            if (checkbox.checked) {
+                if (!selectedValues.includes(value)) selectedValues.push(value);
+            } else {
+                const index = selectedValues.indexOf(value);
+                if (index > -1) selectedValues.splice(index, 1);
+            }
+
+            // Atualizar label do botão
+            const newCount = selectedValues.length;
+            const newLabel = newCount === 0 ? 'Todos' : (newCount === options.length ? 'Todos' : `${newCount} selecionado(s)`);
+            btn.querySelector('span').textContent = newLabel;
+
+            // Callback
+            if (onChangeCallback) onChangeCallback(selectedValues);
+        });
+
+        content.appendChild(item);
+    });
+
+    container.appendChild(btn);
+    container.appendChild(content);
+
+    // Toggle dropdown
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Fechar outros dropdowns
+        document.querySelectorAll('.dropdown-content.show').forEach(el => {
+            if (el !== content) el.classList.remove('show');
+        });
+        content.classList.toggle('show');
+    });
+}
+
+// Fechar dropdowns ao clicar fora - Adicionar isso ao initEvents ou globalmente
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.multiselect-dropdown')) {
+        document.querySelectorAll('.dropdown-content.show').forEach(el => el.classList.remove('show'));
+    }
+});
+
+async function loadLocaisModal(lojaId) {
+    // Esta função é só para o modal de adicionar estoque
+    if (!lojaId) {
+        document.getElementById('estoqueLocal').innerHTML = '<option value="">Selecione a loja primeiro</option>';
+        return;
+    }
+
+    const locaisLoja = allLocais.filter(l => l.loja_id === lojaId);
     document.getElementById('estoqueLocal').innerHTML = '<option value="">Nenhum</option>' +
-        locais.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
+        locaisLoja.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
 }
 
 async function loadProdutos() {
     const { data } = await supabaseClient
-        .from('produtos')
+        .from('base')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
         .eq('ativo', true)
@@ -106,21 +232,14 @@ async function loadProdutos() {
 
 async function loadEstoque() {
     let query = supabaseClient
-        .from('estoque')
-        .select('*, produtos(descricao, valor_unitario, codigo), lojas(nome), locais(nome)')
+        .from('coletados')
+        .select('*, base(descricao, valor_unitario, codigo), lojas(nome), locais(nome)')
         .order('validade');
 
     // Filtrar por lojas da empresa - buscar primeiro as lojas
     const lojasIds = lojas.map(l => l.id);
     if (lojasIds.length > 0) {
         query = query.in('loja_id', lojasIds);
-    }
-
-    if (selectedLoja) {
-        query = query.eq('loja_id', selectedLoja);
-    }
-    if (selectedLocal) {
-        query = query.eq('local_id', selectedLocal);
     }
 
     const { data, error } = await query;
@@ -138,29 +257,53 @@ function filterAndRender() {
     const search = document.getElementById('filterSearch')?.value.toLowerCase() || '';
 
     let filtered = estoque;
-
-    // Filtro de busca
-    if (search) {
-        filtered = filtered.filter(e =>
-            e.produtos?.descricao?.toLowerCase().includes(search) ||
-            e.produtos?.codigo?.toLowerCase().includes(search)
-        );
-    }
-
-    // Filtro de status
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
-    if (selectedStatus) {
+    // Filtro de busca por texto
+    if (search) {
+        filtered = filtered.filter(e =>
+            e.base?.descricao?.toLowerCase().includes(search) ||
+            e.base?.codigo?.toLowerCase().includes(search) ||
+            e.lote?.toLowerCase().includes(search)
+        );
+    }
+
+    // Filtro de Lojas (multi-seleção)
+    if (selectedLojas.length > 0) {
+        filtered = filtered.filter(e => selectedLojas.includes(e.loja_id));
+    }
+
+    // Filtro de Locais/Setores (multi-seleção por NOME)
+    if (selectedLocais.length > 0) {
         filtered = filtered.filter(e => {
-            const status = getStatus(e.validade, hoje);
-            return status === selectedStatus;
+            const localNome = e.locais?.nome || '';
+            return selectedLocais.includes(localNome);
         });
     }
 
-    // Calcular resumo
+    // Filtro de Status (multi-seleção)
+    if (selectedStatus.length > 0) {
+        filtered = filtered.filter(e => {
+            const status = getStatus(e.validade, hoje);
+            return selectedStatus.includes(status);
+        });
+    }
+
+    // Filtro de Período (data inicial e final)
+    if (dataInicio) {
+        const inicio = new Date(dataInicio);
+        filtered = filtered.filter(e => new Date(e.validade) >= inicio);
+    }
+    if (dataFim) {
+        const fim = new Date(dataFim);
+        fim.setHours(23, 59, 59);
+        filtered = filtered.filter(e => new Date(e.validade) <= fim);
+    }
+
+    // Calcular resumo baseado no filtrado
     const counts = { expired: 0, critical: 0, warning: 0, ok: 0 };
-    estoque.forEach(e => {
+    filtered.forEach(e => {
         const status = getStatus(e.validade, hoje);
         counts[status]++;
     });
@@ -170,7 +313,42 @@ function filterAndRender() {
     document.getElementById('countAlertas').textContent = counts.warning;
     document.getElementById('countOk').textContent = counts.ok;
 
-    renderEstoque(filtered, hoje);
+    // Paginação
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+    // Ajustar página atual se exceder o total
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+
+    const paginatedItems = filtered.slice(startIndex, endIndex);
+
+    updatePaginationUI(totalItems, startIndex, endIndex, totalPages);
+    renderEstoque(paginatedItems, hoje);
+}
+
+function updatePaginationUI(totalItems, startIndex, endIndex, totalPages) {
+    const info = document.getElementById('paginationInfo');
+    const btnPrev = document.getElementById('btnPrevPage');
+    const btnNext = document.getElementById('btnNextPage');
+    const pageDisplay = document.getElementById('pageNumberDisplay');
+
+    if (totalItems === 0) {
+        info.innerHTML = 'Mostrando <strong>0 de 0</strong> itens';
+        btnPrev.disabled = true;
+        btnNext.disabled = true;
+        pageDisplay.textContent = 'Página 1';
+        return;
+    }
+
+    info.innerHTML = `Mostrando <strong>${startIndex + 1}-${endIndex} de ${totalItems}</strong> itens`;
+
+    btnPrev.disabled = currentPage === 1;
+    btnNext.disabled = currentPage === totalPages;
+    pageDisplay.textContent = `Página ${currentPage}`;
 }
 
 function getStatus(validade, hoje) {
@@ -178,8 +356,8 @@ function getStatus(validade, hoje) {
     const diff = Math.ceil((val - hoje) / (1000 * 60 * 60 * 24));
 
     if (diff < 0) return 'expired';
-    if (diff <= 3) return 'critical';
-    if (diff <= 7) return 'warning';
+    if (diff <= 5) return 'critical';
+    if (diff <= 14) return 'warning';
     return 'ok';
 }
 
@@ -206,7 +384,7 @@ function renderEstoque(lista, hoje) {
         return `
             <tr>
                 <td>
-                    <strong>${item.produtos?.descricao || '-'}</strong>
+                    <strong>${item.base?.descricao || '-'}</strong>
                     ${item.lote ? `<br><small style="color: var(--text-muted);">Lote: ${item.lote}</small>` : ''}
                 </td>
                 <td>${item.lojas?.nome || '-'}</td>
@@ -215,8 +393,7 @@ function renderEstoque(lista, hoje) {
                 <td>${val.toLocaleDateString('pt-BR')}</td>
                 <td>
                     <span class="validity-badge ${status}">
-                        ${statusLabels[status]}
-                        ${diff >= 0 ? `(${diff}d)` : ''}
+                        ${diff < 0 ? 'VENCIDO' : diff === 0 ? 'VENCE HOJE' : diff === 1 ? 'VENCE EM 1 DIA' : `VENCE EM ${diff} DIAS`}
                     </span>
                 </td>
                 <td>
@@ -249,24 +426,89 @@ function initEvents() {
         document.getElementById('sidebar').classList.toggle('open');
     });
 
-    // Filtros
-    document.getElementById('filterLoja')?.addEventListener('change', async (e) => {
-        selectedLoja = e.target.value || null;
-        await loadLocais(selectedLoja);
-        await loadEstoque();
-    });
-
-    document.getElementById('filterLocal')?.addEventListener('change', (e) => {
-        selectedLocal = e.target.value || null;
+    // Filtros de Data e Busca
+    document.getElementById('filterDataInicio')?.addEventListener('change', (e) => {
+        dataInicio = e.target.value || null;
+        currentPage = 1;
         filterAndRender();
     });
 
-    document.getElementById('filterStatus')?.addEventListener('change', (e) => {
-        selectedStatus = e.target.value || null;
+    document.getElementById('filterDataFim')?.addEventListener('change', (e) => {
+        dataFim = e.target.value || null;
+        currentPage = 1;
         filterAndRender();
     });
 
-    document.getElementById('filterSearch')?.addEventListener('input', filterAndRender);
+    document.getElementById('filterSearch')?.addEventListener('input', () => {
+        currentPage = 1;
+        filterAndRender();
+    });
+
+    // Eventos de Paginação
+    document.getElementById('itemsPerPage')?.addEventListener('change', (e) => {
+        itemsPerPage = parseInt(e.target.value);
+        currentPage = 1;
+        filterAndRender();
+    });
+
+    document.getElementById('btnPrevPage')?.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            filterAndRender();
+        }
+    });
+
+    document.getElementById('btnNextPage')?.addEventListener('click', () => {
+        // O limite superior será tratado dentro de filterAndRender
+        currentPage++;
+        filterAndRender();
+    });
+
+    // Botão Limpar Filtros
+    document.getElementById('btnLimparFiltros')?.addEventListener('click', async () => {
+        // Resetar inputs
+        document.getElementById('filterDataInicio').value = '';
+        document.getElementById('filterDataFim').value = '';
+        document.getElementById('filterSearch').value = '';
+
+        // Resetar Paginação
+        currentPage = 1;
+
+        // Resetar variáveis
+        selectedLojas = [];
+        selectedLocais = [];
+        selectedStatus = [];
+        dataInicio = null;
+        dataFim = null;
+
+        // Re-renderizar dropdowns com seleção vazia
+        // Loja
+        const lojaOptions = lojas.map(l => ({ value: l.id, label: l.nome }));
+        renderMultiSelect('dropdownLoja', lojaOptions, selectedLojas, (selected) => {
+            selectedLojas = selected;
+            currentPage = 1;
+            filterAndRender();
+        });
+
+        // Local (recarregar todos)
+        await loadAllLocais(); // Agora loadAllLocais deve incluir o reset de página no callback se possível, ou garantir que filterAndRender seja chamado.
+        // loadAllLocais chama renderMultiSelect que chama filterAndRender. Vamos atualizar loadAllLocais também.
+
+        // Status
+        const statusOptions = [
+            { value: 'expired', label: 'Vencidos' },
+            { value: 'critical', label: 'Críticos' },
+            { value: 'warning', label: 'Alerta' },
+            { value: 'ok', label: 'OK' }
+        ];
+        renderMultiSelect('dropdownStatus', statusOptions, selectedStatus, (selected) => {
+            selectedStatus = selected;
+            currentPage = 1;
+            filterAndRender();
+        });
+
+        filterAndRender();
+    });
 
     // Modal Estoque
     const modal = document.getElementById('modalEstoque');
@@ -283,7 +525,7 @@ function initEvents() {
     modal?.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
 
     document.getElementById('estoqueLoja')?.addEventListener('change', async (e) => {
-        await loadLocais(e.target.value);
+        await loadLocaisModal(e.target.value);
     });
 
     document.getElementById('formEstoque')?.addEventListener('submit', saveEstoque);
@@ -294,6 +536,52 @@ function initEvents() {
     document.getElementById('btnCancelPerda')?.addEventListener('click', () => modalPerda.classList.remove('active'));
     modalPerda?.addEventListener('click', (e) => { if (e.target === modalPerda) modalPerda.classList.remove('active'); });
     document.getElementById('formPerda')?.addEventListener('submit', savePerda);
+
+    // Exportar
+    document.getElementById('btnExportar')?.addEventListener('click', exportarEstoque);
+}
+
+function exportarEstoque() {
+    if (estoque.length === 0) {
+        alert('Nenhum item para exportar.');
+        return;
+    }
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    // Header
+    let csv = 'PRODUTO;CODIGO;LOJA;LOCAL;QUANTIDADE;VALIDADE;LOTE;STATUS;DIAS_RESTANTES\n';
+
+    // Dados
+    estoque.forEach(item => {
+        const val = new Date(item.validade);
+        const diff = Math.ceil((val - hoje) / (1000 * 60 * 60 * 24));
+
+        // Formato: VENCIDO ou VENCE EM X DIAS
+        let statusText;
+        if (diff < 0) statusText = 'VENCIDO';
+        else if (diff === 0) statusText = 'VENCE HOJE';
+        else if (diff === 1) statusText = 'VENCE EM 1 DIA';
+        else statusText = `VENCE EM ${diff} DIAS`;
+
+        csv += `${item.base?.descricao || ''};`;
+        csv += `${item.base?.codigo || ''};`;
+        csv += `${item.lojas?.nome || ''};`;
+        csv += `${item.locais?.nome || ''};`;
+        csv += `${item.quantidade};`;
+        csv += `${val.toLocaleDateString('pt-BR')};`;
+        csv += `${item.lote || ''};`;
+        csv += `${statusText};`;
+        csv += `${diff}\n`;
+    });
+
+    // Download
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `estoque_validade_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
 }
 
 async function saveEstoque(e) {
@@ -312,10 +600,10 @@ async function saveEstoque(e) {
 
     try {
         if (id) {
-            const { error } = await supabaseClient.from('estoque').update(data).eq('id', id);
+            const { error } = await supabaseClient.from('coletados').update(data).eq('id', id);
             if (error) throw error;
         } else {
-            const { error } = await supabaseClient.from('estoque').insert(data);
+            const { error } = await supabaseClient.from('coletados').insert(data);
             if (error) throw error;
         }
 
@@ -350,7 +638,7 @@ window.openPerda = function (id) {
 
     document.getElementById('perdaEstoqueId').value = item.id;
     document.getElementById('perdaProdutoInfo').textContent =
-        `Produto: ${item.produtos?.descricao} | Qtd disponível: ${item.quantidade}`;
+        `Produto: ${item.base?.descricao} | Qtd disponível: ${item.quantidade}`;
     document.getElementById('perdaQtd').value = item.quantidade;
     document.getElementById('perdaQtd').max = item.quantidade;
 
@@ -365,7 +653,7 @@ async function savePerda(e) {
     if (!item) return;
 
     const qtd = parseInt(document.getElementById('perdaQtd').value);
-    const valorPerda = (item.produtos?.valor_unitario || 0) * qtd;
+    const valorPerda = (item.base?.valor_unitario || 0) * qtd;
 
     try {
         // Registrar perda
@@ -385,9 +673,9 @@ async function savePerda(e) {
 
         // Atualizar ou remover estoque
         if (qtd >= item.quantidade) {
-            await supabaseClient.from('estoque').delete().eq('id', estoqueId);
+            await supabaseClient.from('coletados').delete().eq('id', estoqueId);
         } else {
-            await supabaseClient.from('estoque').update({
+            await supabaseClient.from('coletados').update({
                 quantidade: item.quantidade - qtd
             }).eq('id', estoqueId);
         }

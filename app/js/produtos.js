@@ -40,7 +40,7 @@ function updateUserUI() {
 
 async function loadProdutos() {
     const { data, error } = await supabaseClient
-        .from('produtos')
+        .from('base')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
         .eq('ativo', true)
@@ -136,6 +136,9 @@ function initEvents() {
 
     document.getElementById('formProduto')?.addEventListener('submit', saveProduto);
 
+    // Botão Exportar
+    document.getElementById('btnExportar')?.addEventListener('click', exportarProdutos);
+
     // Modal Importar
     initImportEvents();
 }
@@ -154,10 +157,10 @@ async function saveProduto(e) {
 
     try {
         if (id) {
-            const { error } = await supabaseClient.from('produtos').update(data).eq('id', id);
+            const { error } = await supabaseClient.from('base').update(data).eq('id', id);
             if (error) throw error;
         } else {
-            const { error } = await supabaseClient.from('produtos').insert(data);
+            const { error } = await supabaseClient.from('base').insert(data);
             if (error) throw error;
         }
 
@@ -187,7 +190,7 @@ window.deleteProduto = async function (id) {
     if (!confirm('Tem certeza que deseja excluir este produto?')) return;
 
     try {
-        const { error } = await supabaseClient.from('produtos').update({ ativo: false }).eq('id', id);
+        const { error } = await supabaseClient.from('base').update({ ativo: false }).eq('id', id);
         if (error) throw error;
         await loadProdutos();
     } catch (error) {
@@ -498,7 +501,7 @@ async function startImport() {
 
         try {
             const { error } = await supabaseClient
-                .from('produtos')
+                .from('base')
                 .insert(records);
 
             if (error) throw error;
@@ -549,3 +552,30 @@ SKU004;REFRIGERANTE 2L;7891234567893;BEBIDAS`;
     link.download = 'modelo_produtos_datacerta.csv';
     link.click();
 }
+
+// =============================================
+// EXPORTAÇÃO DE PRODUTOS
+// =============================================
+
+function exportarProdutos() {
+    if (produtos.length === 0) {
+        alert('Nenhum produto para exportar.');
+        return;
+    }
+
+    // Header
+    let csv = 'CODIGO;DESCRICAO;EAN;CATEGORIA\n';
+
+    // Dados
+    produtos.forEach(p => {
+        csv += `${p.codigo || ''};${p.descricao || ''};${p.ean || ''};${p.categoria || ''}\n`;
+    });
+
+    // Download
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `produtos_datacerta_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+}
+

@@ -4,10 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataCerta - Usuários</title>
+    <title>DataCerta - Funções e Permissões</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/validade.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .permission-group {
+            border: 1px solid var(--border-secondary);
+            border-radius: 8px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+        }
+
+        .permission-group h4 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-secondary);
+            padding-bottom: 4px;
+        }
+
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .modal {
+            max-width: 800px;
+        }
+    </style>
 </head>
 
 <body>
@@ -65,12 +100,12 @@
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
                     </svg></span><span class="nav-text">Locais</span></a>
-            <a href="usuarios.html" class="nav-item active"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none"
+            <a href="usuarios.html" class="nav-item"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                         <circle cx="9" cy="7" r="4" />
                     </svg></span><span class="nav-text">Usuários</span></a>
-            <a href="roles.html" class="nav-item"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none"
+            <a href="roles.html" class="nav-item active"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg></span><span class="nav-text">Permissões</span></a>
@@ -101,17 +136,17 @@
                     </svg>
                 </button>
                 <div class="page-title">
-                    <h1>Usuários</h1>
-                    <p class="page-subtitle">Gerencie os usuários da empresa</p>
+                    <h1>Funções e Permissões</h1>
+                    <p class="page-subtitle">Gerencie os níveis de acesso e papéis de usuário</p>
                 </div>
             </div>
             <div class="header-actions">
-                <button class="btn btn-primary" id="btnNovoUsuario">
+                <button class="btn btn-primary" id="btnNovaRole">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                         <line x1="12" y1="5" x2="12" y2="19" />
                         <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
-                    Novo Usuário
+                    Nova Função
                 </button>
             </div>
         </header>
@@ -122,14 +157,13 @@
                     <thead>
                         <tr>
                             <th>Nome</th>
-                            <th>Usuário</th>
-                            <th>Email</th>
-                            <th>Função</th>
-                            <th>Status</th>
+                            <th>Descrição</th>
+                            <th>Permissões</th>
+                            <th>Padrão</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="usuariosTable">
+                    <tbody id="rolesTable">
                         <tr>
                             <td colspan="5" style="text-align: center; padding: 40px;">Carregando...</td>
                         </tr>
@@ -139,38 +173,32 @@
         </section>
     </main>
 
-    <!-- Modal Novo Usuário -->
-    <div class="modal-overlay" id="modalUsuario">
+    <!-- Modal Role -->
+    <div class="modal-overlay" id="modalRole">
         <div class="modal">
             <div class="modal-header">
-                <h2 id="modalTitle">Novo Usuário</h2>
+                <h2 id="modalTitle">Nova Função</h2>
                 <button class="modal-close" id="modalClose">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="formUsuario">
-                    <input type="hidden" id="usuarioId">
+                <form id="formRole">
+                    <input type="hidden" id="roleId">
                     <div class="form-group">
-                        <label for="usuarioNome">Nome *</label>
-                        <input type="text" id="usuarioNome" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="usuarioUsername">Usuário (Login)</label>
-                        <input type="text" id="usuarioUsername" placeholder="ex: joao.silva">
-                        <small style="color: var(--text-muted);">Usado para login alternativo</small>
+                        <label for="roleNome">Nome da Função *</label>
+                        <input type="text" id="roleNome" required placeholder="Ex: Gerente">
                     </div>
                     <div class="form-group">
-                        <label for="usuarioEmail">Email (Opcional se tiver Usuário)</label>
-                        <input type="email" id="usuarioEmail" placeholder="Gerado automaticamente se vazio">
+                        <label for="roleDescricao">Descrição</label>
+                        <input type="text" id="roleDescricao" placeholder="Breve descrição das responsabilidades">
                     </div>
-                    <div class="form-group" id="senhaGroup">
-                        <label for="usuarioSenha">Senha *</label>
-                        <input type="password" id="usuarioSenha" minlength="6">
-                        <small style="color: var(--text-muted);">Mínimo 6 caracteres</small>
-                    </div>
+
                     <div class="form-group">
-                        <label for="usuarioRole">Função *</label>
-                        <select id="usuarioRole" required></select>
+                        <label>Permissões</label>
+                        <div id="permissionsContainer" class="permissions-grid">
+                            <!-- Populated via JS -->
+                        </div>
                     </div>
+
                     <div class="form-actions">
                         <button type="button" class="btn btn-outline" id="btnCancelModal">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Salvar</button>
@@ -182,7 +210,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
-    <script src="js/usuarios.js"></script>
+    <script src="js/roles.js"></script>
 </body>
 
 </html>

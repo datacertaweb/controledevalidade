@@ -76,17 +76,59 @@ window.auth = {
         }
 
         // Se não for master, buscar em usuarios
-        const { data: userData } = await window.supabaseClient
+        const { data: userDataRaw } = await window.supabaseClient
             .from('usuarios')
-            .select('*, empresas(nome), roles(nome, is_admin)')
+            .select(`
+                *, 
+                empresas(nome), 
+                roles(
+                    nome, 
+                    is_admin,
+                    role_permissions(
+                        permissions(codigo)
+                    )
+                ),
+                usuario_permissions(
+                    permissions(codigo)
+                )
+            `)
             .eq('id', user.id)
             .single();
 
-        if (userData) {
-            return { ...userData, tipo: 'empresa' };
+        if (userDataRaw) {
+            // Processar permissões
+            const perms = new Set();
+
+            // Permissões da Role
+            if (userDataRaw.roles?.role_permissions) {
+                userDataRaw.roles.role_permissions.forEach(rp => {
+                    if (rp.permissions?.codigo) perms.add(rp.permissions.codigo);
+                });
+            }
+
+            // Permissões Diretas
+            if (userDataRaw.usuario_permissions) {
+                userDataRaw.usuario_permissions.forEach(up => {
+                    if (up.permissions?.codigo) perms.add(up.permissions.codigo);
+                });
+            }
+
+            // Admin (permissão curinga)
+            if (userDataRaw.roles?.is_admin) perms.add('*');
+
+            return { ...userDataRaw, tipo: 'empresa', permissions: Array.from(perms) };
         }
 
         return null;
+    },
+
+    /**
+     * Verifica permissão
+     */
+    hasPermission(userData, code) {
+        if (!userData || !userData.permissions) return false;
+        if (userData.permissions.includes('*')) return true;
+        return userData.permissions.includes(code);
     },
 
     /**

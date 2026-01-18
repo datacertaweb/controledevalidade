@@ -30,8 +30,8 @@
 
             <form id="loginForm" class="login-form">
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" required placeholder="seu@email.com">
+                    <label for="email">Email ou Usuário</label>
+                    <input type="text" id="email" required placeholder="email@exemplo.com ou usuario">
                 </div>
 
                 <div class="form-group">
@@ -99,7 +99,7 @@
                 return;
             }
 
-            const email = document.getElementById('email').value;
+            let loginInput = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
 
             btnLogin.disabled = true;
@@ -108,8 +108,31 @@
             errorMessage.classList.add('hidden');
 
             try {
-                console.log('Tentando login com:', email);
-                const result = await auth.signIn(email, password);
+                let emailToUse = loginInput;
+
+                // Verificar se é email (validacao simples)
+                const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginInput);
+
+                if (!isEmail) {
+                    // Tentar resolver username -> email usando RPC
+                    console.log('Input não é email, tentando resolver username:', loginInput);
+                    const { data, error } = await window.supabaseClient.rpc('get_email_by_username', { uname: loginInput });
+
+                    if (error) {
+                        console.error('Erro RPC:', error);
+                        throw new Error('Erro ao validar usuário.');
+                    }
+
+                    if (!data) {
+                        throw new Error('Usuário não encontrado.');
+                    }
+
+                    emailToUse = data;
+                    console.log('Username resolvido para email:', emailToUse);
+                }
+
+                console.log('Tentando login com:', emailToUse);
+                const result = await auth.signIn(emailToUse, password);
                 console.log('Login resultado:', result);
 
                 console.log('Buscando dados do usuário...');

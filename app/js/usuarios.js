@@ -22,9 +22,9 @@ async function initUsuarios() {
         userData = await auth.getCurrentUserData();
         if (!userData || userData.tipo !== 'empresa') { window.location.href = 'login.html'; return; }
 
-        // Verificar se é admin
-        if (!userData.roles?.is_admin) {
-            alert('Apenas administradores podem acessar esta página.');
+        // Verificar permissão
+        if (!auth.hasPermission(userData, 'usuario.view')) {
+            alert('Você não tem permissão para acessar esta página.');
             window.location.href = 'index.html';
             return;
         }
@@ -85,6 +85,7 @@ function renderUsuarios() {
     tbody.innerHTML = usuarios.map(u => `
         <tr>
             <td><strong>${u.nome}</strong></td>
+            <td>${u.username || '-'}</td>
             <td>${u.email}</td>
             <td>${u.roles?.nome || '-'}</td>
             <td>
@@ -128,6 +129,7 @@ function initEvents() {
         document.getElementById('modalTitle').textContent = 'Novo Usuário';
         document.getElementById('formUsuario').reset();
         document.getElementById('usuarioId').value = '';
+        document.getElementById('usuarioUsername').value = '';
         document.getElementById('senhaGroup').style.display = 'block';
         document.getElementById('usuarioSenha').required = true;
         modal.classList.add('active');
@@ -145,36 +147,58 @@ async function saveUsuario(e) {
 
     const id = document.getElementById('usuarioId').value;
     const nome = document.getElementById('usuarioNome').value;
-    const email = document.getElementById('usuarioEmail').value;
+    const username = document.getElementById('usuarioUsername').value || null;
+    let email = document.getElementById('usuarioEmail').value;
     const senha = document.getElementById('usuarioSenha').value;
-    const role_id = document.getElementById('usuarioRole').value;
+    const role_id = document.getElementById('usuarioRole').value || null;
+
+    // Auto-gerar email fictício se não fornecido
+    if (!email && username) {
+        email = `${username}@datacerta.app`;
+    }
+
+    if (!email) {
+        alert('Email ou Usuário é obrigatório.');
+        return;
+    }
 
     try {
         if (id) {
-            // Editar
+            // Editar usuário existente
             const { error } = await supabaseClient.from('usuarios').update({
                 nome,
+                username,
                 role_id
             }).eq('id', id);
             if (error) throw error;
         } else {
-            // Criar - primeiro no auth
-            const { data: authData, error: authError } = await supabaseClient.auth.signUp({
-                email,
-                password: senha,
-                options: { data: { nome } }
-            });
-            if (authError) throw authError;
+            // Criar novo usuário via Edge Function (Admin API)
+            const { data: session } = await supabaseClient.auth.getSession();
+            if (!session?.session?.access_token) {
+                throw new Error('Sessão inválida. Faça login novamente.');
+            }
 
-            // Depois na tabela usuarios
-            const { error } = await supabaseClient.from('usuarios').insert({
-                id: authData.user.id,
-                empresa_id: userData.empresa_id,
-                email,
-                nome,
-                role_id
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.session.access_token}`
+                },
+                body: JSON.stringify({
+                    email,
+                    password: senha,
+                    nome,
+                    username,
+                    empresa_id: userData.empresa_id,
+                    role_id
+                })
             });
-            if (error) throw error;
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.error || 'Erro ao criar usuário');
+            }
         }
 
         document.getElementById('modalUsuario').classList.remove('active');
@@ -193,6 +217,7 @@ window.editUsuario = async function (id) {
     document.getElementById('modalTitle').textContent = 'Editar Usuário';
     document.getElementById('usuarioId').value = u.id;
     document.getElementById('usuarioNome').value = u.nome;
+    document.getElementById('usuarioUsername').value = u.username || '';
     document.getElementById('usuarioEmail').value = u.email;
     document.getElementById('usuarioEmail').disabled = true;
     document.getElementById('senhaGroup').style.display = 'none';
