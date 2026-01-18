@@ -195,6 +195,12 @@ window.editProduto = async function (id) {
 };
 
 window.deleteProduto = async function (id) {
+    // Verificar permissão
+    if (!auth.hasPermission(userData, 'base.delete')) {
+        alert('Você não tem permissão para excluir produtos.');
+        return;
+    }
+
     if (!confirm('Tem certeza que deseja excluir este produto?')) return;
 
     try {
