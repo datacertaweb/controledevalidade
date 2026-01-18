@@ -12,6 +12,9 @@ let userData = null;
 let empresaData = null;
 let lojas = [];
 let selectedLoja = null;
+let selectedStatus = null;
+let dataInicio = null;
+let dataFim = null;
 let chartInstances = {};
 
 // Aguardar Supabase
@@ -138,16 +141,44 @@ async function loadDashboard() {
         estoqueEmpresa = estoqueEmpresa.filter(e => e.loja_id === selectedLoja);
     }
 
-    // Ocultar vencidos há mais de 30 dias para manter dashboard limpo
-    const trintaDiasAtras = new Date();
-    trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
-    estoqueEmpresa = estoqueEmpresa.filter(e => {
-        const validade = new Date(e.validade);
-        return validade >= trintaDiasAtras;
-    });
+    // Filtros de Data
+    if (dataInicio) {
+        const inicio = new Date(dataInicio);
+        estoqueEmpresa = estoqueEmpresa.filter(e => new Date(e.validade) >= inicio);
+    }
+    if (dataFim) {
+        const fim = new Date(dataFim);
+        fim.setHours(23, 59, 59);
+        estoqueEmpresa = estoqueEmpresa.filter(e => new Date(e.validade) <= fim);
+    }
+
+    // Ocultar vencidos há mais de 30 dias (apenas se não houver filtro de data)
+    if (!dataInicio && !dataFim) {
+        const trintaDiasAtras = new Date();
+        trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
+        estoqueEmpresa = estoqueEmpresa.filter(e => {
+            const validade = new Date(e.validade);
+            return validade >= trintaDiasAtras;
+        });
+    }
 
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
+
+    // Filtro de Status
+    if (selectedStatus) {
+        estoqueEmpresa = estoqueEmpresa.filter(e => {
+            const val = new Date(e.validade);
+            const diff = Math.ceil((val - hoje) / (1000 * 60 * 60 * 24));
+
+            let status = 'ok';
+            if (diff < 0) status = 'expired';
+            else if (diff >= 0 && diff <= 3) status = 'critical';
+            else if (diff > 3 && diff <= 7) status = 'warning';
+
+            return status === selectedStatus;
+        });
+    }
 
     // Calcular KPIs
     const vencidos = estoqueEmpresa.filter(e => new Date(e.validade) < hoje);
@@ -589,6 +620,22 @@ function initEvents() {
     // Filtro de loja
     document.getElementById('lojaFilter')?.addEventListener('change', (e) => {
         selectedLoja = e.target.value || null;
+        loadDashboard();
+    });
+
+    // Filtros adicionais
+    document.getElementById('statusFilter')?.addEventListener('change', (e) => {
+        selectedStatus = e.target.value || null;
+        loadDashboard();
+    });
+
+    document.getElementById('dataInicioFilter')?.addEventListener('change', (e) => {
+        dataInicio = e.target.value || null;
+        loadDashboard();
+    });
+
+    document.getElementById('dataFimFilter')?.addEventListener('change', (e) => {
+        dataFim = e.target.value || null;
         loadDashboard();
     });
 }

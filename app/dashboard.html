@@ -477,7 +477,16 @@
                     <p class="page-subtitle" id="empresaNome">Carregando...</p>
                 </div>
             </div>
-            <div class="header-actions">
+            <div class="header-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <select class="filter-input" id="statusFilter" style="min-width: 150px;">
+                    <option value="">Todos os status</option>
+                    <option value="expired">Vencidos</option>
+                    <option value="critical">Críticos</option>
+                    <option value="warning">Alerta</option>
+                    <option value="ok">OK</option>
+                </select>
+                <input type="date" id="dataInicioFilter" class="filter-input" title="Data Inicial">
+                <input type="date" id="dataFimFilter" class="filter-input" title="Data Final">
                 <select class="filter-input" id="lojaFilter" style="min-width: 200px;">
                     <option value="">Todas as lojas</option>
                 </select>

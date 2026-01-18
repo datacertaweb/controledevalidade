@@ -6,6 +6,7 @@ let userData = null;
 let usuarios = [];
 let roles = [];
 let lojas = [];
+let permissions = [];
 
 window.addEventListener('supabaseReady', initUsuarios);
 setTimeout(() => { if (window.supabaseClient) initUsuarios(); }, 500);
@@ -31,8 +32,10 @@ async function initUsuarios() {
         }
 
         updateUserUI();
+        updateUserUI();
         await loadRoles();
         await loadLojas();
+        await loadAllPermissions();
         await loadUsuarios();
         initEvents();
     } catch (error) {
@@ -167,7 +170,10 @@ function initEvents() {
         document.getElementById('usuarioEmail').disabled = false;
         document.getElementById('senhaGroup').style.display = 'block';
         document.getElementById('usuarioSenha').required = true;
+        document.getElementById('senhaGroup').style.display = 'block';
+        document.getElementById('usuarioSenha').required = true;
         renderLojasCheckboxes(); // Reset lojas checkboxes
+        renderPermissionsCheckboxes(); // Reset permissions
         modal.classList.add('active');
     });
 
@@ -256,9 +262,12 @@ async function saveUsuario(e) {
             }
         }
 
-        // Salvar vínculos de lojas
+        // Salvar vínculos de lojas e permissões
         if (usuarioId) {
-            await saveUsuarioLojas(usuarioId);
+            await Promise.all([
+                saveUsuarioLojas(usuarioId),
+                saveUsuarioPermissions(usuarioId)
+            ]);
         }
 
         document.getElementById('modalUsuario').classList.remove('active');
@@ -311,8 +320,76 @@ window.editUsuario = async function (id) {
     const selectedLojaIds = (userLojas || []).map(ul => ul.loja_id);
     renderLojasCheckboxes(selectedLojaIds);
 
+    // Load user's direct permissions
+    const { data: userPerms } = await supabaseClient
+        .from('usuario_permissions')
+        .select('permission_id')
+        .eq('usuario_id', id);
+
+    const selectedPermIds = (userPerms || []).map(up => up.permission_id);
+    renderPermissionsCheckboxes(selectedPermIds);
+
     document.getElementById('modalUsuario').classList.add('active');
 };
+
+async function loadAllPermissions() {
+    const { data } = await supabaseClient
+        .from('permissions')
+        .select('*')
+        .order('categoria')
+        .order('nome');
+
+    permissions = data || [];
+}
+
+function renderPermissionsCheckboxes(selectedIds = []) {
+    const container = document.getElementById('permissoesContainer');
+
+    if (permissions.length === 0) {
+        container.innerHTML = '<span style="color: var(--text-muted);">Nenhuma permissão encontrada</span>';
+        return;
+    }
+
+    // Agrupar por categoria
+    const grouped = {};
+    permissions.forEach(p => {
+        if (!grouped[p.categoria]) grouped[p.categoria] = [];
+        grouped[p.categoria].push(p);
+    });
+
+    let html = '';
+    for (const [cat, perms] of Object.entries(grouped)) {
+        html += `<div style="margin-bottom: 10px;">
+            <strong style="display: block; font-size: 0.85rem; color: var(--text); margin-bottom: 4px;">${cat.toUpperCase()}</strong>
+            ${perms.map(p => `
+                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="usuarioPermissoes" value="${p.id}" ${selectedIds.includes(p.id) ? 'checked' : ''}>
+                    <span>${p.nome} <small style="color: var(--text-muted);">(${p.codigo})</small></span>
+                </label>
+            `).join('')}
+        </div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+async function saveUsuarioPermissions(usuarioId) {
+    // Get selected permissions
+    const selectedPerms = Array.from(document.querySelectorAll('input[name="usuarioPermissoes"]:checked'))
+        .map(cb => cb.value);
+
+    // Delete existing direct permissions
+    await supabaseClient.from('usuario_permissions').delete().eq('usuario_id', usuarioId);
+
+    // Insert new permissions
+    if (selectedPerms.length > 0) {
+        const rows = selectedPerms.map(permission_id => ({
+            usuario_id: usuarioId,
+            permission_id
+        }));
+        await supabaseClient.from('usuario_permissions').insert(rows);
+    }
+}
 
 window.toggleUsuario = async function (id, ativo) {
     const action = ativo ? 'desativar' : 'ativar';
