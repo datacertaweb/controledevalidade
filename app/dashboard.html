@@ -477,21 +477,59 @@
                     <p class="page-subtitle" id="empresaNome">Carregando...</p>
                 </div>
             </div>
-            <div class="header-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <select class="filter-input" id="statusFilter" style="min-width: 150px;">
-                    <option value="">Todos os status</option>
-                    <option value="expired">Vencidos</option>
-                    <option value="critical">Críticos</option>
-                    <option value="warning">Alerta</option>
-                    <option value="ok">OK</option>
-                </select>
-                <input type="date" id="dataInicioFilter" class="filter-input" title="Data Inicial">
-                <input type="date" id="dataFimFilter" class="filter-input" title="Data Final">
-                <select class="filter-input" id="lojaFilter" style="min-width: 200px;">
-                    <option value="">Todas as lojas</option>
-                </select>
+            <div class="header-actions">
+                <!-- Ações do cabeçalho se houver -->
             </div>
         </header>
+
+        <!-- Filtros (Layout igual validade.html) -->
+        <section class="filter-section"
+            style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; align-items: end;">
+
+                <!-- Filtro Loja -->
+                <div class="filter-group">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Loja</label>
+                    <select class="filter-input" id="lojaFilter"
+                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: #F8FAFC; font-size: 14px;">
+                        <option value="">Todas as lojas</option>
+                    </select>
+                </div>
+
+                <!-- Filtro Status -->
+                <div class="filter-group">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Status</label>
+                    <select class="filter-input" id="statusFilter"
+                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: #F8FAFC; font-size: 14px;">
+                        <option value="">Todos os status</option>
+                        <option value="expired">Vencidos</option>
+                        <option value="critical">Críticos</option>
+                        <option value="warning">Alerta</option>
+                        <option value="ok">OK</option>
+                    </select>
+                </div>
+
+                <!-- Filtro Data Inicio -->
+                <div class="filter-group">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">De</label>
+                    <input type="date" id="dataInicioFilter" class="filter-input"
+                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: #F8FAFC; font-size: 14px;">
+                </div>
+
+                <!-- Filtro Data Fim -->
+                <div class="filter-group">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Até</label>
+                    <input type="date" id="dataFimFilter" class="filter-input"
+                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #CBD5E1; background: #F8FAFC; font-size: 14px;">
+                </div>
+
+            </div>
+        </section>
 
         <!-- KPIs Row 1 - Urgência -->
         <section class="kpi-row">
