@@ -138,6 +138,14 @@ async function loadDashboard() {
         estoqueEmpresa = estoqueEmpresa.filter(e => e.loja_id === selectedLoja);
     }
 
+    // Ocultar vencidos há mais de 30 dias para manter dashboard limpo
+    const trintaDiasAtras = new Date();
+    trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
+    estoqueEmpresa = estoqueEmpresa.filter(e => {
+        const validade = new Date(e.validade);
+        return validade >= trintaDiasAtras;
+    });
+
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 

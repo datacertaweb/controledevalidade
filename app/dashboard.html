@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCerta - Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <style>
+        /* Dashboard específico */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* KPI Cards - Row 1 */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .kpi-card.urgent {
+            border-left: 4px solid #EF4444;
+        }
+
+        .kpi-card.critical {
+            border-left: 4px solid #F97316;
+        }
+
+        .kpi-card.warning {
+            border-left: 4px solid #F59E0B;
+        }
+
+        .kpi-card.success {
+            border-left: 4px solid #10B981;
+        }
+
+        .kpi-card.info {
+            border-left: 4px solid #14B8A6;
+        }
+
+        .kpi-card.money {
+            border-left: 4px solid #8B5CF6;
+        }
+
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .kpi-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+        }
+
+        .kpi-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .kpi-value {
+            display: block;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .kpi-label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .kpi-change {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .kpi-change.up {
+            color: #EF4444;
+        }
+
+        .kpi-change.down {
+            color: #10B981;
+        }
+
+        /* Charts Grid */
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .chart-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .chart-header .subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .chart-body {
+            position: relative;
+            height: 280px;
+        }
+
+        .chart-body.small {
+            height: 200px;
+        }
+
+        /* Alerts Section */
+        .alerts-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .alerts-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alerts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: var(--bg);
+            transition: background 0.2s;
+        }
+
+        .alert-item:hover {
+            background: #E2E8F0;
+        }
+
+        .alert-item.vencido {
+            background: #FEE2E2;
+            border-left: 3px solid #EF4444;
+        }
+
+        .alert-item.critico {
+            background: #FFEDD5;
+            border-left: 3px solid #F97316;
+        }
+
+        .alert-item.alerta {
+            background: #FEF3C7;
+            border-left: 3px solid #F59E0B;
+        }
+
+        .alert-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .alert-badge.vencido {
+            background: #EF4444;
+            color: white;
+        }
+
+        .alert-badge.critico {
+            background: #F97316;
+            color: white;
+        }
+
+        .alert-badge.alerta {
+            background: #F59E0B;
+            color: white;
+        }
+
+        .alert-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .alert-product {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .alert-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .alert-qty {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .alert-qty-value {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 1.1rem;
+        }
+
+        .alert-qty-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Summary Row */
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-item-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .summary-item-value {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .summary-item-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--bg);
+            border-radius: 4px;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+
+        .summary-item-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .kpi-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-value {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                </div>
+                <span class="logo-text">Data<span>Certa</span></span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item active">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg></span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="validade.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg></span>
+                <span class="nav-text">Validades</span>
+            </a>
+            <a href="produtos.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    </svg></span>
+                <span class="nav-text">Produtos</span>
+            </a>
+            <a href="lojas.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 21h18" />
+                        <path d="M5 21V7l8-4v18" />
+                        <path d="M19 21V11l-6-4" />
+                    </svg></span>
+                <span class="nav-text">Lojas</span>
+            </a>
+            <a href="locais.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                    </svg></span>
+                <span class="nav-text">Locais</span>
+            </a>
+            <a href="usuarios.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                    </svg></span>
+                <span class="nav-text">Usuários</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">US</div>
+                <div class="user-details">
+                    <span class="user-name" id="userName">Usuário</span>
+                    <span class="user-role" id="userRole">Carregando...</span>
+                </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="auth.signOut()"
+                style="margin-top: 10px; width: 100%;">Sair</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+                <div class="page-title">
+                    <h1>Dashboard</h1>
+                    <p class="page-subtitle" id="empresaNome">Carregando...</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <select class="filter-input" id="lojaFilter" style="min-width: 200px;">
+                    <option value="">Todas as lojas</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- KPIs Row 1 - Urgência -->
+        <section class="kpi-row">
+            <div class="kpi-card urgent">
+                <div class="kpi-icon" style="background: linear-gradient(135deg, #EF4444, #F87171);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value" id="kpiVencidos">0</span>
+                    <span class="kpi-label">Vencidos</span>
+                </div>
+            </div>
+
+            <div class="kpi-card critical">
+                <div class="kpi-icon" style="background: linear-gradient(135deg, #F97316, #FB923C);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value" id="kpiCriticos">0</span>
+                    <span class="kpi-label">Críticos (1-3 dias)</span>
+                </div>
+            </div>
+
+            <div class="kpi-card warning">
+                <div class="kpi-icon" style="background: linear-gradient(135deg, #F59E0B, #FBBF24);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value" id="kpiAlertas">0</span>
+                    <span class="kpi-label">Alerta (4-7 dias)</span>
+                </div>
+            </div>
+
+            <div class="kpi-card success">
+                <div class="kpi-icon" style="background: linear-gradient(135deg, #10B981, #34D399);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value" id="kpiOk">0</span>
+                    <span class="kpi-label">OK (+8 dias)</span>
+                </div>
+            </div>
+
+            <div class="kpi-card info">
+                <div class="kpi-icon" style="background: linear-gradient(135deg, #14B8A6, #2DD4BF);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    </svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value" id="kpiTotal">0</span>
+                    <span class="kpi-label">Total em Estoque</span>
+                </div>
+            </div>
+
+            <div class="kpi-card money">
+                <div class="kpi-icon" style="background: linear-gradient(135deg, #8B5CF6, #A78BFA);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23" />
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-value" id="kpiPerdas">R$ 0</span>
+                    <span class="kpi-label">Perdas (mês)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Alertas Urgentes -->
+        <section class="alerts-section">
+            <div class="alerts-header">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" width="20" height="20">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    Produtos que Precisam de Atenção
+                </h3>
+                <a href="validade.html" style="color: var(--primary); font-size: 0.85rem; text-decoration: none;">Ver
+                    todos →</a>
+            </div>
+            <div class="alerts-list" id="alertsList">
+                <div class="alert-item">
+                    <span style="color: var(--text-muted);">Carregando...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Row -->
+        <section class="charts-row">
+            <div class="chart-card full-width">
+                <div class="chart-header">
+                    <div>
+                        <h3>Vencimentos por Mês</h3>
+                        <p class="subtitle">Próximos 6 meses</p>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <canvas id="monthChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary Cards Row -->
+        <section class="summary-row">
+            <div class="summary-card">
+                <h4>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" width="18"
+                        height="18">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    </svg>
+                    Categorias com Mais Vencimentos
+                </h4>
+                <div class="summary-list" id="categoriasList">
+                    <div class="summary-item">
+                        <span class="summary-item-label">Carregando...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h4>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" width="18"
+                        height="18">
+                        <path d="M3 21h18" />
+                        <path d="M5 21V7l8-4v18" />
+                        <path d="M19 21V11l-6-4" />
+                    </svg>
+                    Situação por Loja
+                </h4>
+                <div class="summary-list" id="lojasList">
+                    <div class="summary-item">
+                        <span class="summary-item-label">Carregando...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h4>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" width="18"
+                        height="18">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                    Resumo do Mês
+                </h4>
+                <div class="summary-list" id="resumoMes">
+                    <div class="summary-item">
+                        <span class="summary-item-label">Taxa de Aproveitamento</span>
+                        <span class="summary-item-value" id="taxaAproveitamento">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-item-label">Produtos Coletados</span>
+                        <span class="summary-item-value" id="produtosColetados">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-item-label">Perdas Evitadas (est.)</span>
+                        <span class="summary-item-value" id="perdasEvitadas">-</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Second Charts Row -->
+        <section class="charts-row">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <h3>Histórico de Perdas</h3>
+                        <p class="subtitle">Últimos 6 meses</p>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <canvas id="perdasChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <h3>Vencimentos por Categoria</h3>
+                        <p class="subtitle">Próximos 7 dias</p>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <canvas id="categoriaChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

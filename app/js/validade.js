@@ -282,6 +282,16 @@ function filterAndRender() {
         );
     }
 
+    // Ocultar vencidos há mais de 30 dias (a menos que filtro de período seja aplicado)
+    if (!dataInicio && !dataFim) {
+        const trintaDiasAtras = new Date();
+        trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
+        filtered = filtered.filter(e => {
+            const validade = new Date(e.validade);
+            return validade >= trintaDiasAtras;
+        });
+    }
+
     // Filtro de Lojas (multi-seleção)
     if (selectedLojas.length > 0) {
         filtered = filtered.filter(e => selectedLojas.includes(e.loja_id));
