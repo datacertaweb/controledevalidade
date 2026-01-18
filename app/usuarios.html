@@ -171,6 +171,15 @@
                         <label for="usuarioRole">Função *</label>
                         <select id="usuarioRole" required></select>
                     </div>
+                    <div class="form-group" id="lojasGroup">
+                        <label>Lojas com Acesso</label>
+                        <div id="lojasContainer"
+                            style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-secondary); border-radius: 8px; padding: 10px;">
+                            <span style="color: var(--text-muted);">Carregando...</span>
+                        </div>
+                        <small style="color: var(--text-muted);">Deixe em branco para acesso a todas as lojas (Admin) ou
+                            vincule depois</small>
+                    </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-outline" id="btnCancelModal">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Salvar</button>

@@ -5,6 +5,7 @@
 let userData = null;
 let usuarios = [];
 let roles = [];
+let lojas = [];
 
 window.addEventListener('supabaseReady', initUsuarios);
 setTimeout(() => { if (window.supabaseClient) initUsuarios(); }, 500);
@@ -31,6 +32,7 @@ async function initUsuarios() {
 
         updateUserUI();
         await loadRoles();
+        await loadLojas();
         await loadUsuarios();
         initEvents();
     } catch (error) {
@@ -54,8 +56,40 @@ async function loadRoles() {
 
     roles = data || [];
 
-    document.getElementById('usuarioRole').innerHTML =
-        roles.map(r => `<option value="${r.id}">${r.nome}</option>`).join('');
+    const roleSelect = document.getElementById('usuarioRole');
+    if (roles.length === 0) {
+        roleSelect.innerHTML = '<option value="">Nenhuma função cadastrada</option>';
+    } else {
+        roleSelect.innerHTML = roles.map(r => `<option value="${r.id}">${r.nome}</option>`).join('');
+    }
+}
+
+async function loadLojas() {
+    const { data } = await supabaseClient
+        .from('lojas')
+        .select('*')
+        .eq('empresa_id', userData.empresa_id)
+        .eq('ativo', true)
+        .order('nome');
+
+    lojas = data || [];
+    renderLojasCheckboxes();
+}
+
+function renderLojasCheckboxes(selectedLojaIds = []) {
+    const container = document.getElementById('lojasContainer');
+
+    if (lojas.length === 0) {
+        container.innerHTML = '<span style="color: var(--text-muted); font-style: italic;">Nenhuma loja cadastrada</span>';
+        return;
+    }
+
+    container.innerHTML = lojas.map(loja => `
+        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; cursor: pointer;">
+            <input type="checkbox" name="usuarioLojas" value="${loja.id}" ${selectedLojaIds.includes(loja.id) ? 'checked' : ''}>
+            <span>${loja.nome}</span>
+        </label>
+    `).join('');
 }
 
 async function loadUsuarios() {
@@ -130,8 +164,10 @@ function initEvents() {
         document.getElementById('formUsuario').reset();
         document.getElementById('usuarioId').value = '';
         document.getElementById('usuarioUsername').value = '';
+        document.getElementById('usuarioEmail').disabled = false;
         document.getElementById('senhaGroup').style.display = 'block';
         document.getElementById('usuarioSenha').required = true;
+        renderLojasCheckboxes(); // Reset lojas checkboxes
         modal.classList.add('active');
     });
 
@@ -167,6 +203,8 @@ async function saveUsuario(e) {
         alert('Email ou Usuário é obrigatório.');
         return;
     }
+
+    let usuarioId = id;
 
     try {
         if (id) {
@@ -205,6 +243,22 @@ async function saveUsuario(e) {
             if (!result.success) {
                 throw new Error(result.error || 'Erro ao criar usuário');
             }
+
+            // Obter ID do usuário criado (precisa buscar pelo email)
+            const { data: newUser } = await supabaseClient
+                .from('usuarios')
+                .select('id')
+                .eq('email', email)
+                .single();
+
+            if (newUser) {
+                usuarioId = newUser.id;
+            }
+        }
+
+        // Salvar vínculos de lojas
+        if (usuarioId) {
+            await saveUsuarioLojas(usuarioId);
         }
 
         document.getElementById('modalUsuario').classList.remove('active');
@@ -213,6 +267,24 @@ async function saveUsuario(e) {
     } catch (error) {
         console.error('Erro:', error);
         alert('Erro ao salvar: ' + error.message);
+    }
+}
+
+async function saveUsuarioLojas(usuarioId) {
+    // Get selected lojas
+    const selectedLojas = Array.from(document.querySelectorAll('input[name="usuarioLojas"]:checked'))
+        .map(cb => cb.value);
+
+    // Delete existing associations
+    await supabaseClient.from('usuarios_lojas').delete().eq('usuario_id', usuarioId);
+
+    // Insert new associations
+    if (selectedLojas.length > 0) {
+        const rows = selectedLojas.map(loja_id => ({
+            usuario_id: usuarioId,
+            loja_id
+        }));
+        await supabaseClient.from('usuarios_lojas').insert(rows);
     }
 }
 
@@ -229,6 +301,15 @@ window.editUsuario = async function (id) {
     document.getElementById('senhaGroup').style.display = 'none';
     document.getElementById('usuarioSenha').required = false;
     document.getElementById('usuarioRole').value = u.role_id || '';
+
+    // Load user's lojas
+    const { data: userLojas } = await supabaseClient
+        .from('usuarios_lojas')
+        .select('loja_id')
+        .eq('usuario_id', id);
+
+    const selectedLojaIds = (userLojas || []).map(ul => ul.loja_id);
+    renderLojasCheckboxes(selectedLojaIds);
 
     document.getElementById('modalUsuario').classList.add('active');
 };
