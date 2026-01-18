@@ -132,6 +132,30 @@ window.auth = {
     },
 
     /**
+     * Verifica se usuário é admin
+     */
+    isAdmin(userData) {
+        if (!userData) return false;
+        return userData.tipo === 'master' || userData.roles?.is_admin || userData.permissions?.includes('*');
+    },
+
+    /**
+     * Obtém IDs das lojas do usuário
+     * Retorna null se não tiver restrição (admin ou master)
+     * Retorna array vazio se tiver restrição mas nenhuma loja vinculada
+     * Retorna array com IDs se tiver lojas vinculadas
+     */
+    async getUserLojas(userId) {
+        const { data } = await window.supabaseClient
+            .from('usuarios_lojas')
+            .select('loja_id')
+            .eq('usuario_id', userId);
+
+        if (!data || data.length === 0) return null; // Sem restrição
+        return data.map(ul => ul.loja_id);
+    },
+
+    /**
      * Login com email e senha
      */
     async signIn(email, password) {

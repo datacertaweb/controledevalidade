@@ -77,12 +77,25 @@ function updateUserUI() {
 }
 
 async function loadLojas() {
-    const { data, error } = await supabaseClient
+    // Buscar lojas do usuário (se tiver restrição)
+    let userLojaIds = null;
+    if (!auth.isAdmin(userData)) {
+        userLojaIds = await auth.getUserLojas(userData.id);
+    }
+
+    let query = supabaseClient
         .from('lojas')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
         .eq('ativo', true)
         .order('nome');
+
+    // Filtrar por lojas do usuário se houver restrição
+    if (userLojaIds && userLojaIds.length > 0) {
+        query = query.in('id', userLojaIds);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
         console.error('Erro ao carregar lojas:', error);
