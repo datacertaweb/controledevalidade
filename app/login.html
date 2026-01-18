@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCerta - Login</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </div>
+                    <span class="logo-text">Data<span>Certa</span></span>
+                </div>
+                <p class="login-subtitle">Sistema de Controle de Validade</p>
+            </div>
+
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required placeholder="seu@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+
+                <div id="errorMessage" class="error-message hidden"></div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="btnLogin">
+                    <span class="btn-text">Entrar</span>
+                    <span class="btn-loading hidden">
+                        <svg class="spinner" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+                                stroke-dasharray="30 70" />
+                        </svg>
+                    </span>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>Acesse com as credenciais fornecidas pela sua empresa.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script>
+        const form = document.getElementById('loginForm');
+        const btnLogin = document.getElementById('btnLogin');
+        const errorMessage = document.getElementById('errorMessage');
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.remove('hidden');
+            btnLogin.disabled = false;
+            btnLogin.querySelector('.btn-text').classList.remove('hidden');
+            btnLogin.querySelector('.btn-loading').classList.add('hidden');
+        }
+
+        // Aguardar Supabase estar pronto
+        window.addEventListener('supabaseReady', async () => {
+            try {
+                const user = await auth.getUser();
+                if (user) {
+                    const userData = await auth.getCurrentUserData();
+                    console.log('Usuário já logado:', userData);
+                    if (userData && userData.tipo === 'empresa') {
+                        window.location.href = 'index.html';
+                    } else if (userData && userData.tipo === 'master') {
+                        window.location.href = '../admin/index.html';
+                    }
+                }
+            } catch (e) {
+                console.error('Erro ao verificar usuário:', e);
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!window.supabaseClient) {
+                showError('Aguarde, carregando...');
+                return;
+            }
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            btnLogin.disabled = true;
+            btnLogin.querySelector('.btn-text').classList.add('hidden');
+            btnLogin.querySelector('.btn-loading').classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+
+            try {
+                console.log('Tentando login com:', email);
+                const result = await auth.signIn(email, password);
+                console.log('Login resultado:', result);
+
+                console.log('Buscando dados do usuário...');
+                const userData = await auth.getCurrentUserData();
+                console.log('userData retornado:', JSON.stringify(userData, null, 2));
+
+                if (userData && userData.tipo === 'empresa') {
+                    console.log('Tipo empresa - redirecionando para app...');
+                    window.location.href = 'index.html';
+                } else if (userData && userData.tipo === 'master') {
+                    console.log('Tipo master - redirecionando para admin...');
+                    window.location.href = '../admin/index.html';
+                } else {
+                    console.log('userData não tem tipo válido:', userData);
+                    showError('Usuário não encontrado no sistema. Contate o administrador.');
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                showError(error.message || 'Erro ao fazer login. Verifique suas credenciais.');
+            }
+        });
+    </script>
+</body>
+
+</html>

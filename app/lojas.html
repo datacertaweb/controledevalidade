@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCerta - Lojas</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/validade.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                </div>
+                <span class="logo-text">Data<span>Certa</span></span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg></span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="validade.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg></span>
+                <span class="nav-text">Validades</span>
+            </a>
+            <a href="produtos.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    </svg></span>
+                <span class="nav-text">Produtos</span>
+            </a>
+            <a href="lojas.html" class="nav-item active">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 21h18" />
+                        <path d="M5 21V7l8-4v18" />
+                        <path d="M19 21V11l-6-4" />
+                    </svg></span>
+                <span class="nav-text">Lojas</span>
+            </a>
+            <a href="locais.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                    </svg></span>
+                <span class="nav-text">Locais</span>
+            </a>
+            <a href="usuarios.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                    </svg></span>
+                <span class="nav-text">Usuários</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">US</div>
+                <div class="user-details">
+                    <span class="user-name" id="userName">Usuário</span>
+                    <span class="user-role" id="userRole">Carregando...</span>
+                </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="auth.signOut()"
+                style="margin-top: 10px; width: 100%;">Sair</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+                <div class="page-title">
+                    <h1>Lojas</h1>
+                    <p class="page-subtitle">Gerencie as filiais da empresa</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" id="btnNovaLoja">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Nova Loja
+                </button>
+            </div>
+        </header>
+
+        <!-- Lista de Lojas -->
+        <section class="table-section">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nome</th>
+                            <th>Cidade/UF</th>
+                            <th>Telefone</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lojasTable">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px;">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Nova Loja -->
+    <div class="modal-overlay" id="modalLoja">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">Nova Loja</h2>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formLoja">
+                    <input type="hidden" id="lojaId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="lojaCodigo">Código</label>
+                            <input type="text" id="lojaCodigo" placeholder="Ex: LOJA-01">
+                        </div>
+                        <div class="form-group">
+                            <label for="lojaNome">Nome *</label>
+                            <input type="text" id="lojaNome" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lojaEndereco">Endereço</label>
+                        <input type="text" id="lojaEndereco" placeholder="Rua, número, bairro">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="lojaCidade">Cidade</label>
+                            <input type="text" id="lojaCidade">
+                        </div>
+                        <div class="form-group">
+                            <label for="lojaUF">UF</label>
+                            <input type="text" id="lojaUF" maxlength="2" style="text-transform: uppercase;">
+                        </div>
+                        <div class="form-group">
+                            <label for="lojaCEP">CEP</label>
+                            <input type="text" id="lojaCEP">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lojaTelefone">Telefone</label>
+                        <input type="text" id="lojaTelefone">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="btnCancelModal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="js/lojas.js"></script>
+</body>
+
+</html>
