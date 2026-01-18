@@ -5,409 +5,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DataCerta - Controle de Validade</title>
-    <meta name="description"
-        content="Sistema de controle de validade de produtos - Gerencie suas datas de vencimento de forma inteligente">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/validade.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta http-equiv="refresh" content="0; url=app/login.html">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #0F766E 0%, #14B8A6 100%);
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                        <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                </div>
-                <span class="logo-text">Data<span>Certa</span></span>
-            </div>
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="3" y1="12" x2="21" y2="12" />
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <a href="index.html" class="nav-item active">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path
-                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                        <line x1="12" y1="22.08" x2="12" y2="12" />
-                    </svg>
-                </span>
-                <span class="nav-text">Controle de Validade</span>
-            </a>
-            <a href="dashboard.html" class="nav-item">
-                <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="20" x2="18" y2="10" />
-                        <line x1="12" y1="20" x2="12" y2="4" />
-                        <line x1="6" y1="20" x2="6" y2="14" />
-                    </svg>
-                </span>
-                <span class="nav-text">Dashboard</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar">US</div>
-                <div class="user-details">
-                    <span class="user-name">Usuário</span>
-                    <span class="user-role">Administrador</span>
-                </div>
-            </div>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <header class="page-header">
-            <div class="header-left">
-                <button class="menu-toggle" id="menuToggle">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-                        <line x1="3" y1="12" x2="21" y2="12" />
-                        <line x1="3" y1="6" x2="21" y2="6" />
-                        <line x1="3" y1="18" x2="21" y2="18" />
-                    </svg>
-                </button>
-                <div class="page-title">
-                    <h1>Controle de Validade</h1>
-                    <p class="page-subtitle">Gerencie os produtos próximos ao vencimento</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button class="btn btn-outline" id="btnExport">
-                    <span class="btn-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                    </span>
-                    Exportar
-                </button>
-                <button class="btn btn-primary" id="btnAddProduct">
-                    <span class="btn-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                    </span>
-                    Novo Produto
-                </button>
-            </div>
-        </header>
-
-        <!-- Tabs -->
-        <div class="tabs-container">
-            <div class="tabs">
-                <button class="tab active" data-tab="produtos">
-                    <span class="tab-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path
-                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                        </svg>
-                    </span>
-                    Produtos
-                </button>
-                <button class="tab" data-tab="perdas">
-                    <span class="tab-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path
-                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                            <line x1="12" y1="9" x2="12" y2="13" />
-                            <line x1="12" y1="17" x2="12.01" y2="17" />
-                        </svg>
-                    </span>
-                    Histórico de Perdas
-                </button>
-            </div>
-        </div>
-
-        <!-- Filters Section -->
-        <section class="filters-section">
-            <div class="filters-header">
-                <h3>Filtros</h3>
-                <button class="btn btn-ghost btn-sm" id="clearFilters">Limpar filtros</button>
-            </div>
-            <div class="filters-grid">
-                <div class="filter-group">
-                    <label for="filterDateStart">Data Inicial</label>
-                    <input type="date" id="filterDateStart" class="filter-input">
-                </div>
-                <div class="filter-group">
-                    <label for="filterDateEnd">Data Final</label>
-                    <input type="date" id="filterDateEnd" class="filter-input">
-                </div>
-                <div class="filter-group">
-                    <label for="filterLocal">Local</label>
-                    <select id="filterLocal" class="filter-input">
-                        <option value="">Todos os locais</option>
-                        <option value="Armazém A">Armazém A</option>
-                        <option value="Armazém B">Armazém B</option>
-                        <option value="Câmara Fria">Câmara Fria</option>
-                        <option value="Depósito Central">Depósito Central</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="filterCode">Código do Produto</label>
-                    <input type="text" id="filterCode" class="filter-input" placeholder="Digite o código...">
-                </div>
-                <div class="filter-group filter-group-lg">
-                    <label for="filterDescription">Descrição</label>
-                    <div class="autocomplete-wrapper">
-                        <input type="text" id="filterDescription" class="filter-input" placeholder="Buscar produto...">
-                        <div class="autocomplete-suggestions" id="autocompleteSuggestions"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Summary Cards -->
-        <section class="summary-cards">
-            <div class="summary-card">
-                <div class="summary-icon urgent">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                </div>
-                <div class="summary-info">
-                    <span class="summary-value" id="urgentCount">12</span>
-                    <span class="summary-label">Vencem em 7 dias</span>
-                </div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon warning">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path
-                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                        <line x1="12" y1="9" x2="12" y2="13" />
-                        <line x1="12" y1="17" x2="12.01" y2="17" />
-                    </svg>
-                </div>
-                <div class="summary-info">
-                    <span class="summary-value" id="warningCount">28</span>
-                    <span class="summary-label">Vencem em 30 dias</span>
-                </div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon total">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path
-                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                    </svg>
-                </div>
-                <div class="summary-info">
-                    <span class="summary-value" id="totalCount">156</span>
-                    <span class="summary-label">Total de Produtos</span>
-                </div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon value">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="1" x2="12" y2="23" />
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                </div>
-                <div class="summary-info">
-                    <span class="summary-value" id="totalValue">R$ 45.678,90</span>
-                    <span class="summary-label">Valor em Estoque</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Table Section -->
-        <section class="table-section" id="productsTab">
-            <div class="table-header">
-                <div class="table-info">
-                    <span id="tableCount">Exibindo <strong>25</strong> de <strong>156</strong> produtos</span>
-                </div>
-                <div class="table-controls">
-                    <label>Exibir:</label>
-                    <select id="pageSize" class="filter-input filter-input-sm">
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                        <option value="all">Todos</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="table-wrapper">
-                <table class="data-table" id="productsTable">
-                    <thead>
-                        <tr>
-                            <th data-sort="codigo">Código <span class="sort-icon">↕</span></th>
-                            <th data-sort="descricao">Descrição <span class="sort-icon">↕</span></th>
-                            <th data-sort="quantidade">Qtd <span class="sort-icon">↕</span></th>
-                            <th data-sort="valorUnit">Valor Unit. <span class="sort-icon">↕</span></th>
-                            <th data-sort="valorTotal">Valor Total <span class="sort-icon">↕</span></th>
-                            <th data-sort="validade">Validade <span class="sort-icon">↕</span></th>
-                            <th data-sort="local">Local <span class="sort-icon">↕</span></th>
-                            <th data-sort="perdas">Perdas <span class="sort-icon">↕</span></th>
-                            <th data-sort="usuario">Usuário <span class="sort-icon">↕</span></th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Data will be inserted by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            <div class="pagination">
-                <button class="pagination-btn" id="prevPage" disabled>
-                    ← Anterior
-                </button>
-                <div class="pagination-info">
-                    <span>Página <strong id="currentPage">1</strong> de <strong id="totalPages">7</strong></span>
-                </div>
-                <button class="pagination-btn" id="nextPage">
-                    Próxima →
-                </button>
-            </div>
-        </section>
-
-        <!-- Losses History Tab (Hidden by default) -->
-        <section class="table-section hidden" id="perdasTab">
-            <div class="losses-summary">
-                <div class="losses-card">
-                    <h3>Perdas no Período</h3>
-                    <div class="losses-value">R$ 12.450,00</div>
-                    <span class="losses-period">Últimos 30 dias</span>
-                </div>
-                <div class="losses-card">
-                    <h3>Itens Perdidos</h3>
-                    <div class="losses-value">47</div>
-                    <span class="losses-period">Últimos 30 dias</span>
-                </div>
-            </div>
-
-            <div class="table-wrapper">
-                <table class="data-table" id="lossesTable">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Descrição</th>
-                            <th>Quantidade Perdida</th>
-                            <th>Valor da Perda</th>
-                            <th>Data Vencimento</th>
-                            <th>Data Registro</th>
-                            <th>Local</th>
-                            <th>Responsável</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lossesTableBody">
-                        <!-- Data will be inserted by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    <!-- Modal for Adding/Editing Product -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal" id="productModal">
-            <div class="modal-header">
-                <h2 id="modalTitle">Novo Produto</h2>
-                <button class="modal-close" id="modalClose">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="productForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="prodCodigo">Código do Produto *</label>
-                            <input type="text" id="prodCodigo" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="prodDescricao">Descrição *</label>
-                            <input type="text" id="prodDescricao" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="prodQuantidade">Quantidade *</label>
-                            <input type="number" id="prodQuantidade" min="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="prodValor">Valor Unitário (R$) *</label>
-                            <input type="number" id="prodValor" step="0.01" min="0" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="prodValidade">Data de Validade *</label>
-                            <input type="date" id="prodValidade" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="prodLocal">Local *</label>
-                            <select id="prodLocal" required>
-                                <option value="">Selecione...</option>
-                                <option value="Armazém A">Armazém A</option>
-                                <option value="Armazém B">Armazém B</option>
-                                <option value="Câmara Fria">Câmara Fria</option>
-                                <option value="Depósito Central">Depósito Central</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-outline" id="btnCancelModal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Salvar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+    <div class="loading">
+        <div class="spinner"></div>
+        <p>Redirecionando para o DataCerta...</p>
     </div>
-
-    <!-- Register Loss Modal -->
-    <div class="modal-overlay" id="lossModalOverlay">
-        <div class="modal" id="lossModal">
-            <div class="modal-header">
-                <h2>Registrar Perda</h2>
-                <button class="modal-close" id="lossModalClose">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="loss-product-info" id="lossProductInfo">
-                    <!-- Product info will be inserted here -->
-                </div>
-                <form id="lossForm">
-                    <div class="form-group">
-                        <label for="lossQuantity">Quantidade Perdida *</label>
-                        <input type="number" id="lossQuantity" min="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="lossReason">Motivo</label>
-                        <select id="lossReason">
-                            <option value="vencido">Produto Vencido</option>
-                            <option value="avaria">Avaria/Dano</option>
-                            <option value="outro">Outro</option>
-                        </select>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-outline" id="btnCancelLoss">Cancelar</button>
-                        <button type="submit" class="btn btn-danger">Registrar Perda</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/mockData.js"></script>
-    <script src="js/validade.js"></script>
+    <script>
+        window.location.href = 'app/login.html';
+    </script>
 </body>
 
 </html>
