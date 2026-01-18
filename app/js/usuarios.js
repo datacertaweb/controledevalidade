@@ -26,8 +26,9 @@ async function initUsuarios() {
 
         // Verificar permissão
         if (!auth.hasPermission(userData, 'usuario.view')) {
-            alert('Você não tem permissão para acessar esta página.');
-            window.location.href = 'dashboard.html';
+            window.globalUI.showAlert('Acesso Negado', 'Você não tem permissão para acessar esta página.', 'error', () => {
+                window.location.href = 'dashboard.html';
+            });
             return;
         }
 
@@ -206,7 +207,7 @@ async function saveUsuario(e) {
     }
 
     if (!email) {
-        alert('Email ou Usuário é obrigatório.');
+        window.globalUI.showToast('warning', 'Email ou Usuário é obrigatório.');
         return;
     }
 
@@ -272,10 +273,10 @@ async function saveUsuario(e) {
 
         document.getElementById('modalUsuario').classList.remove('active');
         await loadUsuarios();
-        alert('Usuário salvo com sucesso!');
+        window.globalUI.showToast('success', 'Usuário salvo com sucesso!');
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao salvar: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao salvar: ' + error.message);
     }
 }
 
@@ -403,6 +404,6 @@ window.toggleUsuario = async function (id, ativo) {
         await loadUsuarios();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro: ' + error.message);
+        window.globalUI.showToast('error', 'Erro: ' + error.message);
     }
 };

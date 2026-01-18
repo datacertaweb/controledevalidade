@@ -40,8 +40,9 @@ async function initApp() {
                 window.location.href = '../admin/index.html';
                 return;
             }
-            alert('Usuário não autorizado.');
-            await auth.signOut();
+            window.globalUI.showAlert('Acesso Negado', 'Usuário não autorizado.', 'error', async () => {
+                await auth.signOut();
+            });
             return;
         }
 

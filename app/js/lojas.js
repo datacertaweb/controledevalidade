@@ -30,8 +30,9 @@ async function initLojas() {
 
         // Verificar permissão
         if (!auth.hasPermission(userData, 'loja.view')) {
-            alert('Você não tem permissão para acessar esta página.');
-            window.location.href = 'dashboard.html';
+            window.globalUI.showAlert('Acesso Negado', 'Você não tem permissão para acessar esta página.', 'error', () => {
+                window.location.href = 'dashboard.html';
+            });
             return;
         }
 
@@ -149,7 +150,7 @@ async function saveLoja(e) {
     // Verificar permissão
     const permission = id ? 'loja.edit' : 'loja.create';
     if (!auth.hasPermission(userData, permission)) {
-        alert('Você não tem permissão para realizar esta operação.');
+        window.globalUI.showToast('error', 'Você não tem permissão para realizar esta operação.');
         return;
     }
 
@@ -177,7 +178,7 @@ async function saveLoja(e) {
         await loadLojas();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao salvar: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao salvar: ' + error.message);
     }
 }
 
@@ -201,7 +202,7 @@ window.editLoja = async function (id) {
 window.deleteLoja = async function (id) {
     // Verificar permissão
     if (!auth.hasPermission(userData, 'loja.delete')) {
-        alert('Você não tem permissão para excluir lojas.');
+        window.globalUI.showToast('error', 'Você não tem permissão para excluir lojas.');
         return;
     }
 
@@ -213,6 +214,6 @@ window.deleteLoja = async function (id) {
         await loadLojas();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao excluir: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao excluir: ' + error.message);
     }
 };

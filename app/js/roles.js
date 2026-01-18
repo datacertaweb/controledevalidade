@@ -25,8 +25,9 @@ async function initRoles() {
 
         // Verificar permissão
         if (!auth.isAdmin(userData) && !auth.hasPermission(userData, 'role.view')) {
-            alert('Você não tem permissão para acessar esta página.');
-            window.location.href = 'dashboard.html';
+            window.globalUI.showAlert('Acesso Negado', 'Você não tem permissão para acessar esta página.', 'error', () => {
+                window.location.href = 'dashboard.html';
+            });
             return;
         }
 
@@ -194,7 +195,7 @@ window.deleteRole = async function (id) {
         await loadRoles();
     } catch (error) {
         console.error('Erro ao excluir:', error);
-        alert('Erro ao excluir: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao excluir: ' + error.message);
     }
 };
 
@@ -255,6 +256,6 @@ async function handleSaveRole(e) {
 
     } catch (error) {
         console.error('Erro ao salvar:', error);
-        alert('Erro ao salvar: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao salvar: ' + error.message);
     }
 }

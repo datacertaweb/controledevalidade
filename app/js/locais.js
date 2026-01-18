@@ -25,8 +25,9 @@ async function initLocais() {
 
         // Verificar permissão
         if (!auth.hasPermission(userData, 'local.view')) {
-            alert('Você não tem permissão para acessar esta página.');
-            window.location.href = 'dashboard.html';
+            window.globalUI.showAlert('Acesso Negado', 'Você não tem permissão para acessar esta página.', 'error', () => {
+                window.location.href = 'dashboard.html';
+            });
             return;
         }
 
@@ -176,7 +177,7 @@ async function saveLocal(e) {
     // Verificar permissão
     const permission = id ? 'local.edit' : 'local.create';
     if (!auth.hasPermission(userData, permission)) {
-        alert('Você não tem permissão para realizar esta operação.');
+        window.globalUI.showToast('error', 'Você não tem permissão para realizar esta operação.');
         return;
     }
 
@@ -200,7 +201,7 @@ async function saveLocal(e) {
         await loadLocais();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao salvar: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao salvar: ' + error.message);
     }
 }
 
@@ -220,7 +221,7 @@ window.editLocal = async function (id) {
 window.deleteLocal = async function (id) {
     // Verificar permissão
     if (!auth.hasPermission(userData, 'local.delete')) {
-        alert('Você não tem permissão para excluir locais.');
+        window.globalUI.showToast('error', 'Você não tem permissão para excluir locais.');
         return;
     }
 
@@ -232,6 +233,6 @@ window.deleteLocal = async function (id) {
         await loadLocais();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao excluir: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao excluir: ' + error.message);
     }
 };

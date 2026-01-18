@@ -37,8 +37,9 @@ async function initValidade() {
 
         // Verificar permissão de acesso à página
         if (!auth.hasPermission(userData, 'coletado.view')) {
-            alert('Você não tem permissão para acessar esta página.');
-            window.location.href = 'dashboard.html';
+            window.globalUI.showAlert('Acesso Negado', 'Você não tem permissão para acessar esta página.', 'error', () => {
+                window.location.href = 'dashboard.html';
+            });
             return;
         }
 
@@ -581,7 +582,7 @@ function initEvents() {
 
 function exportarEstoque() {
     if (estoque.length === 0) {
-        alert('Nenhum item para exportar.');
+        window.globalUI.showToast('warning', 'Nenhum item para exportar.');
         return;
     }
 
@@ -649,7 +650,7 @@ async function saveEstoque(e) {
         await loadEstoque();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao salvar: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao salvar: ' + error.message);
     }
 }
 
@@ -720,9 +721,9 @@ async function savePerda(e) {
 
         document.getElementById('modalPerda').classList.remove('active');
         await loadEstoque();
-        alert('Perda registrada com sucesso!');
+        window.globalUI.showToast('success', 'Perda registrada com sucesso!');
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao registrar perda: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao registrar perda: ' + error.message);
     }
 }

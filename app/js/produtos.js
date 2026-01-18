@@ -25,8 +25,9 @@ async function initProdutos() {
 
         // Verificar permissão de acesso à página
         if (!auth.hasPermission(userData, 'base.view')) {
-            alert('Você não tem permissão para acessar esta página.');
-            window.location.href = 'dashboard.html';
+            window.globalUI.showAlert('Acesso Negado', 'Você não tem permissão para acessar esta página.', 'error', () => {
+                window.location.href = 'dashboard.html';
+            });
             return;
         }
 
@@ -183,7 +184,7 @@ async function saveProduto(e) {
         await loadProdutos();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao salvar: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao salvar: ' + error.message);
     }
 }
 
@@ -204,7 +205,7 @@ window.editProduto = async function (id) {
 window.deleteProduto = async function (id) {
     // Verificar permissão
     if (!auth.hasPermission(userData, 'base.delete')) {
-        alert('Você não tem permissão para excluir produtos.');
+        window.globalUI.showToast('error', 'Você não tem permissão para excluir produtos.');
         return;
     }
 
@@ -216,7 +217,7 @@ window.deleteProduto = async function (id) {
         await loadProdutos();
     } catch (error) {
         console.error('Erro:', error);
-        alert('Erro ao excluir: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao excluir: ' + error.message);
     }
 };
 
@@ -304,12 +305,12 @@ async function processFile(file) {
         } else if (ext === 'csv' || ext === 'txt') {
             rows = await parseCSV(file);
         } else {
-            alert('Formato não suportado. Use CSV, TXT ou XLSX.');
+            window.globalUI.showToast('warning', 'Formato não suportado. Use CSV, TXT ou XLSX.');
             return;
         }
 
         if (rows.length === 0) {
-            alert('Arquivo vazio ou formato inválido.');
+            window.globalUI.showToast('warning', 'Arquivo vazio ou formato inválido.');
             return;
         }
 
@@ -319,7 +320,7 @@ async function processFile(file) {
 
     } catch (error) {
         console.error('Erro ao processar arquivo:', error);
-        alert('Erro ao processar arquivo: ' + error.message);
+        window.globalUI.showToast('error', 'Erro ao processar arquivo: ' + error.message);
     }
 }
 
@@ -580,7 +581,7 @@ SKU004;REFRIGERANTE 2L;7891234567893;BEBIDAS`;
 
 function exportarProdutos() {
     if (produtos.length === 0) {
-        alert('Nenhum produto para exportar.');
+        window.globalUI.showToast('warning', 'Nenhum produto para exportar.');
         return;
     }
 

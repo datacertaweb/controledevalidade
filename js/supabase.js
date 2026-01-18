@@ -193,3 +193,135 @@ window.auth = {
         return data;
     }
 };
+
+/**
+ * Interface Gráfica Global (Toasts e Modais)
+ */
+window.globalUI = {
+    // Inicializar elementos globais se não existirem
+    init() {
+        if (!document.getElementById('toast-container')) {
+            const container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+
+        if (!document.getElementById('global-alert-modal')) {
+            const modal = document.createElement('div');
+            modal.id = 'global-alert-modal';
+            modal.innerHTML = `
+                <div class="alert-modal-content">
+                    <div class="alert-modal-icon" id="alertIcon"></div>
+                    <div class="alert-modal-title" id="alertTitle"></div>
+                    <div class="alert-modal-message" id="alertMessage"></div>
+                    <button class="alert-modal-btn" id="alertBtn">OK</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Fechar no clique fora (opcional, mas alertas devem ser bloqueantes)
+            // modal.addEventListener('click', (e) => {
+            //     if (e.target === modal) window.globalUI.closeAlert();
+            // });
+
+            document.getElementById('alertBtn').addEventListener('click', () => {
+                window.globalUI.closeAlert();
+            });
+        }
+    },
+
+    /**
+     * Exibir Toast Notification
+     * @param {string} type - 'success', 'error', 'warning', 'info'
+     * @param {string} message
+     */
+    showToast(type, message) {
+        this.init(); // Garantir que container existe
+
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        // Ícones SVG
+        const icons = {
+            success: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
+            error: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+            warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+            info: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
+        };
+
+        const titles = {
+            success: 'Sucesso',
+            error: 'Erro',
+            warning: 'Atenção',
+            info: 'Informação'
+        };
+
+        toast.innerHTML = `
+            <div class="toast-icon">${icons[type] || icons.info}</div>
+            <div class="toast-content">
+                <div class="toast-title">${titles[type] || 'Notificação'}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="btn-ghost btn-sm" onclick="this.parentElement.remove()" style="padding: 4px;">&times;</button>
+        `;
+
+        container.appendChild(toast);
+
+        // Auto remove
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.classList.add('removing');
+                setTimeout(() => { if (toast.parentElement) toast.remove(); }, 300);
+            }
+        }, 5000);
+    },
+
+    /**
+     * Exibir Modal de Alerta
+     * @param {string} title
+     * @param {string} message
+     * @param {string} type - 'error', 'warning', 'success'
+     * @param {function} onOk - Callback após fechar
+     */
+    showAlert(title, message, type = 'info', onOk = null) {
+        this.init();
+
+        const modal = document.getElementById('global-alert-modal');
+        const icon = document.getElementById('alertIcon');
+        const btn = document.getElementById('alertBtn');
+
+        // Ícones
+        const icons = {
+            success: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
+            error: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+            warning: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+        };
+
+        icon.innerHTML = icons[type] || icons.success;
+        icon.className = `alert-modal-icon ${type}`;
+
+        document.getElementById('alertTitle').textContent = title;
+        document.getElementById('alertMessage').textContent = message;
+
+        // Callback no botão
+        this._currentOkCallback = onOk;
+
+        modal.classList.add('active');
+        btn.focus();
+    },
+
+    closeAlert() {
+        const modal = document.getElementById('global-alert-modal');
+        modal.classList.remove('active');
+        if (this._currentOkCallback) {
+            this._currentOkCallback();
+            this._currentOkCallback = null;
+        }
+    }
+};
+
+// Aliases globais para facilitar o refatoramento
+window.showToast = (message, type = 'info') => window.globalUI.showToast(type, message);
+window.alert = (message) => window.globalUI.showAlert('Atenção', message, 'warning'); // Override básico do alert se quiser, mas vamos substituir explicitamente
+
