@@ -81,7 +81,7 @@
                     const userData = await auth.getCurrentUserData();
                     console.log('Usuário já logado:', userData);
                     if (userData && userData.tipo === 'empresa') {
-                        window.location.href = 'index.html';
+                        window.location.href = 'dashboard.html';
                     } else if (userData && userData.tipo === 'master') {
                         window.location.href = '../admin/index.html';
                     }
