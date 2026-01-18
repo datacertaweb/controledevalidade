@@ -140,8 +140,8 @@
                 console.log('userData retornado:', JSON.stringify(userData, null, 2));
 
                 if (userData && userData.tipo === 'empresa') {
-                    console.log('Tipo empresa - redirecionando para app...');
-                    window.location.href = 'index.html';
+                    console.log('Tipo empresa - redirecionando para dashboard...');
+                    window.location.href = 'dashboard.html';
                 } else if (userData && userData.tipo === 'master') {
                     console.log('Tipo master - redirecionando para admin...');
                     window.location.href = '../admin/index.html';

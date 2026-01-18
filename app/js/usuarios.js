@@ -26,7 +26,7 @@ async function initUsuarios() {
         // Verificar permissão
         if (!auth.hasPermission(userData, 'usuario.view')) {
             alert('Você não tem permissão para acessar esta página.');
-            window.location.href = 'index.html';
+            window.location.href = 'dashboard.html';
             return;
         }
 
