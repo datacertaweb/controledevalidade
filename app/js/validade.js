@@ -35,6 +35,13 @@ async function initValidade() {
         userData = await auth.getCurrentUserData();
         if (!userData || userData.tipo !== 'empresa') { window.location.href = 'login.html'; return; }
 
+        // Verificar permissão de acesso à página
+        if (!auth.hasPermission(userData, 'coletado.view')) {
+            alert('Você não tem permissão para acessar esta página.');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
         updateUserUI();
 
         // Carregar lojas do usuário (se tiver restrição)

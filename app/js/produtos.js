@@ -23,6 +23,13 @@ async function initProdutos() {
         userData = await auth.getCurrentUserData();
         if (!userData || userData.tipo !== 'empresa') { window.location.href = 'login.html'; return; }
 
+        // Verificar permissão de acesso à página
+        if (!auth.hasPermission(userData, 'base.view')) {
+            alert('Você não tem permissão para acessar esta página.');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
         updateUserUI();
         await loadProdutos();
         initEvents();

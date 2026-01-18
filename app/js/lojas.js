@@ -28,6 +28,13 @@ async function initLojas() {
             return;
         }
 
+        // Verificar permissão
+        if (!auth.hasPermission(userData, 'loja.view')) {
+            alert('Você não tem permissão para acessar esta página.');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
         updateUserUI();
         await loadLojas();
         initEvents();
@@ -138,6 +145,14 @@ async function saveLoja(e) {
     e.preventDefault();
 
     const id = document.getElementById('lojaId').value;
+
+    // Verificar permissão
+    const permission = id ? 'loja.edit' : 'loja.create';
+    if (!auth.hasPermission(userData, permission)) {
+        alert('Você não tem permissão para realizar esta operação.');
+        return;
+    }
+
     const data = {
         empresa_id: userData.empresa_id,
         codigo: document.getElementById('lojaCodigo').value || null,
@@ -184,6 +199,12 @@ window.editLoja = async function (id) {
 };
 
 window.deleteLoja = async function (id) {
+    // Verificar permissão
+    if (!auth.hasPermission(userData, 'loja.delete')) {
+        alert('Você não tem permissão para excluir lojas.');
+        return;
+    }
+
     if (!confirm('Tem certeza que deseja excluir esta loja?')) return;
 
     try {

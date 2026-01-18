@@ -23,9 +23,16 @@ async function initLocais() {
         userData = await auth.getCurrentUserData();
         if (!userData || userData.tipo !== 'empresa') { window.location.href = 'login.html'; return; }
 
+        // Verificar permissão
+        if (!auth.hasPermission(userData, 'local.view')) {
+            alert('Você não tem permissão para acessar esta página.');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
         updateUserUI();
         await loadLojas();
-        initEvents();
+        initLocaisEvents();
     } catch (error) {
         console.error('Erro:', error);
     }
@@ -156,10 +163,23 @@ function initEvents() {
     document.getElementById('formLocal')?.addEventListener('submit', saveLocal);
 }
 
+// Renomear para evitar conflito
+function initLocaisEvents() {
+    initEvents();
+}
+
 async function saveLocal(e) {
     e.preventDefault();
 
     const id = document.getElementById('localId').value;
+
+    // Verificar permissão
+    const permission = id ? 'local.edit' : 'local.create';
+    if (!auth.hasPermission(userData, permission)) {
+        alert('Você não tem permissão para realizar esta operação.');
+        return;
+    }
+
     const data = {
         loja_id: selectedLoja,
         nome: document.getElementById('localNome').value,
@@ -198,6 +218,12 @@ window.editLocal = async function (id) {
 };
 
 window.deleteLocal = async function (id) {
+    // Verificar permissão
+    if (!auth.hasPermission(userData, 'local.delete')) {
+        alert('Você não tem permissão para excluir locais.');
+        return;
+    }
+
     if (!confirm('Tem certeza que deseja excluir este local?')) return;
 
     try {

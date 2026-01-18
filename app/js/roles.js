@@ -23,6 +23,13 @@ async function initRoles() {
         userData = await auth.getCurrentUserData();
         if (!userData || userData.tipo !== 'empresa') { window.location.href = 'login.html'; return; }
 
+        // Verificar permissão
+        if (!auth.isAdmin(userData) && !auth.hasPermission(userData, 'role.view')) {
+            alert('Você não tem permissão para acessar esta página.');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
         updateUserUI();
         await loadPermissions();
         await loadRoles();
