@@ -578,6 +578,17 @@ function initEvents() {
 
     // Exportar
     document.getElementById('btnExportar')?.addEventListener('click', exportarEstoque);
+
+    // Auto-preencher valor unitário ao selecionar produto
+    document.getElementById('estoqueProduto')?.addEventListener('change', (e) => {
+        const produtoId = e.target.value;
+        const produto = produtos.find(p => p.id === produtoId);
+        if (produto) {
+            document.getElementById('estoqueValor').value = produto.valor_unitario || 0;
+        } else {
+            document.getElementById('estoqueValor').value = '';
+        }
+    });
 }
 
 function exportarEstoque() {
@@ -632,6 +643,7 @@ async function saveEstoque(e) {
         loja_id: document.getElementById('estoqueLoja').value,
         local_id: document.getElementById('estoqueLocal').value || null,
         quantidade: parseInt(document.getElementById('estoqueQtd').value),
+        valor_unitario: parseFloat(document.getElementById('estoqueValor').value) || 0,
         validade: document.getElementById('estoqueValidade').value,
         lote: document.getElementById('estoqueLote').value || null,
         usuario_id: userData.id
@@ -665,6 +677,7 @@ window.editEstoque = async function (id) {
     document.getElementById('estoqueLocal').value = item.local_id || '';
     document.getElementById('estoqueProduto').value = item.produto_id;
     document.getElementById('estoqueQtd').value = item.quantidade;
+    document.getElementById('estoqueValor').value = item.valor_unitario !== undefined ? item.valor_unitario : (item.base?.valor_unitario || 0);
     document.getElementById('estoqueValidade').value = item.validade;
     document.getElementById('estoqueLote').value = item.lote || '';
 

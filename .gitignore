@@ -13,6 +13,8 @@ docs/
 
 # Schema atual (sensível)
 schemaatual.txt
+schema_base.txt
+!migration*.sql
 Thumbs.db
 desktop.ini
 
