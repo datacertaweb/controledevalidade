@@ -143,12 +143,54 @@
                 </button>
             </div>
         </header>
+        <!-- Filtros -->
+        <section class="filters-section" style="margin-bottom: 20px;">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label>Código/SKU</label>
+                    <input type="text" class="filter-input" id="filterCodigo" placeholder="Filtrar por código...">
+                </div>
+                <div class="filter-group">
+                    <label>EAN</label>
+                    <input type="text" class="filter-input" id="filterEAN" placeholder="Filtrar por EAN...">
+                </div>
+                <div class="filter-group">
+                    <label>Categoria</label>
+                    <div class="multiselect-dropdown" id="dropdownCategoria"></div>
+                </div>
+                <div class="filter-group">
+                    <label>Descrição</label>
+                    <input type="text" class="filter-input" id="searchInput" placeholder="Buscar por descrição...">
+                </div>
+                <div class="filter-group" style="align-self: flex-end;">
+                    <button class="btn btn-outline btn-sm" id="btnLimparFiltros">Limpar Filtros</button>
+                </div>
+            </div>
+        </section>
 
-        <!-- Info de produtos -->
-        <div class="summary-cards" style="margin-bottom: 20px;">
+        <!-- Info de produtos e Ações em Lote -->
+        <div class="summary-cards" style="margin-bottom: 20px; align-items: center;">
             <div class="summary-card ok">
                 <span class="summary-value" id="totalProdutos">0</span>
                 <span class="summary-label">Produtos Cadastrados</span>
+            </div>
+            <div id="batchActions"
+                style="display: none; margin-left: auto; display: flex; gap: 10px; align-items: center;">
+                <span id="selectedCount" style="color: var(--primary); font-weight: 500;">0 selecionados</span>
+                <button class="btn btn-outline" id="btnDeselectAll" style="border-color: var(--text-muted);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    Limpar Seleção
+                </button>
+                <button class="btn" id="btnDeleteSelected" style="background: var(--danger); color: white;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    Excluir Selecionados
+                </button>
             </div>
         </div>
 
@@ -158,6 +200,9 @@
                 <table class="data-table">
                     <thead>
                         <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" id="selectAll" title="Selecionar todos">
+                            </th>
                             <th>Código</th>
                             <th>EAN</th>
                             <th>Descrição</th>
@@ -167,10 +212,30 @@
                     </thead>
                     <tbody id="produtosTable">
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 40px;">Carregando...</td>
+                            <td colspan="6" style="text-align: center; padding: 40px;">Carregando...</td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Paginação -->
+            <div class="pagination-controls"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-top: 1px solid var(--border);">
+                <div class="pagination-info">
+                    <span id="paginationInfo">Mostrando <strong>0 de 0</strong> produtos</span>
+                </div>
+                <div class="pagination-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <label style="font-size: 0.85rem; color: var(--text-muted);">Itens por página:</label>
+                    <select id="itemsPerPage" class="filter-input" style="width: auto; min-width: 70px;">
+                        <option value="25">25</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" id="btnPrevPage" disabled>← Anterior</button>
+                    <span id="pageNumberDisplay" style="font-size: 0.85rem; color: var(--text-muted);">Página 1</span>
+                    <button class="btn btn-outline btn-sm" id="btnNextPage">Próximo →</button>
+                </div>
             </div>
         </section>
     </main>

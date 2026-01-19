@@ -7,6 +7,19 @@ let userData = null;
 let produtos = [];
 let importData = []; // Dados parseados para importação
 
+// Filtros
+let filterCodigo = '';
+let filterEAN = '';
+let selectedCategorias = [];
+let filterDescricao = '';
+
+// Paginação
+let currentPage = 1;
+let itemsPerPage = 50;
+
+// Seleção em lote
+let selectedProducts = [];
+
 window.addEventListener('supabaseReady', initProdutos);
 setTimeout(() => { if (window.supabaseClient) initProdutos(); }, 500);
 
@@ -61,32 +74,197 @@ async function loadProdutos() {
 
     produtos = data || [];
     document.getElementById('totalProdutos').textContent = produtos.length;
-    renderProdutos(produtos);
+
+    // Carregar categorias para o dropdown
+    loadCategorias();
+
+    // Resetar seleção
+    selectedProducts = [];
+    updateBatchUI();
+
+    filterAndRender();
+}
+
+function loadCategorias() {
+    // Extrair categorias únicas
+    const categorias = [...new Set(produtos.map(p => p.categoria).filter(Boolean))].sort();
+    const options = categorias.map(c => ({ value: c, label: c }));
+
+    renderMultiSelect('dropdownCategoria', options, selectedCategorias, (selected) => {
+        selectedCategorias = selected;
+        currentPage = 1;
+        filterAndRender();
+    });
+}
+
+// Função Genérica para Multi-Select Dropdown (copiada de validade.js)
+function renderMultiSelect(containerId, options, selectedValues, onChangeCallback) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const count = selectedValues.length;
+    const labelText = count === 0 ? 'Todas' : (count === options.length ? 'Todas' : `${count} selecionada(s)`);
+
+    const btn = document.createElement('div');
+    btn.className = 'dropdown-btn';
+    btn.innerHTML = `<span>${labelText}</span>`;
+
+    const content = document.createElement('div');
+    content.className = 'dropdown-content';
+
+    options.forEach(opt => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        const isSelected = selectedValues.includes(opt.value);
+
+        item.innerHTML = `
+            <input type="checkbox" value="${opt.value}" ${isSelected ? 'checked' : ''}>
+            <span>${opt.label}</span>
+        `;
+
+        item.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'INPUT') {
+                const checkbox = item.querySelector('input');
+                checkbox.checked = !checkbox.checked;
+            }
+            const checkbox = item.querySelector('input');
+            const value = checkbox.value;
+
+            if (checkbox.checked) {
+                if (!selectedValues.includes(value)) selectedValues.push(value);
+            } else {
+                const index = selectedValues.indexOf(value);
+                if (index > -1) selectedValues.splice(index, 1);
+            }
+
+            const newCount = selectedValues.length;
+            const newLabel = newCount === 0 ? 'Todas' : (newCount === options.length ? 'Todas' : `${newCount} selecionada(s)`);
+            btn.querySelector('span').textContent = newLabel;
+
+            if (onChangeCallback) onChangeCallback(selectedValues);
+        });
+
+        content.appendChild(item);
+    });
+
+    container.appendChild(btn);
+    container.appendChild(content);
+
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.dropdown-content.show').forEach(el => {
+            if (el !== content) el.classList.remove('show');
+        });
+        content.classList.toggle('show');
+    });
+}
+
+// Fechar dropdowns ao clicar fora
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.multiselect-dropdown')) {
+        document.querySelectorAll('.dropdown-content.show').forEach(el => el.classList.remove('show'));
+    }
+});
+
+function filterAndRender() {
+    let filtered = produtos;
+
+    // Filtro por código
+    if (filterCodigo) {
+        filtered = filtered.filter(p =>
+            p.codigo && p.codigo.toLowerCase().includes(filterCodigo.toLowerCase())
+        );
+    }
+
+    // Filtro por EAN
+    if (filterEAN) {
+        filtered = filtered.filter(p =>
+            p.ean && p.ean.includes(filterEAN)
+        );
+    }
+
+    // Filtro por categoria (multi-select)
+    if (selectedCategorias.length > 0) {
+        filtered = filtered.filter(p =>
+            p.categoria && selectedCategorias.includes(p.categoria)
+        );
+    }
+
+    // Filtro por descrição
+    if (filterDescricao) {
+        filtered = filtered.filter(p =>
+            p.descricao.toLowerCase().includes(filterDescricao.toLowerCase())
+        );
+    }
+
+    // Paginação
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    const paginatedItems = filtered.slice(startIndex, endIndex);
+
+    updatePaginationUI(totalItems, startIndex, endIndex, totalPages);
+    renderProdutos(paginatedItems);
+}
+
+function updatePaginationUI(totalItems, startIndex, endIndex, totalPages) {
+    const info = document.getElementById('paginationInfo');
+    const btnPrev = document.getElementById('btnPrevPage');
+    const btnNext = document.getElementById('btnNextPage');
+    const pageDisplay = document.getElementById('pageNumberDisplay');
+
+    if (totalItems === 0) {
+        info.innerHTML = 'Mostrando <strong>0 de 0</strong> produtos';
+        btnPrev.disabled = true;
+        btnNext.disabled = true;
+        pageDisplay.textContent = 'Página 1';
+        return;
+    }
+
+    info.innerHTML = `Mostrando <strong>${startIndex + 1}-${endIndex} de ${totalItems}</strong> produtos`;
+    btnPrev.disabled = currentPage === 1;
+    btnNext.disabled = currentPage === totalPages;
+    pageDisplay.textContent = `Página ${currentPage}`;
 }
 
 function renderProdutos(lista) {
     const tbody = document.getElementById('produtosTable');
+    const canDelete = auth.hasPermission(userData, 'base.delete');
 
     if (lista.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align: center; padding: 60px;">
+                <td colspan="6" style="text-align: center; padding: 60px;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 10px;">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                     </svg>
-                    <p style="color: var(--text-muted);">Nenhum produto cadastrado</p>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Clique em "Novo Produto" ou "Importar" para começar</p>
+                    <p style="color: var(--text-muted);">Nenhum produto encontrado</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Ajuste os filtros ou adicione novos produtos</p>
                 </td>
             </tr>
         `;
+        // Atualizar checkbox "selecionar todos"
+        const selectAllCheckbox = document.getElementById('selectAll');
+        if (selectAllCheckbox) selectAllCheckbox.checked = false;
         return;
     }
 
     const canEdit = auth.hasPermission(userData, 'base.edit');
-    const canDelete = auth.hasPermission(userData, 'base.delete');
 
-    tbody.innerHTML = lista.map(prod => `
+    tbody.innerHTML = lista.map(prod => {
+        const isSelected = selectedProducts.includes(prod.id);
+        return `
         <tr>
+            <td>
+                ${canDelete ? `<input type="checkbox" class="product-checkbox" data-id="${prod.id}" ${isSelected ? 'checked' : ''}>` : ''}
+            </td>
             <td>${prod.codigo || '-'}</td>
             <td><code style="font-size: 12px;">${prod.ean || '-'}</code></td>
             <td><strong>${prod.descricao}</strong></td>
@@ -113,7 +291,47 @@ function renderProdutos(lista) {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
+
+    // Atualizar estado do checkbox "selecionar todos"
+    updateSelectAllState();
+
+    // Adicionar eventos aos checkboxes
+    document.querySelectorAll('.product-checkbox').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            const id = e.target.dataset.id;
+            if (e.target.checked) {
+                if (!selectedProducts.includes(id)) selectedProducts.push(id);
+            } else {
+                const index = selectedProducts.indexOf(id);
+                if (index > -1) selectedProducts.splice(index, 1);
+            }
+            updateSelectAllState();
+            updateBatchUI();
+        });
+    });
+}
+
+function updateSelectAllState() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    if (!selectAllCheckbox || checkboxes.length === 0) return;
+
+    const checkedCount = document.querySelectorAll('.product-checkbox:checked').length;
+    selectAllCheckbox.checked = checkedCount === checkboxes.length;
+    selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+}
+
+function updateBatchUI() {
+    const batchActions = document.getElementById('batchActions');
+    const selectedCount = document.getElementById('selectedCount');
+
+    if (selectedProducts.length > 0) {
+        batchActions.style.display = 'flex';
+        selectedCount.textContent = `${selectedProducts.length} selecionado${selectedProducts.length > 1 ? 's' : ''}`;
+    } else {
+        batchActions.style.display = 'none';
+    }
 }
 
 function initEvents() {
@@ -125,17 +343,82 @@ function initEvents() {
         document.getElementById('sidebar').classList.toggle('open');
     });
 
-    // Busca
-    document.getElementById('searchInput')?.addEventListener('input', (e) => {
-        const search = e.target.value.toLowerCase();
-        const filtered = produtos.filter(p =>
-            p.descricao.toLowerCase().includes(search) ||
-            (p.codigo && p.codigo.toLowerCase().includes(search)) ||
-            (p.ean && p.ean.includes(search)) ||
-            (p.categoria && p.categoria.toLowerCase().includes(search))
-        );
-        renderProdutos(filtered);
+    // Filtros
+    document.getElementById('filterCodigo')?.addEventListener('input', (e) => {
+        filterCodigo = e.target.value;
+        currentPage = 1;
+        filterAndRender();
     });
+    
+    document.getElementById('filterEAN')?.addEventListener('input', (e) => {
+        filterEAN = e.target.value;
+        currentPage = 1;
+        filterAndRender();
+    });
+    
+    document.getElementById('searchInput')?.addEventListener('input', (e) => {
+        filterDescricao = e.target.value;
+        currentPage = 1;
+        filterAndRender();
+    });
+    
+    // Limpar Filtros
+    document.getElementById('btnLimparFiltros')?.addEventListener('click', () => {
+        document.getElementById('filterCodigo').value = '';
+        document.getElementById('filterEAN').value = '';
+        document.getElementById('searchInput').value = '';
+        filterCodigo = '';
+        filterEAN = '';
+        filterDescricao = '';
+        selectedCategorias = [];
+        currentPage = 1;
+        loadCategorias(); // Re-renderiza o dropdown
+        filterAndRender();
+    });
+    
+    // Paginação
+    document.getElementById('itemsPerPage')?.addEventListener('change', (e) => {
+        itemsPerPage = parseInt(e.target.value);
+        currentPage = 1;
+        filterAndRender();
+    });
+    
+    document.getElementById('btnPrevPage')?.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            filterAndRender();
+        }
+    });
+    
+    document.getElementById('btnNextPage')?.addEventListener('click', () => {
+        currentPage++;
+        filterAndRender();
+    });
+    
+    // Seleção em Lote
+    document.getElementById('selectAll')?.addEventListener('change', (e) => {
+        const checkboxes = document.querySelectorAll('.product-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = e.target.checked;
+            const id = cb.dataset.id;
+            if (e.target.checked) {
+                if (!selectedProducts.includes(id)) selectedProducts.push(id);
+            } else {
+                const index = selectedProducts.indexOf(id);
+                if (index > -1) selectedProducts.splice(index, 1);
+            }
+        });
+        updateBatchUI();
+    });
+    
+    document.getElementById('btnDeselectAll')?.addEventListener('click', () => {
+        selectedProducts = [];
+        document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('selectAll').checked = false;
+        updateBatchUI();
+    });
+    
+    document.getElementById('btnDeleteSelected')?.addEventListener('click', deleteSelectedProducts);
 
     // Modal Produto
     const modal = document.getElementById('modalProduto');
@@ -157,6 +440,41 @@ function initEvents() {
 
     // Modal Importar
     initImportEvents();
+}
+
+// Exclusão em Lote
+async function deleteSelectedProducts() {
+    if (!auth.hasPermission(userData, 'base.delete')) {
+        window.globalUI.showToast('error', 'Você não tem permissão para excluir produtos.');
+        return;
+    }
+    
+    if (selectedProducts.length === 0) {
+        window.globalUI.showToast('warning', 'Nenhum produto selecionado.');
+        return;
+    }
+    
+    const count = selectedProducts.length;
+    if (!confirm(`Tem certeza que deseja excluir ${count} produto${count > 1 ? 's' : ''}? Esta ação não pode ser desfeita.`)) {
+        return;
+    }
+    
+    try {
+        // Soft delete em lote
+        const { error } = await supabaseClient
+            .from('base')
+            .update({ ativo: false })
+            .in('id', selectedProducts);
+        
+        if (error) throw error;
+        
+        window.globalUI.showToast('success', `${count} produto${count > 1 ? 's' : ''} excluído${count > 1 ? 's' : ''} com sucesso!`);
+        selectedProducts = [];
+        await loadProdutos();
+    } catch (error) {
+        console.error('Erro:', error);
+        window.globalUI.showToast('error', 'Erro ao excluir: ' + error.message);
+    }
 }
 
 async function saveProduto(e) {
