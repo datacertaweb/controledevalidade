@@ -225,7 +225,8 @@ window.deleteLocal = async function (id) {
         return;
     }
 
-    if (!confirm('Tem certeza que deseja excluir este local?')) return;
+    const confirmed = await window.globalUI.showConfirm('Excluir Local', 'Tem certeza que deseja excluir este local?', 'warning');
+    if (!confirmed) return;
 
     try {
         const { error } = await supabaseClient.from('locais').delete().eq('id', id);

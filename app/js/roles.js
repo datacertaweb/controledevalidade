@@ -179,7 +179,8 @@ window.editRole = function (id) {
 };
 
 window.deleteRole = async function (id) {
-    if (!confirm('Tem certeza que deseja excluir esta função? Usuários associados perderão suas permissões.')) return;
+    const confirmed = await window.globalUI.showConfirm('Excluir Função', 'Tem certeza que deseja excluir esta função? Usuários associados perderão suas permissões.', 'warning');
+    if (!confirmed) return;
 
     try {
         // Primeiro remover permissões associadas (embora cascade possa resolver, é bom garantir)

@@ -318,10 +318,80 @@ window.globalUI = {
             this._currentOkCallback();
             this._currentOkCallback = null;
         }
+    },
+
+    /**
+     * Exibir Modal de Confirmação (substitui confirm())
+     * @param {string} title
+     * @param {string} message
+     * @param {string} type - 'warning', 'error', 'info'
+     * @returns {Promise<boolean>} - Resolve true se confirmado, false se cancelado
+     */
+    showConfirm(title, message, type = 'warning') {
+        return new Promise((resolve) => {
+            this.init();
+
+            // Criar modal de confirmação se não existir
+            if (!document.getElementById('global-confirm-modal')) {
+                const modal = document.createElement('div');
+                modal.id = 'global-confirm-modal';
+                modal.className = 'global-alert-modal';
+                modal.innerHTML = `
+                    <div class="alert-modal-content">
+                        <div class="alert-modal-icon" id="confirmIcon"></div>
+                        <div class="alert-modal-title" id="confirmTitle"></div>
+                        <div class="alert-modal-message" id="confirmMessage"></div>
+                        <div class="confirm-modal-actions">
+                            <button class="btn btn-outline" id="confirmBtnCancel">Cancelar</button>
+                            <button class="btn btn-danger" id="confirmBtnOk">Confirmar</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                // Fechar ao clicar fora
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        this._resolveConfirm(false);
+                    }
+                });
+            }
+
+            const modal = document.getElementById('global-confirm-modal');
+            const icon = document.getElementById('confirmIcon');
+
+            // Ícones
+            const icons = {
+                warning: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+                error: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+                info: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
+            };
+
+            icon.innerHTML = icons[type] || icons.warning;
+            icon.className = `alert-modal-icon ${type}`;
+
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+
+            // Resolver na escolha
+            this._resolveConfirm = (result) => {
+                modal.classList.remove('active');
+                resolve(result);
+            };
+
+            // Event listeners (remover antigos para evitar duplicação)
+            const btnCancel = document.getElementById('confirmBtnCancel');
+            const btnOk = document.getElementById('confirmBtnOk');
+
+            btnCancel.onclick = () => this._resolveConfirm(false);
+            btnOk.onclick = () => this._resolveConfirm(true);
+
+            modal.classList.add('active');
+            btnOk.focus();
+        });
     }
 };
 
 // Aliases globais para facilitar o refatoramento
 window.showToast = (message, type = 'info') => window.globalUI.showToast(type, message);
-window.alert = (message) => window.globalUI.showAlert('Atenção', message, 'warning'); // Override básico do alert se quiser, mas vamos substituir explicitamente
-
+window.showConfirm = (title, message, type = 'warning') => window.globalUI.showConfirm(title, message, type);

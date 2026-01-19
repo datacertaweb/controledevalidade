@@ -1016,3 +1016,47 @@ body {
         transform: translateX(20px);
     }
 }
+
+/* ==========================================
+   Confirm Modal (two buttons)
+   ========================================== */
+
+#global-confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    animation: alertFadeIn 0.2s ease;
+}
+
+#global-confirm-modal.active {
+    display: flex;
+}
+
+.confirm-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.confirm-modal-actions .btn {
+    flex: 1;
+    padding: 10px 20px;
+    font-size: 14px;
+}
+
+.btn-danger {
+    background: var(--color-danger, #EF4444) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.btn-danger:hover {
+    opacity: 0.9;
+}

@@ -144,26 +144,36 @@
             </div>
         </header>
         <!-- Filtros -->
-        <section class="filters-section" style="margin-bottom: 20px;">
-            <div class="filters-row">
+        <section class="filter-section"
+            style="background: var(--bg-card); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border-secondary);">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; align-items: end;">
                 <div class="filter-group">
-                    <label>Código/SKU</label>
-                    <input type="text" class="filter-input" id="filterCodigo" placeholder="Filtrar por código...">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Código/SKU</label>
+                    <input type="text" class="filter-input" id="filterCodigo" placeholder="Filtrar por código..."
+                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-secondary); background: var(--bg-primary); font-size: 14px;">
                 </div>
                 <div class="filter-group">
-                    <label>EAN</label>
-                    <input type="text" class="filter-input" id="filterEAN" placeholder="Filtrar por EAN...">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">EAN</label>
+                    <input type="text" class="filter-input" id="filterEAN" placeholder="Filtrar por EAN..."
+                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-secondary); background: var(--bg-primary); font-size: 14px;">
                 </div>
                 <div class="filter-group">
-                    <label>Categoria</label>
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Categoria</label>
                     <div class="multiselect-dropdown" id="dropdownCategoria"></div>
                 </div>
                 <div class="filter-group">
-                    <label>Descrição</label>
-                    <input type="text" class="filter-input" id="searchInput" placeholder="Buscar por descrição...">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Descrição</label>
+                    <input type="text" class="filter-input" id="searchInput" placeholder="Buscar por descrição..."
+                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-secondary); background: var(--bg-primary); font-size: 14px;">
                 </div>
-                <div class="filter-group" style="align-self: flex-end;">
-                    <button class="btn btn-outline btn-sm" id="btnLimparFiltros">Limpar Filtros</button>
+                <div class="filter-group" style="display: flex; align-items: flex-end;">
+                    <button class="btn btn-outline btn-sm" id="btnLimparFiltros"
+                        style="padding: 10px 16px; font-size: 14px;">Limpar Filtros</button>
                 </div>
             </div>
         </section>

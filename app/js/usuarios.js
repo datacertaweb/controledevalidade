@@ -394,7 +394,8 @@ async function saveUsuarioPermissions(usuarioId) {
 
 window.toggleUsuario = async function (id, ativo) {
     const action = ativo ? 'desativar' : 'ativar';
-    if (!confirm(`Tem certeza que deseja ${action} este usuário?`)) return;
+    const confirmed = await window.globalUI.showConfirm(`${action.charAt(0).toUpperCase() + action.slice(1)} Usuário`, `Tem certeza que deseja ${action} este usuário?`, 'warning');
+    if (!confirmed) return;
 
     try {
         const { error } = await supabaseClient.from('usuarios').update({

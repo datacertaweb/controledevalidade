@@ -349,19 +349,19 @@ function initEvents() {
         currentPage = 1;
         filterAndRender();
     });
-    
+
     document.getElementById('filterEAN')?.addEventListener('input', (e) => {
         filterEAN = e.target.value;
         currentPage = 1;
         filterAndRender();
     });
-    
+
     document.getElementById('searchInput')?.addEventListener('input', (e) => {
         filterDescricao = e.target.value;
         currentPage = 1;
         filterAndRender();
     });
-    
+
     // Limpar Filtros
     document.getElementById('btnLimparFiltros')?.addEventListener('click', () => {
         document.getElementById('filterCodigo').value = '';
@@ -375,26 +375,26 @@ function initEvents() {
         loadCategorias(); // Re-renderiza o dropdown
         filterAndRender();
     });
-    
+
     // Paginação
     document.getElementById('itemsPerPage')?.addEventListener('change', (e) => {
         itemsPerPage = parseInt(e.target.value);
         currentPage = 1;
         filterAndRender();
     });
-    
+
     document.getElementById('btnPrevPage')?.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
             filterAndRender();
         }
     });
-    
+
     document.getElementById('btnNextPage')?.addEventListener('click', () => {
         currentPage++;
         filterAndRender();
     });
-    
+
     // Seleção em Lote
     document.getElementById('selectAll')?.addEventListener('change', (e) => {
         const checkboxes = document.querySelectorAll('.product-checkbox');
@@ -410,14 +410,14 @@ function initEvents() {
         });
         updateBatchUI();
     });
-    
+
     document.getElementById('btnDeselectAll')?.addEventListener('click', () => {
         selectedProducts = [];
         document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = false);
         document.getElementById('selectAll').checked = false;
         updateBatchUI();
     });
-    
+
     document.getElementById('btnDeleteSelected')?.addEventListener('click', deleteSelectedProducts);
 
     // Modal Produto
@@ -448,26 +448,29 @@ async function deleteSelectedProducts() {
         window.globalUI.showToast('error', 'Você não tem permissão para excluir produtos.');
         return;
     }
-    
+
     if (selectedProducts.length === 0) {
         window.globalUI.showToast('warning', 'Nenhum produto selecionado.');
         return;
     }
-    
+
     const count = selectedProducts.length;
-    if (!confirm(`Tem certeza que deseja excluir ${count} produto${count > 1 ? 's' : ''}? Esta ação não pode ser desfeita.`)) {
-        return;
-    }
-    
+    const confirmed = await window.globalUI.showConfirm(
+        'Excluir Produtos',
+        `Tem certeza que deseja excluir ${count} produto${count > 1 ? 's' : ''}? Esta ação não pode ser desfeita.`,
+        'warning'
+    );
+    if (!confirmed) return;
+
     try {
         // Soft delete em lote
         const { error } = await supabaseClient
             .from('base')
             .update({ ativo: false })
             .in('id', selectedProducts);
-        
+
         if (error) throw error;
-        
+
         window.globalUI.showToast('success', `${count} produto${count > 1 ? 's' : ''} excluído${count > 1 ? 's' : ''} com sucesso!`);
         selectedProducts = [];
         await loadProdutos();
@@ -527,7 +530,8 @@ window.deleteProduto = async function (id) {
         return;
     }
 
-    if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+    const confirmed = await window.globalUI.showConfirm('Excluir Produto', 'Tem certeza que deseja excluir este produto?', 'warning');
+    if (!confirmed) return;
 
     try {
         const { error } = await supabaseClient.from('base').update({ ativo: false }).eq('id', id);

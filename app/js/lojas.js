@@ -206,7 +206,8 @@ window.deleteLoja = async function (id) {
         return;
     }
 
-    if (!confirm('Tem certeza que deseja excluir esta loja?')) return;
+    const confirmed = await window.globalUI.showConfirm('Excluir Loja', 'Tem certeza que deseja excluir esta loja?', 'warning');
+    if (!confirmed) return;
 
     try {
         const { error } = await supabaseClient.from('lojas').delete().eq('id', id);
