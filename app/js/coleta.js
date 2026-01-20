@@ -215,7 +215,7 @@ async function buscarProduto() {
     try {
         // Buscar primeiro por EAN (código de barras)
         let { data, error } = await supabaseClient
-            .from('produtos')
+            .from('base')
             .select('id, descricao, categoria, valor_unitario')
             .eq('empresa_id', userData.empresa_id)
             .eq('ean', codigo)
@@ -224,7 +224,7 @@ async function buscarProduto() {
         // Se não encontrou por EAN, buscar por código interno
         if (!data) {
             const result = await supabaseClient
-                .from('produtos')
+                .from('base')
                 .select('id, descricao, categoria, valor_unitario')
                 .eq('empresa_id', userData.empresa_id)
                 .eq('codigo', codigo)
@@ -573,7 +573,7 @@ async function buscarProdutoPerda() {
     try {
         // Buscar primeiro por EAN (código de barras)
         let { data, error } = await supabaseClient
-            .from('produtos')
+            .from('base')
             .select('id, descricao, categoria, valor_unitario')
             .eq('empresa_id', userData.empresa_id)
             .eq('ean', codigo)
@@ -582,7 +582,7 @@ async function buscarProdutoPerda() {
         // Se não encontrou por EAN, buscar por código interno
         if (!data) {
             const result = await supabaseClient
-                .from('produtos')
+                .from('base')
                 .select('id, descricao, categoria, valor_unitario')
                 .eq('empresa_id', userData.empresa_id)
                 .eq('codigo', codigo)
