@@ -29,7 +29,7 @@ async function initColeta() {
     try {
         const user = await auth.getUser();
         if (!user) {
-            window.location.href = 'login.html';
+            window.location.href = '../login.html';
             return;
         }
 
