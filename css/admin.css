@@ -335,3 +335,131 @@
         min-width: 100%;
     }
 }
+
+/* Data Table Improvements */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.data-table th,
+.data-table td {
+    padding: var(--spacing-md);
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-secondary);
+}
+
+.data-table th {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--bg-card-hover);
+    white-space: nowrap;
+}
+
+.data-table td {
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+}
+
+/* Column widths for empresas table */
+.data-table th:nth-child(1),
+.data-table td:nth-child(1) {
+    width: 25%;
+    min-width: 180px;
+}
+
+.data-table th:nth-child(2),
+.data-table td:nth-child(2) {
+    width: 15%;
+    min-width: 140px;
+}
+
+.data-table th:nth-child(3),
+.data-table td:nth-child(3) {
+    width: 15%;
+    min-width: 100px;
+}
+
+.data-table th:nth-child(4),
+.data-table td:nth-child(4) {
+    width: 10%;
+    min-width: 80px;
+}
+
+.data-table th:nth-child(5),
+.data-table td:nth-child(5) {
+    width: 20%;
+    min-width: 150px;
+}
+
+.data-table th:nth-child(6),
+.data-table td:nth-child(6) {
+    width: 15%;
+    min-width: 100px;
+    text-align: center;
+}
+
+.data-table tbody tr:hover {
+    background: var(--bg-card-hover);
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: center;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-secondary);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.action-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.action-btn.danger:hover {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.action-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Table Wrapper for horizontal scroll on mobile */
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1024px) {
+    .data-table {
+        table-layout: auto;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-xs);
+    }
+}

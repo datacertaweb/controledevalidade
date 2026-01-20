@@ -151,6 +151,14 @@ function renderEmpresas(lista) {
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
                     </button>
+                    <button class="action-btn danger" title="Excluir" onclick="deleteEmpresa('${emp.id}', '${emp.nome.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            <line x1="10" y1="11" x2="10" y2="17"/>
+                            <line x1="14" y1="11" x2="14" y2="17"/>
+                        </svg>
+                    </button>
                 </div>
             </td>
         </tr>
@@ -264,6 +272,33 @@ function editEmpresa(id) {
     alert('Funcionalidade de edição será implementada em breve.');
 }
 
+// Excluir empresa
+async function deleteEmpresa(id, nome) {
+    const confirmMsg = `⚠️ ATENÇÃO!\n\nVocê está prestes a excluir a empresa "${nome}" e TODOS os seus dados:\n- Usuários\n- Lojas\n- Produtos\n- Coletas\n- Perdas\n\nEsta ação é IRREVERSÍVEL!\n\nDigite "EXCLUIR" para confirmar:`;
+
+    const userInput = prompt(confirmMsg);
+
+    if (userInput !== 'EXCLUIR') {
+        alert('Exclusão cancelada.');
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient.rpc('delete_empresa_cascade', {
+            empresa_id_input: id
+        });
+
+        if (error) throw error;
+
+        alert('Empresa excluída com sucesso!');
+        await loadEmpresas();
+
+    } catch (error) {
+        console.error('Erro ao excluir empresa:', error);
+        alert('Erro ao excluir empresa: ' + error.message);
+    }
+}
+
 // Helpers
 function formatCurrency(value) {
     return new Intl.NumberFormat('pt-BR', {
@@ -283,15 +318,26 @@ function formatStatus(status) {
 }
 
 function formatExpiration(emp) {
+    let targetDate = null;
+    let label = '';
+
     if (emp.status === 'trial' && emp.trial_ends_at) {
-        const date = new Date(emp.trial_ends_at);
-        const daysLeft = Math.ceil((date - new Date()) / (1000 * 60 * 60 * 24));
-        if (daysLeft < 0) return '<span style="color: var(--color-danger);">Expirado</span>';
-        if (daysLeft <= 3) return `<span style="color: var(--color-warning);">${daysLeft}d restantes</span>`;
-        return `${daysLeft}d restantes`;
+        targetDate = new Date(emp.trial_ends_at);
+        label = 'Trial termina em';
+    } else if (emp.subscription_ends_at) {
+        targetDate = new Date(emp.subscription_ends_at);
+        label = 'Mensalidade termina em';
     }
-    if (emp.subscription_ends_at) {
-        return new Date(emp.subscription_ends_at).toLocaleDateString('pt-BR');
+
+    if (!targetDate) return '-';
+
+    const now = new Date();
+    const diffMs = targetDate - now;
+    const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (daysLeft < 0) {
+        return '<span style="color: var(--color-danger);">Vencido</span>';
     }
-    return '-';
+
+    return `${label} ${daysLeft} dia${daysLeft !== 1 ? 's' : ''}`;
 }
