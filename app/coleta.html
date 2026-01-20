@@ -92,6 +92,68 @@
             font-size: 1rem;
         }
 
+        .store-select {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .store-select option {
+            background: #0F766E;
+            color: white;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #6B7280;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #0F766E 0%, #14B8A6 100%);
+            color: white;
+        }
+
+        .tab-btn:not(.active):hover {
+            background: #F3F4F6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Perda specific styles */
+        .perda-badge {
+            background: linear-gradient(135deg, #DC2626 0%, #F87171 100%);
+        }
+
         .scan-card {
             background: white;
             border-radius: 12px;
@@ -372,125 +434,213 @@
                 </svg>
                 Voltar
             </a>
-            <div class="header-title">Nova Coleta</div>
+            <div style="width: 24px;"></div>
             <div style="width: 24px;"></div>
         </header>
 
-        <!-- Store Badge -->
-        <div class="store-badge">
+        <!-- Store Badge / Selector -->
+        <div class="store-badge" id="storeBadge">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" />
             </svg>
             <div class="store-info">
                 <div class="store-label">Coletando em</div>
+                <!-- Badge simples para usuários comuns -->
                 <div class="store-name" id="lojaNome">Carregando...</div>
+                <!-- Dropdown para admins (escondido por padrão) -->
+                <select id="lojaSelect" class="store-select" style="display: none;">
+                    <option value="">Selecione uma loja...</option>
+                </select>
             </div>
         </div>
 
-        <!-- Scanner Section -->
-        <div class="scan-card">
-            <button class="scan-btn" id="startScanBtn">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 4h4v4H4zM4 16h4v4H4zM16 4h4v4h-4zM16 16h4v4h-4z" />
-                    <path d="M4 12h16" />
-                </svg>
-                Ler Código de Barras
-            </button>
-            <div id="video-container" style="display: none;">
-                <div id="reader"></div>
-                <button class="btn btn-secondary" style="margin-top: 10px;" id="stopScanBtn">Fechar Câmera</button>
-            </div>
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" id="tabEntrada" onclick="switchTab('entrada')">Entrada</button>
+            <button class="tab-btn" id="tabPerda" onclick="switchTab('perda')">Perdas</button>
         </div>
 
-        <!-- Form Section -->
-        <div class="form-card">
-            <div class="form-group">
-                <label class="form-label" for="codigo">Código / EAN</label>
-                <input type="text" id="codigo" class="form-input" placeholder="Digite ou escaneie" inputmode="numeric">
-            </div>
+        <!-- Tab Content: Entrada -->
+        <div id="contentEntrada" class="tab-content active">
 
-            <!-- Product Info Feedback -->
-            <div id="produtoInfo" class="product-info">
-                <div class="product-name" id="produtoNome">Carregando...</div>
-                <div class="product-detail">Categoria: <span id="produtoCategoria">-</span></div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label" for="quantidade">Quantidade</label>
-                    <input type="number" id="quantidade" class="form-input" placeholder="0" min="1">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="valor">Valor (R$)</label>
-                    <input type="number" id="valor" class="form-input" placeholder="0,00" step="0.01" min="0">
+            <!-- Scanner Section -->
+            <div class="scan-card">
+                <button class="scan-btn" id="startScanBtn">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h4v4H4zM4 16h4v4H4zM16 4h4v4h-4zM16 16h4v4h-4z" />
+                        <path d="M4 12h16" />
+                    </svg>
+                    Ler Código de Barras
+                </button>
+                <div id="video-container" style="display: none;">
+                    <div id="reader"></div>
+                    <button class="btn btn-secondary" style="margin-top: 10px;" id="stopScanBtn">Fechar Câmera</button>
                 </div>
             </div>
 
-            <div class="form-row">
+            <!-- Form Section -->
+            <div class="form-card">
                 <div class="form-group">
-                    <label class="form-label" for="validade">Vencimento</label>
-                    <input type="date" id="validade" class="form-input">
+                    <label class="form-label" for="codigo">Código / EAN</label>
+                    <input type="text" id="codigo" class="form-input" placeholder="Digite ou escaneie"
+                        inputmode="numeric">
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label" for="setor">Setor</label>
-                    <select id="setor" class="form-input">
-                        <option value="">Selecione...</option>
-                        <option value="MERCEARIA">MERCEARIA</option>
-                        <option value="AÇOUGUE">AÇOUGUE</option>
-                        <option value="FLV">FLV</option>
-                        <option value="FRIOS">FRIOS</option>
-                        <option value="PADARIA">PADARIA</option>
-                        <option value="LATICÍNIOS">LATICÍNIOS</option>
+                    <label class="form-label" for="descricao">Descrição</label>
+                    <input type="text" id="descricao" class="form-input" placeholder="Aguardando código..." readonly
+                        style="background-color: #F9FAFB; cursor: not-allowed;">
+                </div>
+
+                <!-- Product Info Feedback -->
+                <div id="produtoInfo" class="product-info">
+                    <div class="product-name" id="produtoNome">Carregando...</div>
+                    <div class="product-detail">Categoria: <span id="produtoCategoria">-</span></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="quantidade">Quantidade</label>
+                        <input type="number" id="quantidade" class="form-input" placeholder="0" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="valor">Valor (R$)</label>
+                        <input type="number" id="valor" class="form-input" placeholder="0,00" step="0.01" min="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="validade">Vencimento</label>
+                        <input type="date" id="validade" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="setor">Setor</label>
+                        <select id="setor" class="form-input">
+                            <option value="">Selecione...</option>
+                            <option value="MERCEARIA">MERCEARIA</option>
+                            <option value="AÇOUGUE">AÇOUGUE</option>
+                            <option value="FLV">FLV</option>
+                            <option value="FRIOS">FRIOS</option>
+                            <option value="PADARIA">PADARIA</option>
+                            <option value="LATICÍNIOS">LATICÍNIOS</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p id="mensagem" class="status-msg"></p>
+            </div>
+
+            <!-- Lista de Itens Coletados -->
+            <div class="list-card" id="listCard" style="display: none;">
+                <div class="list-header">
+                    <span class="list-title">Itens Coletados</span>
+                    <span class="list-count" id="listCount">0</span>
+                </div>
+                <div class="item-list" id="itemList">
+                    <div class="empty-list">Nenhum item adicionado ainda.</div>
+                </div>
+            </div>
+
+        </div> <!-- End contentEntrada -->
+
+        <!-- Tab Content: Perdas -->
+        <div id="contentPerda" class="tab-content">
+
+            <!-- Scanner Section (Reused) -->
+            <div class="scan-card">
+                <button class="scan-btn" id="startScanBtnPerda"
+                    style="background: linear-gradient(135deg, #DC2626 0%, #F87171 100%);">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h4v4H4zM4 16h4v4H4zM16 4h4v4h-4zM16 16h4v4h-4z" />
+                        <path d="M4 12h16" />
+                    </svg>
+                    Ler Código de Barras
+                </button>
+                <div id="video-container-perda" style="display: none;">
+                    <div id="reader-perda"></div>
+                    <button class="btn btn-secondary" style="margin-top: 10px;" id="stopScanBtnPerda">Fechar
+                        Câmera</button>
+                </div>
+            </div>
+
+            <!-- Form Section Perda -->
+            <div class="form-card">
+                <div class="form-group">
+                    <label class="form-label" for="codigoPerda">Código / EAN</label>
+                    <input type="text" id="codigoPerda" class="form-input" placeholder="Digite ou escaneie"
+                        inputmode="numeric">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="descricaoPerda">Descrição</label>
+                    <input type="text" id="descricaoPerda" class="form-input" placeholder="Aguardando código..."
+                        readonly style="background-color: #F9FAFB; cursor: not-allowed;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="validadePerda">Validade do Produto</label>
+                    <select id="validadePerda" class="form-input">
+                        <option value="">Busque o produto primeiro...</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="quantidadePerda">Quantidade</label>
+                    <input type="number" id="quantidadePerda" class="form-input" placeholder="0" min="1">
+                </div>
+
+                <p id="mensagemPerda" class="status-msg"></p>
             </div>
 
-            <p id="mensagem" class="status-msg"></p>
-        </div>
-
-        <!-- Lista de Itens Coletados -->
-        <div class="list-card" id="listCard" style="display: none;">
-            <div class="list-header">
-                <span class="list-title">Itens Coletados</span>
-                <span class="list-count" id="listCount">0</span>
+            <!-- Lista de Itens de Perda -->
+            <div class="list-card" id="listCardPerda" style="display: none;">
+                <div class="list-header">
+                    <span class="list-title" style="color: #DC2626;">Itens de Perda</span>
+                    <span class="list-count" id="listCountPerda" style="background: #DC2626;">0</span>
+                </div>
+                <div class="item-list" id="itemListPerda">
+                    <div class="empty-list">Nenhum item adicionado ainda.</div>
+                </div>
             </div>
-            <div class="item-list" id="itemList">
-                <div class="empty-list">Nenhum item adicionado ainda.</div>
+
+        </div> <!-- End contentPerda -->
+
+        <!-- Fixed Action Bar -->
+        <div class="action-bar">
+            <div class="action-bar-top">
+                <button class="btn btn-secondary"
+                    onclick="currentMode === 'perda' ? limparFormularioPerda() : limparFormulario()">Limpar</button>
+                <button class="btn btn-primary" id="btn-adicionar"
+                    onclick="currentMode === 'perda' ? adicionarItemPerda() : adicionarItem()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M8 4v8M4 8h8" />
+                    </svg>
+                    Adicionar
+                </button>
+            </div>
+            <div class="action-bar-bottom">
+                <button class="btn btn-danger" id="btn-excluir"
+                    onclick="currentMode === 'perda' ? excluirSelecionadosPerda() : excluirSelecionados()"
+                    style="display: none;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M19 6v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6" />
+                    </svg>
+                    Excluir
+                </button>
+                <button class="btn btn-success" id="btn-enviar"
+                    onclick="currentMode === 'perda' ? enviarTodosPerda() : enviarTodos()" style="display: none;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                    Enviar Tudo
+                </button>
             </div>
         </div>
 
-    </div>
-
-    <!-- Fixed Action Bar -->
-    <div class="action-bar">
-        <div class="action-bar-top">
-            <button class="btn btn-secondary" onclick="limparFormulario()">Limpar</button>
-            <button class="btn btn-primary" id="btn-adicionar" onclick="adicionarItem()">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M8 4v8M4 8h8" />
-                </svg>
-                Adicionar
-            </button>
-        </div>
-        <div class="action-bar-bottom">
-            <button class="btn btn-danger" id="btn-excluir" onclick="excluirSelecionados()" style="display: none;">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M19 6v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6" />
-                </svg>
-                Excluir
-            </button>
-            <button class="btn btn-success" id="btn-enviar" onclick="enviarTodos()" style="display: none;">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 6L9 17l-5-5" />
-                </svg>
-                Enviar Tudo
-            </button>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="../js/supabase.js"></script>
-    <script src="js/coleta.js"></script>
+        <!-- Scripts -->
+        <script src="../js/supabase.js"></script>
+        <script src="js/coleta.js"></script>
 </body>
 
 </html>

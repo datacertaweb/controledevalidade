@@ -99,7 +99,7 @@ function renderLojasCheckboxes(selectedLojaIds = []) {
 async function loadUsuarios() {
     const { data, error } = await supabaseClient
         .from('usuarios')
-        .select('*, roles(nome)')
+        .select('*, roles(nome), empresas(nome), usuarios_lojas(lojas(nome))')
         .eq('empresa_id', userData.empresa_id)
         .order('nome');
 
@@ -116,15 +116,34 @@ function renderUsuarios() {
     const tbody = document.getElementById('usuariosTable');
 
     if (usuarios.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 60px; color: var(--text-muted);">Nenhum usuário cadastrado</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 60px; color: var(--text-muted);">Nenhum usuário cadastrado</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = usuarios.map(u => `
+    tbody.innerHTML = usuarios.map(u => {
+        // Empresa: sempre mostrar nome da empresa
+        const empresaNome = u.empresas?.nome || '-';
+
+        // Loja: mostrar lojas vinculadas ou nome da empresa se não tiver loja
+        let lojaNome = '-';
+        if (u.usuarios_lojas && u.usuarios_lojas.length > 0) {
+            // Pegar nomes das lojas vinculadas
+            const lojas = u.usuarios_lojas
+                .map(ul => ul.lojas?.nome)
+                .filter(Boolean);
+            lojaNome = lojas.length > 0 ? lojas.join(', ') : empresaNome;
+        } else {
+            // Sem loja vinculada - mostrar nome da empresa
+            lojaNome = empresaNome;
+        }
+
+        return `
         <tr>
             <td><strong>${u.nome}</strong></td>
             <td>${u.username || '-'}</td>
             <td>${u.email}</td>
+            <td>${empresaNome}</td>
+            <td>${lojaNome}</td>
             <td>${u.roles?.nome || '-'}</td>
             <td>
                 <span class="validity-badge ${u.ativo ? 'ok' : 'expired'}">
@@ -149,7 +168,7 @@ function renderUsuarios() {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 function initEvents() {
