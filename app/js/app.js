@@ -61,8 +61,8 @@ async function initApp() {
         // Carregar lojas
         await loadLojas();
 
-        // Carregar dashboard
-        await loadDashboard();
+        // Carregar dashboard (Legacy - logic moved to dashboard.js)
+        // await loadDashboard();
 
         // Init eventos
         initEvents();
