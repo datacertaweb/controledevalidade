@@ -213,21 +213,21 @@ async function buscarProduto() {
     if (!userData || !userData.empresa_id) return;
 
     try {
-        // Buscar primeiro por código exato
+        // Buscar primeiro por EAN (código de barras)
         let { data, error } = await supabaseClient
             .from('produtos')
             .select('id, descricao, categoria, valor_unitario')
             .eq('empresa_id', userData.empresa_id)
-            .eq('codigo', codigo)
+            .eq('ean', codigo)
             .maybeSingle();
 
-        // Se não encontrou por código, buscar por EAN
+        // Se não encontrou por EAN, buscar por código interno
         if (!data) {
             const result = await supabaseClient
                 .from('produtos')
                 .select('id, descricao, categoria, valor_unitario')
                 .eq('empresa_id', userData.empresa_id)
-                .eq('ean', codigo)
+                .eq('codigo', codigo)
                 .maybeSingle();
             data = result.data;
             error = result.error;
@@ -571,21 +571,21 @@ async function buscarProdutoPerda() {
     if (!userData || !userData.empresa_id) return;
 
     try {
-        // Buscar produto por código
+        // Buscar primeiro por EAN (código de barras)
         let { data, error } = await supabaseClient
             .from('produtos')
             .select('id, descricao, categoria, valor_unitario')
             .eq('empresa_id', userData.empresa_id)
-            .eq('codigo', codigo)
+            .eq('ean', codigo)
             .maybeSingle();
 
-        // Se não encontrou por código, buscar por EAN
+        // Se não encontrou por EAN, buscar por código interno
         if (!data) {
             const result = await supabaseClient
                 .from('produtos')
                 .select('id, descricao, categoria, valor_unitario')
                 .eq('empresa_id', userData.empresa_id)
-                .eq('ean', codigo)
+                .eq('codigo', codigo)
                 .maybeSingle();
             data = result.data;
             error = result.error;
