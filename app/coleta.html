@@ -32,15 +32,14 @@
             max-width: 480px;
             margin: 0 auto;
             padding: 16px;
-            padding-bottom: 80px;
-            /* Espaço para footer fixo */
+            padding-bottom: 160px;
         }
 
         .header-mobile {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             padding-top: 8px;
         }
 
@@ -59,10 +58,44 @@
             font-weight: 500;
         }
 
+        /* Store Badge */
+        .store-badge {
+            background: linear-gradient(135deg, #0F766E 0%, #14B8A6 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .store-badge svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .store-info {
+            flex: 1;
+        }
+
+        .store-label {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .store-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
         .scan-card {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             margin-bottom: 16px;
             text-align: center;
@@ -72,10 +105,10 @@
             background: linear-gradient(135deg, #0F766E 0%, #14B8A6 100%);
             color: white;
             border: none;
-            padding: 16px;
+            padding: 14px;
             border-radius: 8px;
             width: 100%;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -92,29 +125,31 @@
         .form-card {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .form-label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             font-weight: 500;
             color: #374151;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .form-input {
             width: 100%;
-            padding: 12px;
+            padding: 10px 12px;
             border: 1px solid #D1D5DB;
             border-radius: 8px;
             font-size: 1rem;
             font-family: inherit;
+            box-sizing: border-box;
         }
 
         .form-input:focus {
@@ -123,17 +158,36 @@
             box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.1);
         }
 
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        /* Action Bar */
         .action-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: white;
-            padding: 16px;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-            display: flex;
-            gap: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
             z-index: 100;
+        }
+
+        .action-bar-top {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .action-bar-bottom {
+            display: flex;
+            gap: 10px;
         }
 
         .btn {
@@ -141,9 +195,13 @@
             padding: 12px;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             border: none;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .btn-secondary {
@@ -156,6 +214,16 @@
             color: white;
         }
 
+        .btn-danger {
+            background: #FEE2E2;
+            color: #B91C1C;
+        }
+
+        .btn-success {
+            background: #10B981;
+            color: white;
+        }
+
         #reader {
             width: 100%;
             margin-top: 10px;
@@ -165,19 +233,19 @@
 
         .status-msg {
             text-align: center;
-            margin-top: 10px;
+            margin-top: 8px;
             font-weight: 500;
-            min-height: 24px;
+            min-height: 20px;
+            font-size: 0.9rem;
         }
 
         .product-info {
             background: #ECFDF5;
             border: 1px solid #A7F3D0;
             border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 16px;
+            padding: 10px 12px;
+            margin-bottom: 14px;
             display: none;
-            /* Só mostra quando produto for encontrado */
         }
 
         .product-info.active {
@@ -187,20 +255,112 @@
         .product-name {
             font-weight: 600;
             color: #065F46;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
+            font-size: 0.95rem;
         }
 
         .product-detail {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #047857;
+        }
+
+        /* Lista de Itens */
+        .list-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .list-title {
+            font-weight: 600;
+            color: #111827;
+            font-size: 0.95rem;
+        }
+
+        .list-count {
+            background: #0F766E;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .item-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #F3F4F6;
+            gap: 10px;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: #0F766E;
+            cursor: pointer;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-desc {
+            font-weight: 500;
+            color: #111827;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-meta {
+            font-size: 0.75rem;
+            color: #6B7280;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .item-qty {
+            font-weight: 600;
+            color: #0F766E;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .empty-list {
+            text-align: center;
+            padding: 20px;
+            color: #9CA3AF;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 
 <body>
-    <!-- Auth Check -->
     <!-- Auth Check handled by coleta.js -->
-
 
     <div class="coleta-container">
 
@@ -213,19 +373,29 @@
                 Voltar
             </a>
             <div class="header-title">Nova Coleta</div>
-            <div style="width: 24px;"></div> <!-- Spacer -->
+            <div style="width: 24px;"></div>
         </header>
+
+        <!-- Store Badge -->
+        <div class="store-badge">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" />
+            </svg>
+            <div class="store-info">
+                <div class="store-label">Coletando em</div>
+                <div class="store-name" id="lojaNome">Carregando...</div>
+            </div>
+        </div>
 
         <!-- Scanner Section -->
         <div class="scan-card">
             <button class="scan-btn" id="startScanBtn">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 4h4v4H4zM4 16h4v4H4zM16 4h4v4h-4zM16 16h4v4h-4zM7 7h.01M7 17h.01M17 7h.01M17 17h.01" />
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h4v4H4zM4 16h4v4H4zM16 4h4v4h-4zM16 16h4v4h-4z" />
                     <path d="M4 12h16" />
                 </svg>
                 Ler Código de Barras
             </button>
-
             <div id="video-container" style="display: none;">
                 <div id="reader"></div>
                 <button class="btn btn-secondary" style="margin-top: 10px;" id="stopScanBtn">Fechar Câmera</button>
@@ -234,10 +404,9 @@
 
         <!-- Form Section -->
         <div class="form-card">
-
             <div class="form-group">
-                <label class="form-label" for="codigo">Código do Produto / EAN</label>
-                <input type="number" id="codigo" class="form-input" placeholder="Digite ou escaneie">
+                <label class="form-label" for="codigo">Código / EAN</label>
+                <input type="text" id="codigo" class="form-input" placeholder="Digite ou escaneie" inputmode="numeric">
             </div>
 
             <!-- Product Info Feedback -->
@@ -246,38 +415,77 @@
                 <div class="product-detail">Categoria: <span id="produtoCategoria">-</span></div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="quantidade">Quantidade</label>
-                <input type="number" id="quantidade" class="form-input" placeholder="0">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="quantidade">Quantidade</label>
+                    <input type="number" id="quantidade" class="form-input" placeholder="0" min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="valor">Valor (R$)</label>
+                    <input type="number" id="valor" class="form-input" placeholder="0,00" step="0.01" min="0">
+                </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="validade">Data de Vencimento</label>
-                <input type="date" id="validade" class="form-input">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="setor">Setor (Local)</label>
-                <select id="setor" class="form-input">
-                    <option value="">Selecione um setor...</option>
-                    <!-- Opções geradas via JS mas deixamos padrão por enquanto -->
-                    <option value="MERCEARIA">MERCEARIA</option>
-                    <option value="AÇOUGUE">AÇOUGUE</option>
-                    <option value="FLV">FLV</option>
-                    <option value="FRIOS">FRIOS</option>
-                    <option value="PADARIA">PADARIA</option>
-                    <option value="LATICÍNIOS">LATICÍNIOS</option>
-                </select>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="validade">Vencimento</label>
+                    <input type="date" id="validade" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="setor">Setor</label>
+                    <select id="setor" class="form-input">
+                        <option value="">Selecione...</option>
+                        <option value="MERCEARIA">MERCEARIA</option>
+                        <option value="AÇOUGUE">AÇOUGUE</option>
+                        <option value="FLV">FLV</option>
+                        <option value="FRIOS">FRIOS</option>
+                        <option value="PADARIA">PADARIA</option>
+                        <option value="LATICÍNIOS">LATICÍNIOS</option>
+                    </select>
+                </div>
             </div>
 
             <p id="mensagem" class="status-msg"></p>
         </div>
+
+        <!-- Lista de Itens Coletados -->
+        <div class="list-card" id="listCard" style="display: none;">
+            <div class="list-header">
+                <span class="list-title">Itens Coletados</span>
+                <span class="list-count" id="listCount">0</span>
+            </div>
+            <div class="item-list" id="itemList">
+                <div class="empty-list">Nenhum item adicionado ainda.</div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Fixed Action Bar -->
     <div class="action-bar">
-        <button class="btn btn-secondary" onclick="limparFormulario()">Limpar</button>
-        <button class="btn btn-primary" id="btn-enviar" onclick="enviarDados()">Salvar Coleta</button>
+        <div class="action-bar-top">
+            <button class="btn btn-secondary" onclick="limparFormulario()">Limpar</button>
+            <button class="btn btn-primary" id="btn-adicionar" onclick="adicionarItem()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M8 4v8M4 8h8" />
+                </svg>
+                Adicionar
+            </button>
+        </div>
+        <div class="action-bar-bottom">
+            <button class="btn btn-danger" id="btn-excluir" onclick="excluirSelecionados()" style="display: none;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M19 6v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6" />
+                </svg>
+                Excluir
+            </button>
+            <button class="btn btn-success" id="btn-enviar" onclick="enviarTodos()" style="display: none;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6L9 17l-5-5" />
+                </svg>
+                Enviar Tudo
+            </button>
+        </div>
     </div>
 
     <!-- Scripts -->

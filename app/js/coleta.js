@@ -1,16 +1,20 @@
-
-// Coleta JS
+// Coleta JS - Batch Mode
 let userData = null;
 let html5QrCode = null;
 let selectedProdutoId = null;
+let selectedProdutoDescricao = null;
+let currentLojaId = null;
+let currentLojaName = null;
+
+// Lista de itens coletados (em memória)
+let listaItens = [];
 
 // Aguardar Supabase
 window.addEventListener('supabaseReady', initColeta);
-// Fallback caso script já tenha carregado
 setTimeout(() => { if (window.supabaseClient && !userData) initColeta(); }, 500);
 
 async function initColeta() {
-    if (userData) return; // Já iniciou
+    if (userData) return;
 
     try {
         const user = await auth.getUser();
@@ -25,19 +29,69 @@ async function initColeta() {
             return;
         }
 
+        // Carregar loja do usuário
+        await carregarLoja();
+
         // Event Listeners
         document.getElementById('startScanBtn').addEventListener('click', startScanner);
         document.getElementById('stopScanBtn').addEventListener('click', stopScanner);
 
-        // Buscar produto ao sair do campo ou pressionar Enter
         const inputCodigo = document.getElementById('codigo');
         inputCodigo.addEventListener('change', buscarProduto);
         inputCodigo.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') buscarProduto();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarProduto();
+            }
         });
 
     } catch (error) {
         console.error('Erro initColeta:', error);
+    }
+}
+
+// ------ LOJA ------
+
+async function carregarLoja() {
+    try {
+        // Buscar lojas do usuário
+        const userLojas = await auth.getUserLojas(userData.id);
+        let lojaId = null;
+
+        if (userLojas && userLojas.length > 0) {
+            lojaId = userLojas[0];
+        } else {
+            // Admin sem loja específica - pegar primeira da empresa
+            const { data: lojas } = await supabaseClient
+                .from('lojas')
+                .select('id, nome')
+                .eq('empresa_id', userData.empresa_id)
+                .eq('ativo', true)
+                .limit(1);
+            if (lojas && lojas.length > 0) {
+                lojaId = lojas[0].id;
+                currentLojaName = lojas[0].nome;
+            }
+        }
+
+        if (lojaId) {
+            currentLojaId = lojaId;
+            // Buscar nome se ainda não temos
+            if (!currentLojaName) {
+                const { data: loja } = await supabaseClient
+                    .from('lojas')
+                    .select('nome')
+                    .eq('id', lojaId)
+                    .single();
+                if (loja) currentLojaName = loja.nome;
+            }
+        }
+
+        document.getElementById('lojaNome').textContent = currentLojaName || 'Loja não definida';
+
+    } catch (err) {
+        console.error('Erro carregarLoja:', err);
+        document.getElementById('lojaNome').textContent = 'Erro ao carregar';
     }
 }
 
@@ -54,8 +108,8 @@ async function startScanner() {
 
     const config = {
         fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0
+        qrbox: { width: 250, height: 150 },
+        aspectRatio: 1.5
     };
 
     try {
@@ -63,28 +117,20 @@ async function startScanner() {
             { facingMode: "environment" },
             config,
             onScanSuccess,
-            onScanFailure
+            () => {}
         );
     } catch (err) {
         console.error("Erro scanner:", err);
-        window.globalUI.showToast('error', 'Erro ao iniciar câmera: ' + err);
+        window.globalUI.showToast('error', 'Erro ao iniciar câmera');
         stopScanner();
     }
 }
 
 function onScanSuccess(decodedText) {
-    // Tocar som de beep (opcional)
-    // const audio = new Audio('beep.mp3'); audio.play().catch(e=>{});
-
     document.getElementById('codigo').value = decodedText;
     stopScanner();
-    buscarProduto(); // Buscar automaticamente
-
+    buscarProduto();
     window.globalUI.showToast('success', 'Código lido: ' + decodedText);
-}
-
-function onScanFailure(error) {
-    // console.warn(error);
 }
 
 function stopScanner() {
@@ -98,162 +144,264 @@ function stopScanner() {
     document.getElementById('startScanBtn').style.display = 'flex';
 }
 
-// ------ LÓGICA DE DADOS ------
+// ------ BUSCAR PRODUTO ------
 
 async function buscarProduto() {
     const codigo = document.getElementById('codigo').value.trim();
     if (!codigo) return;
 
-    // Limpar info anterior
     selectedProdutoId = null;
+    selectedProdutoDescricao = null;
     document.getElementById('produtoInfo').classList.remove('active');
 
     if (!userData || !userData.empresa_id) return;
 
-    window.globalUI.showToast('info', 'Buscando produto...');
-
     try {
-        // Tentar buscar por codigo ou EAN
         const { data, error } = await supabaseClient
             .from('produtos')
-            .select('id, descricao, categoria')
+            .select('id, descricao, categoria, valor_unitario')
             .eq('empresa_id', userData.empresa_id)
             .or(`codigo.eq.${codigo},ean.eq.${codigo}`)
             .single();
 
         if (error || !data) {
-            window.globalUI.showToast('warning', 'Produto não encontrado. Verifique o código.');
-            // Opcional: oferecer cadastro rápido?
+            window.globalUI.showToast('warning', 'Produto não encontrado');
             return;
         }
 
-        // Produto encontrado
         selectedProdutoId = data.id;
+        selectedProdutoDescricao = data.descricao;
         document.getElementById('produtoNome').textContent = data.descricao;
         document.getElementById('produtoCategoria').textContent = data.categoria || 'Sem categoria';
         document.getElementById('produtoInfo').classList.add('active');
 
-        // Focar na quantidade
+        // Preencher valor se existir
+        if (data.valor_unitario) {
+            document.getElementById('valor').value = parseFloat(data.valor_unitario).toFixed(2);
+        }
+
         document.getElementById('quantidade').focus();
 
     } catch (err) {
         console.error(err);
-        window.globalUI.showToast('error', 'Erro ao buscar produto.');
+        window.globalUI.showToast('error', 'Erro ao buscar produto');
     }
 }
 
-async function enviarDados() {
-    const btn = document.getElementById('btn-enviar');
+// ------ ADICIONAR ITEM À LISTA ------
 
-    // Validação Básica
-    const codigo = document.getElementById('codigo').value;
+async function adicionarItem() {
+    const codigo = document.getElementById('codigo').value.trim();
     const qtd = document.getElementById('quantidade').value;
     const validade = document.getElementById('validade').value;
     const setorNome = document.getElementById('setor').value;
+    const valor = document.getElementById('valor').value;
 
-    if (!codigo || !qtd || !validade || !setorNome) {
-        window.globalUI.showAlert('Campos Obrigatórios', 'Preencha todos os campos para salvar.', 'warning');
+    // Validação
+    if (!codigo || !qtd || !validade) {
+        window.globalUI.showAlert('Campos Obrigatórios', 'Preencha Código, Quantidade e Validade.', 'warning');
         return;
     }
 
-    // Se produto não foi buscado (digitou e clicou enviar direto), buscar agora
-    // Mas selectedProdutoId é ideal. Se não tiver, tentar buscar rapidinho?
+    // Se produto não foi buscado, buscar agora
     if (!selectedProdutoId) {
         await buscarProduto();
-        if (!selectedProdutoId) return; // Erro já exibido no buscarProduto
+        if (!selectedProdutoId) return;
     }
 
+    // Criar item
+    const item = {
+        id: Date.now(), // ID temporário único
+        codigo: codigo,
+        produto_id: selectedProdutoId,
+        descricao: selectedProdutoDescricao || 'Produto',
+        quantidade: parseInt(qtd),
+        validade: validade,
+        setor: setorNome,
+        valor: valor ? parseFloat(valor) : null,
+        checked: false
+    };
+
+    listaItens.push(item);
+    renderizarLista();
+    limparFormularioParaProximo();
+
+    window.globalUI.showToast('success', 'Item adicionado à lista');
+}
+
+function limparFormularioParaProximo() {
+    document.getElementById('codigo').value = '';
+    document.getElementById('quantidade').value = '';
+    document.getElementById('validade').value = '';
+    document.getElementById('valor').value = '';
+    // Manter setor selecionado para facilitar
+    
+    selectedProdutoId = null;
+    selectedProdutoDescricao = null;
+    document.getElementById('produtoInfo').classList.remove('active');
+    document.getElementById('codigo').focus();
+}
+
+function limparFormulario() {
+    limparFormularioParaProximo();
+    document.getElementById('setor').value = '';
+}
+
+// ------ RENDERIZAR LISTA ------
+
+function renderizarLista() {
+    const listCard = document.getElementById('listCard');
+    const itemListEl = document.getElementById('itemList');
+    const countEl = document.getElementById('listCount');
+    const btnExcluir = document.getElementById('btn-excluir');
+    const btnEnviar = document.getElementById('btn-enviar');
+
+    if (listaItens.length === 0) {
+        listCard.style.display = 'none';
+        btnExcluir.style.display = 'none';
+        btnEnviar.style.display = 'none';
+        return;
+    }
+
+    listCard.style.display = 'block';
+    btnEnviar.style.display = 'flex';
+    countEl.textContent = listaItens.length;
+
+    // Verificar se há itens selecionados
+    const temSelecionados = listaItens.some(i => i.checked);
+    btnExcluir.style.display = temSelecionados ? 'flex' : 'none';
+
+    // Renderizar itens
+    itemListEl.innerHTML = listaItens.map(item => `
+        <div class="item-row">
+            <input type="checkbox" class="item-checkbox" 
+                   ${item.checked ? 'checked' : ''} 
+                   onchange="toggleItemCheck(${item.id})">
+            <div class="item-info">
+                <div class="item-desc">${item.descricao}</div>
+                <div class="item-meta">
+                    <span>${item.codigo}</span>
+                    <span>Val: ${formatarData(item.validade)}</span>
+                </div>
+            </div>
+            <div class="item-qty">${item.quantidade} un</div>
+        </div>
+    `).join('');
+}
+
+function formatarData(dataStr) {
+    if (!dataStr) return '-';
+    const [ano, mes, dia] = dataStr.split('-');
+    return `${dia}/${mes}/${ano}`;
+}
+
+function toggleItemCheck(itemId) {
+    const item = listaItens.find(i => i.id === itemId);
+    if (item) {
+        item.checked = !item.checked;
+        renderizarLista();
+    }
+}
+
+function excluirSelecionados() {
+    const qtdAntes = listaItens.length;
+    listaItens = listaItens.filter(i => !i.checked);
+    const excluidos = qtdAntes - listaItens.length;
+    renderizarLista();
+    window.globalUI.showToast('info', `${excluidos} item(s) removido(s)`);
+}
+
+// ------ ENVIAR TODOS ------
+
+async function enviarTodos() {
+    if (listaItens.length === 0) {
+        window.globalUI.showAlert('Lista Vazia', 'Adicione itens antes de enviar.', 'warning');
+        return;
+    }
+
+    if (!currentLojaId) {
+        window.globalUI.showAlert('Erro', 'Loja não identificada.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('btn-enviar');
     btn.disabled = true;
-    btn.textContent = 'Salvando...';
+    btn.innerHTML = '<span>Enviando...</span>';
 
     try {
-        // 1. Obter Loja (Usar a primeira loja do usuário ou vinculada)
-        const userLojas = await auth.getUserLojas(userData.id);
-        let lojaId = null;
+        // Preparar registros para inserção
+        const registros = [];
 
-        if (userLojas && userLojas.length > 0) {
-            lojaId = userLojas[0]; // Pega a primeira
-        } else {
-            // Se for admin/master e não tiver loja vinculada, precisa buscar uma loja da empresa?
-            // Simplificação: buscar a primeira loja da empresa
-            const { data: lojas } = await supabaseClient
-                .from('lojas')
-                .select('id')
-                .eq('empresa_id', userData.empresa_id)
-                .limit(1);
-            if (lojas && lojas.length > 0) lojaId = lojas[0].id;
+        for (const item of listaItens) {
+            // Buscar ou criar local_id
+            let localId = null;
+            if (item.setor) {
+                const { data: localData } = await supabaseClient
+                    .from('locais')
+                    .select('id')
+                    .eq('loja_id', currentLojaId)
+                    .ilike('nome', item.setor)
+                    .maybeSingle();
+
+                if (localData) {
+                    localId = localData.id;
+                } else {
+                    // Criar local
+                    const { data: novoLocal } = await supabaseClient
+                        .from('locais')
+                        .insert({
+                            loja_id: currentLojaId,
+                            nome: item.setor,
+                            descricao: 'Criado via App Coleta'
+                        })
+                        .select()
+                        .single();
+                    if (novoLocal) localId = novoLocal.id;
+                }
+            }
+
+            registros.push({
+                produto_id: item.produto_id,
+                loja_id: currentLojaId,
+                local_id: localId,
+                quantidade: item.quantidade,
+                validade: item.validade,
+                usuario_id: userData.id
+            });
+
+            // Atualizar preço do produto se informado
+            if (item.valor && item.valor > 0) {
+                await supabaseClient
+                    .from('produtos')
+                    .update({ valor_unitario: item.valor })
+                    .eq('id', item.produto_id);
+            }
         }
 
-        if (!lojaId) {
-            throw new Error('Usuário não possui loja vinculada para registrar estoque.');
-        }
-
-        // 2. Obter Local ID (Setor)
-        // Tentar encontrar local pelo nome
-        let localId = null;
-        let { data: localData } = await supabaseClient
-            .from('locais')
-            .select('id')
-            .eq('loja_id', lojaId)
-            .ilike('nome', setorNome) // Case insensitive
-            .maybeSingle();
-
-        if (localData) {
-            localId = localData.id;
-        } else {
-            // Se não existe, criar? Ou selecionar um padrão?
-            // Modelo plano: tentar encontrar. Se não achar, criar?
-            // Vamos criar para garantir que funcione
-            const { data: novoLocal, error: errLocal } = await supabaseClient
-                .from('locais')
-                .insert({
-                    loja_id: lojaId,
-                    nome: setorNome,
-                    descricao: 'Criado via App Coleta'
-                })
-                .select()
-                .single();
-
-            if (novoLocal) localId = novoLocal.id;
-        }
-
-        // 3. Inserir no Estoque
+        // Inserir todos os registros de estoque
         const { error } = await supabaseClient
             .from('estoque')
-            .insert({
-                produto_id: selectedProdutoId,
-                loja_id: lojaId,
-                local_id: localId,
-                quantidade: parseInt(qtd),
-                validade: validade,
-                usuario_id: userData.id, // Opcional, se tabela aceitar
-                created_at: new Date().toISOString()
-            });
+            .insert(registros);
 
         if (error) throw error;
 
         // Sucesso
-        window.globalUI.showToast('success', 'Coleta salva com sucesso!');
-        limparFormulario();
+        const qtd = listaItens.length;
+        listaItens = [];
+        renderizarLista();
+
+        window.globalUI.showAlert('Sucesso!', `${qtd} item(s) enviado(s) com sucesso!`, 'success');
 
     } catch (err) {
         console.error(err);
-        window.globalUI.showAlert('Erro', 'Falha ao salvar dados: ' + err.message, 'error');
+        window.globalUI.showAlert('Erro', 'Falha ao enviar dados: ' + err.message, 'error');
     } finally {
         btn.disabled = false;
-        btn.textContent = 'Salvar Coleta';
+        btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Enviar Tudo`;
     }
 }
 
-function limparFormulario() {
-    document.getElementById('codigo').value = '';
-    document.getElementById('quantidade').value = '';
-    document.getElementById('validade').value = '';
-    document.getElementById('setor').value = ''; // Reset select
-
-    selectedProdutoId = null;
-    document.getElementById('produtoInfo').classList.remove('active');
-
-    // Focar no codigo para proxima
-    // document.getElementById('codigo').focus();
+// Manter compatibilidade com botão antigo (caso exista)
+async function enviarDados() {
+    await adicionarItem();
 }
