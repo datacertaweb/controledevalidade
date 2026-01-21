@@ -252,15 +252,17 @@ async function loadProdutos() {
 }
 
 async function loadEstoque() {
+    // Buscar coletados através da relação com base (produto)
+    // que pertence à empresa do usuário
     let query = supabaseClient
         .from('coletados')
-        .select('*, base(descricao, valor_unitario, codigo), lojas(nome), locais(nome)')
+        .select('*, base!inner(descricao, valor_unitario, codigo, empresa_id), lojas(nome), locais(nome)')
+        .eq('base.empresa_id', userData.empresa_id)
         .order('validade');
 
-    // Filtrar por lojas da empresa - buscar primeiro as lojas
-    const lojasIds = lojas.map(l => l.id);
-    if (lojasIds.length > 0) {
-        query = query.in('loja_id', lojasIds);
+    // Se usuário tem lojas específicas, filtrar apenas elas
+    if (userLojaIds && userLojaIds.length > 0) {
+        query = query.in('loja_id', userLojaIds);
     }
 
     const { data, error } = await query;

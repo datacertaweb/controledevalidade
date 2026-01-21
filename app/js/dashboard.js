@@ -44,24 +44,23 @@ async function loadDashboardData() {
     const userData = window.appData?.userData;
     if (!userData) return;
 
-    // Buscar dados do estoque
+    // Buscar dados do estoque (coletados) filtrando pela empresa via tabela base
     const { data: estoque, error } = await supabaseClient
         .from('coletados')
         .select(`
             *,
-            base(id, descricao, categoria, valor_unitario),
-            lojas(id, nome, empresa_id)
-        `);
+            base!inner(id, descricao, categoria, valor_unitario, empresa_id),
+            lojas(id, nome)
+        `)
+        .eq('base.empresa_id', userData.empresa_id);
 
     if (error) {
         console.error('Erro ao carregar estoque:', error);
         return;
     }
 
-    // Filtrar por empresa
-    const estoqueEmpresa = estoque?.filter(e =>
-        e.lojas && e.lojas.empresa_id === userData.empresa_id
-    ) || [];
+    // Todos os itens já pertencem à empresa correta (filtrado via base.empresa_id)
+    const estoqueEmpresa = estoque || [];
 
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -77,11 +76,11 @@ async function loadDashboardData() {
     });
     const ok = estoqueEmpresa.filter(e => new Date(e.validade) > em7dias);
 
-    // Buscar perdas
+    // Buscar perdas filtrando pela empresa via produto
     const { data: perdas } = await supabaseClient
         .from('perdas')
-        .select('*, base(valor_unitario)')
-        .eq('loja_id', estoqueEmpresa[0]?.loja_id || '');
+        .select('*, base!inner(valor_unitario, categoria, empresa_id)')
+        .eq('base.empresa_id', userData.empresa_id);
 
     const totalPerdas = perdas?.reduce((sum, p) => sum + parseFloat(p.valor_perda || 0), 0) || 0;
     const qtdPerdas = perdas?.reduce((sum, p) => sum + (p.quantidade || 0), 0) || 0;

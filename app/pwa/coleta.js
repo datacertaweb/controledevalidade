@@ -81,38 +81,52 @@ async function carregarLoja() {
         const lojaSelect = document.getElementById('lojaSelect');
         const lojaNomeEl = document.getElementById('lojaNome');
 
+        // Buscar lojas da empresa
+        const { data: lojas } = await supabaseClient
+            .from('lojas')
+            .select('id, nome')
+            .eq('empresa_id', userData.empresa_id)
+            .eq('ativo', true)
+            .order('nome');
+
+        // Se não há lojas, empresa é unidade única - mostrar nome da empresa
+        if (!lojas || lojas.length === 0) {
+            currentLojaId = null; // Sem loja
+            // Buscar nome da empresa
+            const { data: empresa } = await supabaseClient
+                .from('empresas')
+                .select('nome')
+                .eq('id', userData.empresa_id)
+                .single();
+            currentLojaName = empresa?.nome || 'Empresa';
+            lojaNomeEl.textContent = currentLojaName;
+            lojaSelect.style.display = 'none';
+            lojaNomeEl.style.display = 'block';
+            return;
+        }
+
         if (isAdmin) {
             // Admin: mostrar dropdown com todas as lojas da empresa
-            const { data: lojas } = await supabaseClient
-                .from('lojas')
-                .select('id, nome')
-                .eq('empresa_id', userData.empresa_id)
-                .eq('ativo', true)
-                .order('nome');
+            lojaSelect.innerHTML = '<option value="">Selecione uma loja...</option>';
+            lojas.forEach(loja => {
+                lojaSelect.innerHTML += `<option value="${loja.id}">${loja.nome}</option>`;
+            });
 
-            if (lojas && lojas.length > 0) {
-                // Popular dropdown
-                lojaSelect.innerHTML = '<option value="">Selecione uma loja...</option>';
-                lojas.forEach(loja => {
-                    lojaSelect.innerHTML += `<option value="${loja.id}">${loja.nome}</option>`;
-                });
+            // Mostrar dropdown, esconder texto
+            lojaSelect.style.display = 'block';
+            lojaNomeEl.style.display = 'none';
 
-                // Mostrar dropdown, esconder texto
-                lojaSelect.style.display = 'block';
-                lojaNomeEl.style.display = 'none';
+            // Selecionar primeira loja por padrão
+            lojaSelect.value = lojas[0].id;
+            currentLojaId = lojas[0].id;
+            currentLojaName = lojas[0].nome;
 
-                // Selecionar primeira loja por padrão
-                lojaSelect.value = lojas[0].id;
-                currentLojaId = lojas[0].id;
-                currentLojaName = lojas[0].nome;
-
-                // Event listener para mudança de loja
-                lojaSelect.addEventListener('change', function () {
-                    const selectedOption = this.options[this.selectedIndex];
-                    currentLojaId = this.value;
-                    currentLojaName = selectedOption.text;
-                });
-            }
+            // Event listener para mudança de loja
+            lojaSelect.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                currentLojaId = this.value || null;
+                currentLojaName = selectedOption.text;
+            });
         } else {
             // Usuário comum: mostrar apenas sua loja
             const userLojas = await auth.getUserLojas(userData.id);
@@ -130,9 +144,15 @@ async function carregarLoja() {
                     .eq('id', lojaId)
                     .single();
                 if (loja) currentLojaName = loja.nome;
+                lojaNomeEl.textContent = currentLojaName || 'Loja não definida';
+            } else {
+                // Usuário sem loja atribuída mas empresa tem lojas - erro de configuração
+                currentLojaId = null;
+                currentLojaName = null;
+                lojaNomeEl.textContent = 'Sem loja atribuída';
+                window.globalUI?.showToast('warning', 'Você não está vinculado a nenhuma loja. Contate o administrador.');
             }
 
-            lojaNomeEl.textContent = currentLojaName || 'Loja não definida';
             lojaSelect.style.display = 'none';
             lojaNomeEl.style.display = 'block';
         }
@@ -398,10 +418,7 @@ async function enviarTodos() {
         return;
     }
 
-    if (!currentLojaId) {
-        window.globalUI.showAlert('Erro', 'Loja não identificada.', 'error');
-        return;
-    }
+    // currentLojaId pode ser null para empresas sem lojas (unidade única)
 
     const btn = document.getElementById('btn-enviar');
     btn.disabled = true;
@@ -412,9 +429,9 @@ async function enviarTodos() {
         const registros = [];
 
         for (const item of listaItens) {
-            // Buscar ou criar local_id
+            // Buscar ou criar local_id (somente se tiver loja)
             let localId = null;
-            if (item.setor) {
+            if (item.setor && currentLojaId) {
                 const { data: localData } = await supabaseClient
                     .from('locais')
                     .select('id')
@@ -451,15 +468,15 @@ async function enviarTodos() {
             // Atualizar preço do produto se informado
             if (item.valor && item.valor > 0) {
                 await supabaseClient
-                    .from('produtos')
+                    .from('base')
                     .update({ valor_unitario: item.valor })
                     .eq('id', item.produto_id);
             }
         }
 
-        // Inserir todos os registros de estoque
+        // Inserir todos os registros de coletados
         const { error } = await supabaseClient
-            .from('estoque')
+            .from('coletados')
             .insert(registros);
 
         if (error) throw error;
@@ -781,10 +798,7 @@ async function enviarTodosPerda() {
         return;
     }
 
-    if (!currentLojaId) {
-        window.globalUI.showAlert('Erro', 'Loja não identificada.', 'error');
-        return;
-    }
+    // currentLojaId pode ser null para empresas sem lojas (unidade única)
 
     const btn = document.getElementById('btn-enviar');
     btn.disabled = true;

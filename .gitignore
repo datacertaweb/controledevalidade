@@ -8,6 +8,12 @@ database/
 supabase/
 *.sql
 
+# Scripts de teste SQL
+scripts_teste/
+
+# Arquivos CSV de dados
+*.csv
+
 # Documentação interna
 docs/
 
