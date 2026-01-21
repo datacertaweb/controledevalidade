@@ -268,7 +268,21 @@ async function loadEstoque() {
     const { data, error } = await query;
 
     if (error) {
-        console.error('Erro:', error);
+        console.error('Erro ao carregar coletados:', error);
+        // Tentar query alternativa sem o filtro via foreign table
+        const { data: dataAlt, error: errorAlt } = await supabaseClient
+            .from('coletados')
+            .select('*, base(descricao, valor_unitario, codigo, empresa_id), lojas(nome), locais(nome)')
+            .order('validade');
+
+        if (errorAlt) {
+            console.error('Erro query alternativa:', errorAlt);
+            return;
+        }
+
+        // Filtrar manualmente pela empresa
+        estoque = (dataAlt || []).filter(e => e.base?.empresa_id === userData.empresa_id);
+        filterAndRender();
         return;
     }
 

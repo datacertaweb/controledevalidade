@@ -45,7 +45,7 @@ async function loadDashboardData() {
     if (!userData) return;
 
     // Buscar dados do estoque (coletados) filtrando pela empresa via tabela base
-    const { data: estoque, error } = await supabaseClient
+    let { data: estoque, error } = await supabaseClient
         .from('coletados')
         .select(`
             *,
@@ -55,11 +55,20 @@ async function loadDashboardData() {
         .eq('base.empresa_id', userData.empresa_id);
 
     if (error) {
-        console.error('Erro ao carregar estoque:', error);
-        return;
+        console.error('Erro ao carregar estoque (tentando fallback):', error);
+        // Fallback: buscar todos e filtrar manualmente
+        const { data: dataAlt, error: errorAlt } = await supabaseClient
+            .from('coletados')
+            .select('*, base(id, descricao, categoria, valor_unitario, empresa_id), lojas(id, nome)');
+
+        if (errorAlt) {
+            console.error('Erro fallback:', errorAlt);
+            return;
+        }
+        estoque = (dataAlt || []).filter(e => e.base?.empresa_id === userData.empresa_id);
     }
 
-    // Todos os itens já pertencem à empresa correta (filtrado via base.empresa_id)
+    // Todos os itens já pertencem à empresa correta
     const estoqueEmpresa = estoque || [];
 
     const hoje = new Date();
