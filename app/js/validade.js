@@ -252,41 +252,26 @@ async function loadProdutos() {
 }
 
 async function loadEstoque() {
-    // Buscar coletados através da relação com base (produto)
-    // que pertence à empresa do usuário
-    let query = supabaseClient
+    // Buscar todos os coletados com relações (sem filtro de empresa no Supabase)
+    const { data, error } = await supabaseClient
         .from('coletados')
-        .select('*, base!inner(descricao, valor_unitario, codigo, empresa_id), lojas(nome), locais(nome)')
-        .eq('base.empresa_id', userData.empresa_id)
+        .select('*, base(descricao, valor_unitario, codigo, empresa_id), lojas(nome), locais(nome)')
         .order('validade');
-
-    // Se usuário tem lojas específicas, filtrar apenas elas
-    if (userLojaIds && userLojaIds.length > 0) {
-        query = query.in('loja_id', userLojaIds);
-    }
-
-    const { data, error } = await query;
 
     if (error) {
         console.error('Erro ao carregar coletados:', error);
-        // Tentar query alternativa sem o filtro via foreign table
-        const { data: dataAlt, error: errorAlt } = await supabaseClient
-            .from('coletados')
-            .select('*, base(descricao, valor_unitario, codigo, empresa_id), lojas(nome), locais(nome)')
-            .order('validade');
-
-        if (errorAlt) {
-            console.error('Erro query alternativa:', errorAlt);
-            return;
-        }
-
-        // Filtrar manualmente pela empresa
-        estoque = (dataAlt || []).filter(e => e.base?.empresa_id === userData.empresa_id);
-        filterAndRender();
         return;
     }
 
-    estoque = data || [];
+    // Filtrar apenas os itens da empresa do usuário
+    estoque = (data || []).filter(e => e.base?.empresa_id === userData.empresa_id);
+
+    // Se usuário tem lojas específicas, filtrar apenas elas
+    if (userLojaIds && userLojaIds.length > 0) {
+        estoque = estoque.filter(e => userLojaIds.includes(e.loja_id));
+    }
+
+    console.log('Coletados carregados:', estoque.length); // Debug
     filterAndRender();
 }
 
