@@ -429,27 +429,40 @@ async function enviarTodos() {
         const registros = [];
 
         for (const item of listaItens) {
-            // Buscar ou criar local_id (somente se tiver loja)
+            // Buscar ou criar local_id
             let localId = null;
-            if (item.setor && currentLojaId) {
-                const { data: localData } = await supabaseClient
+            if (item.setor) {
+                let query = supabaseClient
                     .from('locais')
                     .select('id')
-                    .eq('loja_id', currentLojaId)
                     .ilike('nome', item.setor)
                     .maybeSingle();
+
+                if (currentLojaId) {
+                    query = query.eq('loja_id', currentLojaId);
+                } else {
+                    // Se não tem loja, busca locais da empresa (sem loja vinculada ou da empresa geral)
+                    // Como acabamos de adicionar empresa_id, filtramos por ele.
+                    // E garantimos que loja_id é null para não pegar setor de outra loja por engano
+                    query = query.eq('empresa_id', userData.empresa_id).is('loja_id', null);
+                }
+
+                const { data: localData } = await query;
 
                 if (localData) {
                     localId = localData.id;
                 } else {
                     // Criar local
+                    const novoLocalObj = {
+                        nome: item.setor,
+                        descricao: 'Criado via App Coleta',
+                        empresa_id: userData.empresa_id, // Novo campo obrigatório
+                        loja_id: currentLojaId // Pode ser null
+                    };
+
                     const { data: novoLocal } = await supabaseClient
                         .from('locais')
-                        .insert({
-                            loja_id: currentLojaId,
-                            nome: item.setor,
-                            descricao: 'Criado via App Coleta'
-                        })
+                        .insert(novoLocalObj)
                         .select()
                         .single();
                     if (novoLocal) localId = novoLocal.id;
