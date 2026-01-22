@@ -6,6 +6,7 @@ let userData = null;
 let lojas = [];
 let locais = [];
 let selectedLoja = null;
+let isEmpresaSemLoja = false; // Flag para empresas de unidade única
 
 window.addEventListener('supabaseReady', initLocais);
 setTimeout(() => { if (window.supabaseClient) initLocais(); }, 500);
@@ -57,11 +58,40 @@ async function loadLojas() {
     lojas = data || [];
 
     const select = document.getElementById('lojaFilter');
-    select.innerHTML = '<option value="">Selecione a loja</option>' +
-        lojas.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
+    const btnNovo = document.getElementById('btnNovoLocal');
+
+    // Se empresa não tem lojas, exibe como unidade única
+    if (lojas.length === 0) {
+        isEmpresaSemLoja = true;
+        selectedLoja = null;
+        // Ocultar dropdown e permitir criar locais
+        select.closest('.filters')?.classList.add('hidden');
+        btnNovo.disabled = false;
+        loadLocais();
+    } else {
+        isEmpresaSemLoja = false;
+        select.closest('.filters')?.classList.remove('hidden');
+        select.innerHTML = '<option value="">Selecione a loja</option>' +
+            lojas.map(l => `<option value="${l.id}">${l.nome}</option>`).join('');
+    }
 }
 
 async function loadLocais() {
+    // Para empresas sem loja, busca locais diretamente pela empresa
+    if (isEmpresaSemLoja) {
+        const { data } = await supabaseClient
+            .from('locais')
+            .select('*')
+            .eq('empresa_id', userData.empresa_id)
+            .is('loja_id', null)
+            .order('ordem');
+
+        locais = data || [];
+        renderLocais();
+        return;
+    }
+
+    // Comportamento normal para empresas com lojas
     if (!selectedLoja) {
         locais = [];
         renderLocais();
@@ -81,7 +111,8 @@ async function loadLocais() {
 function renderLocais() {
     const tbody = document.getElementById('locaisTable');
 
-    if (!selectedLoja) {
+    // Só mostrar mensagem de seleção se tem lojas e nenhuma selecionada
+    if (!isEmpresaSemLoja && !selectedLoja) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Selecione uma loja para ver os locais</td></tr>';
         return;
     }
@@ -182,7 +213,8 @@ function initEvents() {
     // Modal
     const modal = document.getElementById('modalLocal');
     document.getElementById('btnNovoLocal')?.addEventListener('click', () => {
-        if (!selectedLoja) return;
+        // Permitir criar local se tem loja selecionada OU se é empresa sem loja
+        if (!selectedLoja && !isEmpresaSemLoja) return;
         document.getElementById('modalTitle').textContent = 'Novo Local';
         document.getElementById('formLocal').reset();
         document.getElementById('localId').value = '';
@@ -215,7 +247,8 @@ async function saveLocal(e) {
     }
 
     const data = {
-        loja_id: selectedLoja,
+        loja_id: isEmpresaSemLoja ? null : selectedLoja,
+        empresa_id: userData.empresa_id,
         nome: document.getElementById('localNome').value,
         descricao: document.getElementById('localDescricao').value || null,
         ordem: parseInt(document.getElementById('localOrdem').value) || 0
