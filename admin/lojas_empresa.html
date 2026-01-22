@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataCerta Admin - Empresas</title>
+    <title>DataCerta Admin - Lojas da Empresa</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -92,54 +92,59 @@
                     </svg>
                 </button>
                 <div class="page-title">
-                    <h1>Empresas</h1>
-                    <p class="page-subtitle">Gerencie os clientes do DataCerta</p>
+                    <a href="empresas.html" style="color: var(--text-muted); text-decoration: none; font-size: 13px;">
+                        ← Voltar para Empresas
+                    </a>
+                    <h1 id="empresaNome">Lojas da Empresa</h1>
+                    <p class="page-subtitle" id="empresaInfo">Gerenciamento de lojas</p>
                 </div>
             </div>
             <div class="header-actions">
-                <button class="btn btn-primary" id="btnNovaEmpresa">
+                <button class="btn btn-primary" id="btnNovaLoja">
                     <span class="btn-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19" />
                             <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
                     </span>
-                    Nova Empresa
+                    Nova Loja
                 </button>
             </div>
         </header>
 
+        <!-- Info Card -->
+        <div id="infoCard" class="stat-card"
+            style="margin: 0 20px 20px; padding: 16px 20px; display: flex; align-items: center; gap: 15px;">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #8B5CF6, #A78BFA);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 21h18" />
+                    <path d="M5 21V7l8-4v18" />
+                    <path d="M19 21V11l-6-4" />
+                </svg>
+            </div>
+            <div>
+                <div style="font-size: 14px; color: var(--text-muted);">Lojas cadastradas</div>
+                <div style="font-size: 24px; font-weight: 700;" id="lojasCount">0 / 0</div>
+            </div>
+        </div>
+
         <!-- Table Section -->
         <div class="admin-table-section">
-            <div class="admin-table-header">
-                <h2>Lista de Empresas</h2>
-                <div class="admin-table-actions">
-                    <input type="text" class="search-input" placeholder="Buscar empresa..." id="searchInput">
-                    <select class="filter-input" id="filterStatus" style="width: auto;">
-                        <option value="">Todos os status</option>
-                        <option value="trial">Trial</option>
-                        <option value="ativo">Ativo</option>
-                        <option value="suspenso">Suspenso</option>
-                        <option value="cancelado">Cancelado</option>
-                    </select>
-                </div>
-            </div>
             <div class="table-wrapper">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Empresa</th>
-                            <th>CNPJ</th>
-                            <th>Plano</th>
-                            <th>Lojas</th>
+                            <th>Código</th>
+                            <th>Nome</th>
+                            <th>Cidade/UF</th>
+                            <th>Telefone</th>
                             <th>Status</th>
-                            <th>Trial/Assinatura</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="empresasTable">
+                    <tbody id="lojasTable">
                         <tr>
-                            <td colspan="7" class="empty-state">
+                            <td colspan="6" class="empty-state">
                                 <p>Carregando...</p>
                             </td>
                         </tr>
@@ -149,72 +154,48 @@
         </div>
     </main>
 
-    <!-- Modal Nova Empresa -->
-    <div class="modal-overlay" id="modalEmpresa">
-        <div class="modal" style="max-width: 600px;">
+    <!-- Modal Nova Loja -->
+    <div class="modal-overlay" id="modalLoja">
+        <div class="modal" style="max-width: 550px;">
             <div class="modal-header">
-                <h2 id="modalTitle">Nova Empresa</h2>
+                <h2 id="modalTitle">Nova Loja</h2>
                 <button class="modal-close" id="modalClose">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="formEmpresa">
+                <form id="formLoja">
+                    <input type="hidden" id="lojaId">
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="empNome">Nome da Empresa *</label>
-                            <input type="text" id="empNome" required>
+                        <div class="form-group" style="flex: 0 0 100px;">
+                            <label for="lojaCodigo">Código</label>
+                            <input type="text" id="lojaCodigo" placeholder="001">
                         </div>
                         <div class="form-group">
-                            <label for="empCnpj">CNPJ</label>
-                            <input type="text" id="empCnpj" placeholder="00.000.000/0000-00">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="empEmail">Email *</label>
-                            <input type="email" id="empEmail" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="empTelefone">Telefone</label>
-                            <input type="text" id="empTelefone">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="empPlano">Plano *</label>
-                            <select id="empPlano" required>
-                                <option value="">Selecione...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="empStatus">Status</label>
-                            <select id="empStatus">
-                                <option value="trial">Trial</option>
-                                <option value="ativo">Ativo</option>
-                                <option value="suspenso">Suspenso</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <hr style="border: none; border-top: 1px solid var(--border-secondary); margin: 20px 0;">
-                    <h3 style="font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;">Usuário
-                        Administrador</h3>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="adminNome">Nome do Admin *</label>
-                            <input type="text" id="adminNome" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="adminEmail">Email do Admin *</label>
-                            <input type="email" id="adminEmail" required>
+                            <label for="lojaNome">Nome da Loja *</label>
+                            <input type="text" id="lojaNome" required>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="adminSenha">Senha Inicial *</label>
-                        <input type="password" id="adminSenha" required minlength="6">
-                        <small style="color: var(--text-muted);">Mínimo 6 caracteres</small>
+                        <label for="lojaEndereco">Endereço</label>
+                        <input type="text" id="lojaEndereco">
                     </div>
-
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="lojaCidade">Cidade</label>
+                            <input type="text" id="lojaCidade">
+                        </div>
+                        <div class="form-group" style="flex: 0 0 80px;">
+                            <label for="lojaUF">UF</label>
+                            <input type="text" id="lojaUF" maxlength="2" style="text-transform: uppercase;">
+                        </div>
+                        <div class="form-group" style="flex: 0 0 120px;">
+                            <label for="lojaCEP">CEP</label>
+                            <input type="text" id="lojaCEP">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lojaTelefone">Telefone</label>
+                        <input type="text" id="lojaTelefone">
+                    </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-outline" id="btnCancelModal">Cancelar</button>
                         <button type="submit" class="btn btn-primary">Salvar</button>
@@ -226,7 +207,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
-    <script src="js/empresas.js"></script>
+    <script src="js/lojas_empresa.js"></script>
 </body>
 
 </html>

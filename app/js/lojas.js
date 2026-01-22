@@ -4,6 +4,8 @@
 
 let userData = null;
 let lojas = [];
+let planoData = null; // Dados do plano da empresa
+let limiteAtingido = false; // Flag para controle de UI
 
 // Aguardar Supabase
 window.addEventListener('supabaseReady', initLojas);
@@ -53,6 +55,16 @@ function updateUserUI() {
 }
 
 async function loadLojas() {
+    // Buscar dados do plano da empresa
+    const { data: empresaData } = await supabaseClient
+        .from('empresas')
+        .select('plano_id, planos(id, nome, max_lojas)')
+        .eq('id', userData.empresa_id)
+        .single();
+
+    planoData = empresaData?.planos || { max_lojas: 0 };
+
+    // Buscar lojas
     const { data, error } = await supabaseClient
         .from('lojas')
         .select('*')
@@ -65,6 +77,46 @@ async function loadLojas() {
     }
 
     lojas = data || [];
+
+    // Verificar se atingiu limite
+    limiteAtingido = lojas.length >= (planoData.max_lojas || 0);
+
+    // Atualizar UI do botão
+    const btnNova = document.getElementById('btnNovaLoja');
+    if (btnNova) {
+        btnNova.disabled = limiteAtingido;
+        if (limiteAtingido) {
+            btnNova.title = `Limite atingido. Seu plano permite até ${planoData.max_lojas} loja(s).`;
+        } else {
+            btnNova.title = 'Adicionar nova loja';
+        }
+    }
+
+    // Exibir alerta de limite
+    const alertContainer = document.getElementById('limiteAlert');
+    if (limiteAtingido && lojas.length > 0) {
+        if (!alertContainer) {
+            // Criar container de alerta se não existir
+            const header = document.querySelector('.page-header');
+            if (header) {
+                const alertDiv = document.createElement('div');
+                alertDiv.id = 'limiteAlert';
+                alertDiv.className = 'alert alert-warning';
+                alertDiv.style.cssText = 'margin: 0 20px; padding: 12px 16px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px;';
+                alertDiv.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" style="width: 20px; height: 20px; flex-shrink: 0;">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <span>Limite de lojas atingido (${lojas.length}/${planoData.max_lojas}). Entre em contato para fazer upgrade do seu plano.</span>
+                `;
+                header.insertAdjacentElement('afterend', alertDiv);
+            }
+        }
+    } else if (alertContainer) {
+        alertContainer.remove();
+    }
+
     renderLojas();
 }
 

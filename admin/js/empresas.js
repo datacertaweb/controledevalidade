@@ -100,7 +100,7 @@ async function loadPlanos() {
 async function loadEmpresas() {
     const { data, error } = await supabaseClient
         .from('empresas')
-        .select('*, planos(nome, preco_mensal)')
+        .select('*, planos(nome, preco_mensal, max_lojas)')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -109,6 +109,23 @@ async function loadEmpresas() {
     }
 
     empresas = data || [];
+
+    // Buscar contagem de lojas por empresa
+    const { data: lojasData } = await supabaseClient
+        .from('lojas')
+        .select('empresa_id');
+
+    const lojasCount = {};
+    lojasData?.forEach(l => {
+        lojasCount[l.empresa_id] = (lojasCount[l.empresa_id] || 0) + 1;
+    });
+
+    // Adicionar contagem às empresas
+    empresas = empresas.map(e => ({
+        ...e,
+        lojas_count: lojasCount[e.id] || 0
+    }));
+
     renderEmpresas(empresas);
 }
 
@@ -119,7 +136,7 @@ function renderEmpresas(lista) {
     if (lista.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="empty-state">
+                <td colspan="7" class="empty-state">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M3 21h18"/>
                         <path d="M5 21V7l8-4v18"/>
@@ -133,7 +150,13 @@ function renderEmpresas(lista) {
         return;
     }
 
-    tbody.innerHTML = lista.map(emp => `
+    tbody.innerHTML = lista.map(emp => {
+        const maxLojas = emp.planos?.max_lojas || 0;
+        const lojasAtual = emp.lojas_count || 0;
+        const limiteAtingido = lojasAtual >= maxLojas;
+        const lojasColor = limiteAtingido ? 'var(--color-warning)' : 'var(--text-secondary)';
+
+        return `
         <tr>
             <td>
                 <strong>${emp.nome}</strong>
@@ -141,6 +164,16 @@ function renderEmpresas(lista) {
             </td>
             <td>${emp.cnpj || '-'}</td>
             <td>${emp.planos?.nome || 'Sem plano'}</td>
+            <td>
+                <a href="lojas_empresa.html?id=${emp.id}" style="color: ${lojasColor}; text-decoration: none; font-weight: 500;">
+                    ${lojasAtual}/${maxLojas}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; vertical-align: middle; margin-left: 4px;">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                </a>
+            </td>
             <td><span class="status-badge ${emp.status}">${formatStatus(emp.status)}</span></td>
             <td>${formatExpiration(emp)}</td>
             <td>
@@ -162,7 +195,7 @@ function renderEmpresas(lista) {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 // Filtros
