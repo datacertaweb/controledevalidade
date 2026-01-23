@@ -933,6 +933,9 @@ function renderDeposito() {
         `;
     }).join('');
 
+    console.log('renderDeposito: innerHTML definido, primeiros 200 chars:', tbody.innerHTML.substring(0, 200));
+    console.log('renderDeposito: contentDeposito display:', document.getElementById('contentDeposito').style.display);
+
     updateDepositoActionButtons();
 }
 
