@@ -663,7 +663,7 @@ async function fetchAllInBatches(tableName, filters = {}, select = '*', batchSiz
 }
 
 async function exportarEstoque() {
-    // Verificar se usuário é admin
+    // Verificação frontend (backup - segurança real está no backend)
     if (!auth.isAdmin(userData)) {
         window.globalUI.showToast('error', 'Apenas administradores podem exportar dados.');
         return;
@@ -673,31 +673,33 @@ async function exportarEstoque() {
     window.globalUI.showToast('info', 'Preparando exportação... Aguarde.');
 
     try {
-        // Buscar TODOS os dados em lotes
-        const filters = { empresa_id: userData.empresa_id };
-        if (userLojaIds) filters.loja_ids = userLojaIds;
+        // Usar função RPC segura (verificação de admin no servidor)
+        const { data, error } = await supabaseClient.rpc('export_coletados');
 
-        const allEstoque = await fetchAllInBatches(
-            'coletados',
-            filters,
-            '*, base:produto_id(codigo, descricao), lojas:loja_id(nome), locais:local_id(nome)'
-        );
+        if (error) {
+            // Se erro de permissão, mostra mensagem específica
+            if (error.message.includes('Acesso negado')) {
+                window.globalUI.showToast('error', 'Acesso negado: você não tem permissão para exportar.');
+                return;
+            }
+            throw error;
+        }
 
-        if (allEstoque.length === 0) {
+        if (!data || data.length === 0) {
             window.globalUI.showToast('warning', 'Nenhum item para exportar.');
             return;
         }
 
-        window.globalUI.showToast('info', `Exportando ${allEstoque.length} itens...`);
+        window.globalUI.showToast('info', `Exportando ${data.length} itens...`);
 
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0);
 
         // Header
-        let csv = 'PRODUTO;CODIGO;LOJA;LOCAL;QUANTIDADE;VALIDADE;LOTE;STATUS;DIAS_RESTANTES\n';
+        let csv = 'PRODUTO;CODIGO;LOJA;LOCAL;QUANTIDADE;VALIDADE;LOTE;VALOR;STATUS;DIAS_RESTANTES\n';
 
         // Dados
-        allEstoque.forEach(item => {
+        data.forEach(item => {
             const val = new Date(item.validade);
             const diff = Math.ceil((val - hoje) / (1000 * 60 * 60 * 24));
 
@@ -708,13 +710,14 @@ async function exportarEstoque() {
             else if (diff === 1) statusText = 'VENCE EM 1 DIA';
             else statusText = `VENCE EM ${diff} DIAS`;
 
-            csv += `${item.base?.descricao || ''};`;
-            csv += `${item.base?.codigo || ''};`;
-            csv += `${item.lojas?.nome || ''};`;
-            csv += `${item.locais?.nome || ''};`;
-            csv += `${item.quantidade};`;
+            csv += `${item.produto_descricao || ''};`;
+            csv += `${item.produto_codigo || ''};`;
+            csv += `${item.loja_nome || ''};`;
+            csv += `${item.local_nome || ''};`;
+            csv += `${item.quantidade || ''};`;
             csv += `${val.toLocaleDateString('pt-BR')};`;
             csv += `${item.lote || ''};`;
+            csv += `${item.valor_unitario || ''};`;
             csv += `${statusText};`;
             csv += `${diff}\n`;
         });
@@ -726,7 +729,7 @@ async function exportarEstoque() {
         link.download = `estoque_validade_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
 
-        window.globalUI.showToast('success', `${allEstoque.length} itens exportados com sucesso!`);
+        window.globalUI.showToast('success', `${data.length} itens exportados com sucesso!`);
     } catch (error) {
         console.error('Erro ao exportar:', error);
         window.globalUI.showToast('error', 'Erro ao exportar: ' + error.message);

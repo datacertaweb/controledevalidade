@@ -980,7 +980,7 @@ async function fetchAllProductsInBatches(batchSize = 1000) {
 }
 
 async function exportarProdutos() {
-    // Verificar se usuário é admin
+    // Verificação frontend (backup - segurança real está no backend)
     if (!auth.isAdmin(userData)) {
         window.globalUI.showToast('error', 'Apenas administradores podem exportar dados.');
         return;
@@ -989,21 +989,30 @@ async function exportarProdutos() {
     window.globalUI.showToast('info', 'Preparando exportação... Aguarde.');
 
     try {
-        // Buscar TODOS os produtos em lotes
-        const allProdutos = await fetchAllProductsInBatches();
+        // Usar função RPC segura (verificação de admin no servidor)
+        const { data, error } = await supabaseClient.rpc('export_produtos');
 
-        if (allProdutos.length === 0) {
+        if (error) {
+            // Se erro de permissão, mostra mensagem específica
+            if (error.message.includes('Acesso negado')) {
+                window.globalUI.showToast('error', 'Acesso negado: você não tem permissão para exportar.');
+                return;
+            }
+            throw error;
+        }
+
+        if (!data || data.length === 0) {
             window.globalUI.showToast('warning', 'Nenhum produto para exportar.');
             return;
         }
 
-        window.globalUI.showToast('info', `Exportando ${allProdutos.length} produtos...`);
+        window.globalUI.showToast('info', `Exportando ${data.length} produtos...`);
 
         // Header
         let csv = 'CODIGO;DESCRICAO;EAN;CATEGORIA\n';
 
         // Dados
-        allProdutos.forEach(p => {
+        data.forEach(p => {
             csv += `${p.codigo || ''};${p.descricao || ''};${p.ean || ''};${p.categoria || ''}\n`;
         });
 
@@ -1014,7 +1023,7 @@ async function exportarProdutos() {
         link.download = `produtos_datacerta_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
 
-        window.globalUI.showToast('success', `${allProdutos.length} produtos exportados com sucesso!`);
+        window.globalUI.showToast('success', `${data.length} produtos exportados com sucesso!`);
     } catch (error) {
         console.error('Erro ao exportar:', error);
         window.globalUI.showToast('error', 'Erro ao exportar: ' + error.message);
