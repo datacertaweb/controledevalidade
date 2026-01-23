@@ -934,25 +934,67 @@ SKU004;REFRIGERANTE 2L;7891234567893;BEBIDAS`;
 // EXPORTAÇÃO DE PRODUTOS
 // =============================================
 
-function exportarProdutos() {
-    if (produtos.length === 0) {
-        window.globalUI.showToast('warning', 'Nenhum produto para exportar.');
-        return;
+// Função auxiliar para buscar todos os registros em lotes (contorna limite de 1000 do Supabase)
+async function fetchAllProductsInBatches(batchSize = 1000) {
+    let allData = [];
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+        const { data, error } = await supabaseClient
+            .from('base')
+            .select('*')
+            .eq('empresa_id', userData.empresa_id)
+            .eq('ativo', true)
+            .range(offset, offset + batchSize - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            allData = allData.concat(data);
+            offset += batchSize;
+            hasMore = data.length === batchSize;
+        } else {
+            hasMore = false;
+        }
     }
 
-    // Header
-    let csv = 'CODIGO;DESCRICAO;EAN;CATEGORIA\n';
+    return allData;
+}
 
-    // Dados
-    produtos.forEach(p => {
-        csv += `${p.codigo || ''};${p.descricao || ''};${p.ean || ''};${p.categoria || ''}\n`;
-    });
+async function exportarProdutos() {
+    window.globalUI.showToast('info', 'Preparando exportação... Aguarde.');
 
-    // Download
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `produtos_datacerta_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
+    try {
+        // Buscar TODOS os produtos em lotes
+        const allProdutos = await fetchAllProductsInBatches();
+
+        if (allProdutos.length === 0) {
+            window.globalUI.showToast('warning', 'Nenhum produto para exportar.');
+            return;
+        }
+
+        window.globalUI.showToast('info', `Exportando ${allProdutos.length} produtos...`);
+
+        // Header
+        let csv = 'CODIGO;DESCRICAO;EAN;CATEGORIA\n';
+
+        // Dados
+        allProdutos.forEach(p => {
+            csv += `${p.codigo || ''};${p.descricao || ''};${p.ean || ''};${p.categoria || ''}\n`;
+        });
+
+        // Download
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `produtos_datacerta_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+
+        window.globalUI.showToast('success', `${allProdutos.length} produtos exportados com sucesso!`);
+    } catch (error) {
+        console.error('Erro ao exportar:', error);
+        window.globalUI.showToast('error', 'Erro ao exportar: ' + error.message);
+    }
 }
 

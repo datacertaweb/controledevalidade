@@ -625,47 +625,99 @@ function initEvents() {
     });
 }
 
-function exportarEstoque() {
-    if (estoque.length === 0) {
-        window.globalUI.showToast('warning', 'Nenhum item para exportar.');
-        return;
+// Função auxiliar para buscar todos os registros em lotes (contorna limite de 1000 do Supabase)
+async function fetchAllInBatches(tableName, filters = {}, select = '*', batchSize = 1000) {
+    let allData = [];
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+        let query = supabaseClient.from(tableName).select(select).range(offset, offset + batchSize - 1);
+
+        // Aplicar filtros
+        if (filters.empresa_id) query = query.eq('empresa_id', filters.empresa_id);
+        if (filters.loja_ids && filters.loja_ids.length > 0) query = query.in('loja_id', filters.loja_ids);
+        if (filters.excluido !== undefined) query = query.eq('excluido', filters.excluido);
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            allData = allData.concat(data);
+            offset += batchSize;
+            hasMore = data.length === batchSize; // Se retornou menos que o batch, acabou
+        } else {
+            hasMore = false;
+        }
     }
 
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
+    return allData;
+}
 
-    // Header
-    let csv = 'PRODUTO;CODIGO;LOJA;LOCAL;QUANTIDADE;VALIDADE;LOTE;STATUS;DIAS_RESTANTES\n';
+async function exportarEstoque() {
+    // Mostrar loading
+    window.globalUI.showToast('info', 'Preparando exportação... Aguarde.');
 
-    // Dados
-    estoque.forEach(item => {
-        const val = new Date(item.validade);
-        const diff = Math.ceil((val - hoje) / (1000 * 60 * 60 * 24));
+    try {
+        // Buscar TODOS os dados em lotes
+        const filters = { empresa_id: userData.empresa_id };
+        if (userLojaIds) filters.loja_ids = userLojaIds;
 
-        // Formato: VENCIDO ou VENCE EM X DIAS
-        let statusText;
-        if (diff < 0) statusText = 'VENCIDO';
-        else if (diff === 0) statusText = 'VENCE HOJE';
-        else if (diff === 1) statusText = 'VENCE EM 1 DIA';
-        else statusText = `VENCE EM ${diff} DIAS`;
+        const allEstoque = await fetchAllInBatches(
+            'coletados',
+            filters,
+            '*, base:produto_id(codigo, descricao), lojas:loja_id(nome), locais:local_id(nome)'
+        );
 
-        csv += `${item.base?.descricao || ''};`;
-        csv += `${item.base?.codigo || ''};`;
-        csv += `${item.lojas?.nome || ''};`;
-        csv += `${item.locais?.nome || ''};`;
-        csv += `${item.quantidade};`;
-        csv += `${val.toLocaleDateString('pt-BR')};`;
-        csv += `${item.lote || ''};`;
-        csv += `${statusText};`;
-        csv += `${diff}\n`;
-    });
+        if (allEstoque.length === 0) {
+            window.globalUI.showToast('warning', 'Nenhum item para exportar.');
+            return;
+        }
 
-    // Download
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `estoque_validade_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
+        window.globalUI.showToast('info', `Exportando ${allEstoque.length} itens...`);
+
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        // Header
+        let csv = 'PRODUTO;CODIGO;LOJA;LOCAL;QUANTIDADE;VALIDADE;LOTE;STATUS;DIAS_RESTANTES\n';
+
+        // Dados
+        allEstoque.forEach(item => {
+            const val = new Date(item.validade);
+            const diff = Math.ceil((val - hoje) / (1000 * 60 * 60 * 24));
+
+            // Formato: VENCIDO ou VENCE EM X DIAS
+            let statusText;
+            if (diff < 0) statusText = 'VENCIDO';
+            else if (diff === 0) statusText = 'VENCE HOJE';
+            else if (diff === 1) statusText = 'VENCE EM 1 DIA';
+            else statusText = `VENCE EM ${diff} DIAS`;
+
+            csv += `${item.base?.descricao || ''};`;
+            csv += `${item.base?.codigo || ''};`;
+            csv += `${item.lojas?.nome || ''};`;
+            csv += `${item.locais?.nome || ''};`;
+            csv += `${item.quantidade};`;
+            csv += `${val.toLocaleDateString('pt-BR')};`;
+            csv += `${item.lote || ''};`;
+            csv += `${statusText};`;
+            csv += `${diff}\n`;
+        });
+
+        // Download
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `estoque_validade_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+
+        window.globalUI.showToast('success', `${allEstoque.length} itens exportados com sucesso!`);
+    } catch (error) {
+        console.error('Erro ao exportar:', error);
+        window.globalUI.showToast('error', 'Erro ao exportar: ' + error.message);
+    }
 }
 
 async function saveEstoque(e) {
@@ -816,26 +868,33 @@ window.switchTabValidade = function (tab) {
     }
 };
 
-// Carregar dados do depósito
+// Variáveis para paginação de depósito no servidor
+let depositoTotalItems = 0;
+
+// Carregar dados do depósito com paginação no servidor
 async function loadDeposito() {
     try {
-        console.log('loadDeposito: Iniciando busca...');
-        console.log('loadDeposito: empresa_id =', userData?.empresa_id);
+        console.log('loadDeposito: Iniciando busca... página:', depositoPage);
 
-        const { data, error } = await supabaseClient
+        const startIndex = (depositoPage - 1) * depositoItemsPerPage;
+        const endIndex = startIndex + depositoItemsPerPage - 1;
+
+        // Buscar dados com paginação usando range()
+        const { data, error, count } = await supabaseClient
             .from('coletas_deposito')
-            .select('*')
+            .select('*', { count: 'exact' })
             .eq('empresa_id', userData.empresa_id)
             .eq('excluido', false)
-            .order('data_coleta', { ascending: false });
+            .order('data_coleta', { ascending: false })
+            .range(startIndex, endIndex);
 
         if (error) throw error;
 
-        console.log('loadDeposito: Dados recebidos:', data);
+        console.log('loadDeposito: Dados recebidos:', data?.length, 'de', count, 'total');
         depositoData = data || [];
+        depositoTotalItems = count || 0;
         selectedDepositos = [];
-        console.log('loadDeposito: Chamando renderDeposito...');
-        renderDeposito();
+        renderDepositoServerPagination();
     } catch (err) {
         console.error('Erro ao carregar depósito:', err);
         document.getElementById('depositoTable').innerHTML = `
