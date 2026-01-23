@@ -610,8 +610,15 @@ function initEvents() {
     modalPerda?.addEventListener('click', (e) => { if (e.target === modalPerda) modalPerda.classList.remove('active'); });
     document.getElementById('formPerda')?.addEventListener('submit', savePerda);
 
-    // Exportar
-    document.getElementById('btnExportar')?.addEventListener('click', exportarEstoque);
+    // Exportar (apenas admin vê o botão)
+    const btnExportar = document.getElementById('btnExportar');
+    if (btnExportar) {
+        if (!auth.isAdmin(userData)) {
+            btnExportar.style.display = 'none';
+        } else {
+            btnExportar.addEventListener('click', exportarEstoque);
+        }
+    }
 
     // Auto-preencher valor unitário ao selecionar produto
     document.getElementById('estoqueProduto')?.addEventListener('change', (e) => {
@@ -656,6 +663,12 @@ async function fetchAllInBatches(tableName, filters = {}, select = '*', batchSiz
 }
 
 async function exportarEstoque() {
+    // Verificar se usuário é admin
+    if (!auth.isAdmin(userData)) {
+        window.globalUI.showToast('error', 'Apenas administradores podem exportar dados.');
+        return;
+    }
+
     // Mostrar loading
     window.globalUI.showToast('info', 'Preparando exportação... Aguarde.');
 

@@ -468,8 +468,21 @@ function initEvents() {
 
     document.getElementById('formProduto')?.addEventListener('submit', saveProduto);
 
-    // Botão Exportar
-    document.getElementById('btnExportar')?.addEventListener('click', exportarProdutos);
+    // Botão Exportar (apenas admin vê)
+    const btnExportar = document.getElementById('btnExportar');
+    if (btnExportar) {
+        if (!auth.isAdmin(userData)) {
+            btnExportar.style.display = 'none';
+        } else {
+            btnExportar.addEventListener('click', exportarProdutos);
+        }
+    }
+
+    // Botão Importar (apenas admin vê)
+    const btnImportar = document.getElementById('btnImportar');
+    if (btnImportar && !auth.isAdmin(userData)) {
+        btnImportar.style.display = 'none';
+    }
 
     // Modal Importar
     initImportEvents();
@@ -585,8 +598,12 @@ function initImportEvents() {
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
 
-    // Abrir modal
+    // Abrir modal - apenas admin
     document.getElementById('btnImportar')?.addEventListener('click', () => {
+        if (!auth.isAdmin(userData)) {
+            window.globalUI.showToast('error', 'Apenas administradores podem importar dados.');
+            return;
+        }
         resetImportModal();
         modal.classList.add('active');
     });
@@ -963,6 +980,12 @@ async function fetchAllProductsInBatches(batchSize = 1000) {
 }
 
 async function exportarProdutos() {
+    // Verificar se usuário é admin
+    if (!auth.isAdmin(userData)) {
+        window.globalUI.showToast('error', 'Apenas administradores podem exportar dados.');
+        return;
+    }
+
     window.globalUI.showToast('info', 'Preparando exportação... Aguarde.');
 
     try {
