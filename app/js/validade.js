@@ -774,3 +774,386 @@ async function savePerda(e) {
         window.globalUI.showToast('error', 'Erro ao registrar perda: ' + error.message);
     }
 }
+
+// ====================================================================
+// SISTEMA DE ABAS - DEPÓSITO
+// ====================================================================
+
+let currentTabValidade = 'lojas';
+let depositoData = [];
+let selectedDepositos = [];
+let depositoPage = 1;
+const depositoItemsPerPage = 25;
+
+// Função para trocar abas
+window.switchTabValidade = function (tab) {
+    currentTabValidade = tab;
+
+    // Atualizar estilos dos botões
+    const tabLojas = document.getElementById('tabLojas');
+    const tabDeposito = document.getElementById('tabDeposito');
+
+    if (tab === 'lojas') {
+        tabLojas.style.background = 'linear-gradient(135deg, #0F766E 0%, #14B8A6 100%)';
+        tabLojas.style.color = 'white';
+        tabDeposito.style.background = 'transparent';
+        tabDeposito.style.color = '#6B7280';
+    } else {
+        tabDeposito.style.background = 'linear-gradient(135deg, #0F766E 0%, #14B8A6 100%)';
+        tabDeposito.style.color = 'white';
+        tabLojas.style.background = 'transparent';
+        tabLojas.style.color = '#6B7280';
+    }
+
+    // Mostrar/ocultar conteúdos
+    document.getElementById('contentLojas').style.display = tab === 'lojas' ? 'block' : 'none';
+    document.getElementById('contentDeposito').style.display = tab === 'deposito' ? 'block' : 'none';
+
+    // Carregar dados do depósito se for a primeira vez
+    if (tab === 'deposito' && depositoData.length === 0) {
+        loadDeposito();
+    }
+};
+
+// Carregar dados do depósito
+async function loadDeposito() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('coletas_deposito')
+            .select('*')
+            .eq('empresa_id', userData.empresa_id)
+            .eq('excluido', false)
+            .order('data_coleta', { ascending: false });
+
+        if (error) throw error;
+
+        depositoData = data || [];
+        selectedDepositos = [];
+        renderDeposito();
+    } catch (err) {
+        console.error('Erro ao carregar depósito:', err);
+        document.getElementById('depositoTable').innerHTML = `
+            <tr><td colspan="8" style="text-align: center; padding: 40px; color: #DC2626;">
+                Erro ao carregar dados: ${err.message}
+            </td></tr>
+        `;
+    }
+}
+
+// Renderizar tabela do depósito
+function renderDeposito() {
+    const tbody = document.getElementById('depositoTable');
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    // Paginação
+    const totalItems = depositoData.length;
+    const totalPages = Math.ceil(totalItems / depositoItemsPerPage) || 1;
+    if (depositoPage > totalPages) depositoPage = totalPages;
+    if (depositoPage < 1) depositoPage = 1;
+
+    const startIndex = (depositoPage - 1) * depositoItemsPerPage;
+    const endIndex = Math.min(startIndex + depositoItemsPerPage, totalItems);
+    const paginatedItems = depositoData.slice(startIndex, endIndex);
+
+    // Atualizar UI de paginação
+    document.getElementById('paginationInfoDeposito').innerHTML =
+        totalItems === 0 ? '0 de 0' : `${startIndex + 1}-${endIndex} de ${totalItems}`;
+    document.getElementById('pageNumberDisplayDeposito').textContent = `Página ${depositoPage}`;
+    document.getElementById('btnPrevPageDeposito').disabled = depositoPage === 1;
+    document.getElementById('btnNextPageDeposito').disabled = depositoPage === totalPages;
+
+    if (paginatedItems.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                    Nenhuma coleta de depósito encontrada.<br>
+                    <a href="pwa/deposito.html" style="color: #0F766E; text-decoration: underline;">Iniciar nova coleta</a>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = paginatedItems.map(item => {
+        const validade = new Date(item.data_vencimento);
+        const diasVencer = Math.ceil((validade - hoje) / (1000 * 60 * 60 * 24));
+        const dataColeta = new Date(item.data_coleta);
+
+        // Status com cores
+        let statusClass = 'ok';
+        if (diasVencer < 0) statusClass = 'expired';
+        else if (diasVencer <= 5) statusClass = 'critical';
+        else if (diasVencer <= 14) statusClass = 'warning';
+
+        const isChecked = selectedDepositos.includes(item.id);
+
+        return `
+            <tr>
+                <td><input type="checkbox" class="deposito-checkbox" value="${item.id}" 
+                    ${isChecked ? 'checked' : ''} onchange="toggleDepositoCheck('${item.id}')"></td>
+                <td><strong>${item.codigo_produto}</strong></td>
+                <td>${item.descricao_produto || '-'}</td>
+                <td>${validade.toLocaleDateString('pt-BR')}</td>
+                <td>
+                    <span class="validity-badge ${statusClass}">
+                        ${diasVencer < 0 ? 'VENCIDO' : diasVencer === 0 ? 'HOJE' : diasVencer + ' dias'}
+                    </span>
+                </td>
+                <td>${item.usuario_nome || '-'}</td>
+                <td>${dataColeta.toLocaleDateString('pt-BR')} ${dataColeta.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="action-btn" title="Editar" onclick="abrirModalEditarDeposito('${item.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn delete" title="Excluir" onclick="excluirDeposito('${item.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    updateDepositoActionButtons();
+}
+
+// Toggle checkbox individual
+window.toggleDepositoCheck = function (id) {
+    const index = selectedDepositos.indexOf(id);
+    if (index > -1) {
+        selectedDepositos.splice(index, 1);
+    } else {
+        selectedDepositos.push(id);
+    }
+
+    // Atualizar checkbox "Selecionar Todos"
+    const allCheckboxes = document.querySelectorAll('.deposito-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAllDeposito');
+    selectAllCheckbox.checked = selectedDepositos.length === allCheckboxes.length && allCheckboxes.length > 0;
+
+    updateDepositoActionButtons();
+};
+
+// Toggle selecionar todos
+window.toggleSelectAllDeposito = function (checked) {
+    const checkboxes = document.querySelectorAll('.deposito-checkbox');
+    selectedDepositos = [];
+
+    checkboxes.forEach(cb => {
+        cb.checked = checked;
+        if (checked) {
+            selectedDepositos.push(cb.value);
+        }
+    });
+
+    updateDepositoActionButtons();
+};
+
+// Atualizar visibilidade dos botões de ação
+function updateDepositoActionButtons() {
+    const hasSelection = selectedDepositos.length > 0;
+    document.getElementById('btnExcluirSelecionadosDeposito').style.display = hasSelection ? 'flex' : 'none';
+    document.getElementById('btnImprimirSelecionadosDeposito').style.display = hasSelection ? 'flex' : 'none';
+}
+
+// Paginação do depósito
+window.mudarPaginaDeposito = function (delta) {
+    depositoPage += delta;
+    renderDeposito();
+};
+
+// Excluir item do depósito (soft delete)
+window.excluirDeposito = async function (id) {
+    const confirmed = await window.globalUI.showConfirm(
+        'Confirmar Exclusão',
+        'Deseja realmente excluir esta coleta?',
+        'warning'
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from('coletas_deposito')
+            .update({ excluido: true })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        window.globalUI.showToast('success', 'Coleta excluída com sucesso!');
+        await loadDeposito();
+    } catch (err) {
+        console.error('Erro ao excluir:', err);
+        window.globalUI.showToast('error', 'Erro ao excluir: ' + err.message);
+    }
+};
+
+// Excluir selecionados
+window.excluirSelecionadosDeposito = async function () {
+    if (selectedDepositos.length === 0) return;
+
+    const confirmed = await window.globalUI.showConfirm(
+        'Confirmar Exclusão',
+        `Deseja realmente excluir ${selectedDepositos.length} coleta(s)?`,
+        'warning'
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from('coletas_deposito')
+            .update({ excluido: true })
+            .in('id', selectedDepositos);
+
+        if (error) throw error;
+
+        window.globalUI.showToast('success', `${selectedDepositos.length} coleta(s) excluída(s)!`);
+        selectedDepositos = [];
+        await loadDeposito();
+    } catch (err) {
+        console.error('Erro ao excluir:', err);
+        window.globalUI.showToast('error', 'Erro ao excluir: ' + err.message);
+    }
+};
+
+// Modal de edição
+window.abrirModalEditarDeposito = function (id) {
+    const item = depositoData.find(d => d.id === id);
+    if (!item) return;
+
+    document.getElementById('editDepositoId').value = item.id;
+    document.getElementById('editDepositoCodigo').value = item.codigo_produto;
+    document.getElementById('editDepositoDescricao').value = item.descricao_produto || '';
+    document.getElementById('editDepositoCategoria').value = item.categoria || '';
+    document.getElementById('editDepositoValidade').value = item.data_vencimento;
+
+    document.getElementById('modalEditarDeposito').classList.add('active');
+};
+
+window.fecharModalEditarDeposito = function () {
+    document.getElementById('modalEditarDeposito').classList.remove('active');
+};
+
+window.salvarEdicaoDeposito = async function (e) {
+    e.preventDefault();
+
+    const id = document.getElementById('editDepositoId').value;
+    const data = {
+        descricao_produto: document.getElementById('editDepositoDescricao').value,
+        categoria: document.getElementById('editDepositoCategoria').value || null,
+        data_vencimento: document.getElementById('editDepositoValidade').value
+    };
+
+    try {
+        const { error } = await supabaseClient
+            .from('coletas_deposito')
+            .update(data)
+            .eq('id', id);
+
+        if (error) throw error;
+
+        window.globalUI.showToast('success', 'Coleta atualizada com sucesso!');
+        fecharModalEditarDeposito();
+        await loadDeposito();
+    } catch (err) {
+        console.error('Erro ao atualizar:', err);
+        window.globalUI.showToast('error', 'Erro ao atualizar: ' + err.message);
+    }
+};
+
+// Imprimir etiquetas selecionadas
+window.imprimirSelecionadosDeposito = function () {
+    if (selectedDepositos.length === 0) return;
+
+    const itensSelecionados = depositoData.filter(d => selectedDepositos.includes(d.id));
+
+    // Gerar HTML das etiquetas
+    let etiquetasHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Etiquetas de Depósito</title>
+            <style>
+                @page { size: A4; margin: 0; }
+                body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+                .etiqueta {
+                    width: 19cm;
+                    height: 26cm;
+                    border: 1px solid #000;
+                    margin: auto;
+                    page-break-after: always;
+                    display: flex;
+                    flex-direction: column;
+                    box-sizing: border-box;
+                }
+                .etiqueta:last-child { page-break-after: auto; }
+                .label { font-size: 14px; padding: 8px; font-weight: bold; background: #f0f0f0; }
+                .value { font-size: 28px; padding: 12px; text-align: center; font-weight: bold; border-bottom: 1px solid #000; }
+                .value-big { font-size: 180px; font-weight: 800; text-align: center; flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+                .mes { font-size: 200px; line-height: 1; }
+                .ano { font-size: 150px; line-height: 1; }
+                .grid { display: flex; border-bottom: 1px solid #000; }
+                .grid-item { flex: 1; padding: 10px; text-align: center; }
+                .grid-item:first-child { border-right: 1px solid #000; }
+                .grid-item .label { font-size: 12px; background: none; padding: 4px; }
+                .grid-item .val { font-size: 24px; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+    `;
+
+    itensSelecionados.forEach(item => {
+        const validade = new Date(item.data_vencimento);
+        const mes = String(validade.getMonth() + 1).padStart(2, '0');
+        const ano = validade.getFullYear();
+        const dataColeta = new Date(item.data_coleta).toLocaleDateString('pt-BR');
+        const dataValidade = validade.toLocaleDateString('pt-BR');
+
+        etiquetasHtml += `
+            <div class="etiqueta">
+                <div class="label">OPERADOR:</div>
+                <div class="value">${item.usuario_nome || '-'}</div>
+                <div class="label">DESCRIÇÃO DO PRODUTO:</div>
+                <div class="value">${item.descricao_produto || '-'}</div>
+                <div class="label">CÓDIGO DO PRODUTO:</div>
+                <div class="value">${item.codigo_produto}</div>
+                <div class="grid">
+                    <div class="grid-item">
+                        <div class="label">DATA DE VENCIMENTO:</div>
+                        <div class="val">${dataValidade}</div>
+                    </div>
+                    <div class="grid-item">
+                        <div class="label">DATA DA COLETA:</div>
+                        <div class="val">${dataColeta}</div>
+                    </div>
+                </div>
+                <div class="value-big">
+                    <div class="mes">${mes}</div>
+                    <div class="ano">${ano}</div>
+                </div>
+            </div>
+        `;
+    });
+
+    etiquetasHtml += '</body></html>';
+
+    // Abrir em nova janela para impressão
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(etiquetasHtml);
+    printWindow.document.close();
+
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+};
+

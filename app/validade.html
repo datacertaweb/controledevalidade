@@ -231,8 +231,34 @@
             </div>
         </section>
 
-        <!-- Tabela de Estoque -->
-        <section class="table-section">
+        <!-- Sistema de Abas -->
+        <div class="tabs-container" style="margin-bottom: 20px;">
+            <div class="tab-nav-validade"
+                style="display: flex; background: var(--bg-card); border-radius: 10px; padding: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <button class="tab-btn-validade active" id="tabLojas" onclick="switchTabValidade('lojas')"
+                    style="flex: 1; padding: 12px 20px; border: none; background: linear-gradient(135deg, #0F766E 0%, #14B8A6 100%); font-size: 0.95rem; font-weight: 600; color: white; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"
+                        style="vertical-align: middle; margin-right: 6px;">
+                        <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" />
+                    </svg>
+                    Coletas das Lojas
+                </button>
+                <button class="tab-btn-validade" id="tabDeposito" onclick="switchTabValidade('deposito')"
+                    style="flex: 1; padding: 12px 20px; border: none; background: transparent; font-size: 0.95rem; font-weight: 600; color: #6B7280; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"
+                        style="vertical-align: middle; margin-right: 6px;">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    </svg>
+                    Coletas do Depósito
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Content: Lojas (Conteúdo Existente) -->
+        <div id="contentLojas" class="tab-content-validade">
+
+            <!-- Tabela de Estoque -->
             <div class="table-wrapper">
                 <table class="data-table">
                     <thead>
@@ -288,9 +314,134 @@
                         </svg>
                     </button>
                 </div>
-            </div>
-        </section>
+            </div> <!-- Fim contentLojas -->
+
+            <!-- Tab Content: Depósito (Nova Seção) -->
+            <div id="contentDeposito" class="tab-content-validade" style="display: none;">
+
+                <!-- Barra de Ações Depósito -->
+                <div class="deposito-actions" style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <button class="btn btn-danger" id="btnExcluirSelecionadosDeposito" style="display: none;"
+                        onclick="excluirSelecionadosDeposito()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <path
+                                d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
+                        </svg>
+                        Excluir Selecionados
+                    </button>
+                    <button class="btn btn-primary" id="btnImprimirSelecionadosDeposito" style="display: none;"
+                        onclick="imprimirSelecionadosDeposito()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+                            <rect x="6" y="14" width="12" height="8" />
+                        </svg>
+                        Imprimir Etiquetas
+                    </button>
+                    <a href="pwa/deposito.html" class="btn btn-outline" style="margin-left: auto;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Nova Coleta Depósito
+                    </a>
+                </div>
+
+                <!-- Tabela de Depósito -->
+                <div class="table-wrapper"
+                    style="background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-secondary);">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" id="selectAllDeposito"
+                                        onchange="toggleSelectAllDeposito(this.checked)">
+                                </th>
+                                <th>Código</th>
+                                <th>Descrição</th>
+                                <th>Vencimento</th>
+                                <th>Dias p/ Vencer</th>
+                                <th>Usuário</th>
+                                <th>Data/Hora Coleta</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="depositoTable">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 40px;">Carregando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação Depósito -->
+                <div class="pagination"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-card); border-radius: 0 0 12px 12px; border: 1px solid var(--border-secondary); border-top: none;">
+                    <div class="pagination-info" style="color: var(--text-secondary); font-size: 14px;">
+                        Mostrando <strong id="paginationInfoDeposito">0 de 0</strong> itens
+                    </div>
+                    <div class="pagination-controls" style="display: flex; gap: 8px; align-items: center;">
+                        <button class="pagination-btn" id="btnPrevPageDeposito" disabled
+                            onclick="mudarPaginaDeposito(-1)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                                height="16">
+                                <polyline points="15 18 9 12 15 6" />
+                            </svg>
+                        </button>
+                        <span id="pageNumberDisplayDeposito"
+                            style="font-size: 14px; font-weight: 500; min-width: 60px; text-align: center;">Página
+                            1</span>
+                        <button class="pagination-btn" id="btnNextPageDeposito" disabled
+                            onclick="mudarPaginaDeposito(1)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                                height="16">
+                                <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div> <!-- Fim contentDeposito -->
+
     </main>
+
+    <!-- Modal Editar Coleta Depósito -->
+    <div class="modal-overlay" id="modalEditarDeposito">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Editar Coleta</h2>
+                <button class="modal-close" onclick="fecharModalEditarDeposito()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarDeposito" onsubmit="salvarEdicaoDeposito(event)">
+                    <input type="hidden" id="editDepositoId">
+                    <div class="form-group">
+                        <label for="editDepositoCodigo">Código do Produto</label>
+                        <input type="text" id="editDepositoCodigo" class="form-input" readonly
+                            style="background: #f5f5f5;">
+                    </div>
+                    <div class="form-group">
+                        <label for="editDepositoDescricao">Descrição</label>
+                        <input type="text" id="editDepositoDescricao" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="editDepositoCategoria">Categoria</label>
+                        <input type="text" id="editDepositoCategoria" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="editDepositoValidade">Data de Vencimento *</label>
+                        <input type="date" id="editDepositoValidade" class="form-input" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline"
+                            onclick="fecharModalEditarDeposito()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Adicionar Estoque -->
     <div class="modal-overlay" id="modalEstoque">
