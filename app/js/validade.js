@@ -809,8 +809,9 @@ window.switchTabValidade = function (tab) {
     document.getElementById('contentLojas').style.display = tab === 'lojas' ? 'block' : 'none';
     document.getElementById('contentDeposito').style.display = tab === 'deposito' ? 'block' : 'none';
 
-    // Carregar dados do depósito se for a primeira vez
-    if (tab === 'deposito' && depositoData.length === 0) {
+    // Carregar dados do depósito sempre que a aba for selecionada
+    if (tab === 'deposito') {
+        console.log('Carregando dados do depósito...');
         loadDeposito();
     }
 };
@@ -818,6 +819,9 @@ window.switchTabValidade = function (tab) {
 // Carregar dados do depósito
 async function loadDeposito() {
     try {
+        console.log('loadDeposito: Iniciando busca...');
+        console.log('loadDeposito: empresa_id =', userData?.empresa_id);
+
         const { data, error } = await supabaseClient
             .from('coletas_deposito')
             .select('*')
@@ -827,8 +831,10 @@ async function loadDeposito() {
 
         if (error) throw error;
 
+        console.log('loadDeposito: Dados recebidos:', data);
         depositoData = data || [];
         selectedDepositos = [];
+        console.log('loadDeposito: Chamando renderDeposito...');
         renderDeposito();
     } catch (err) {
         console.error('Erro ao carregar depósito:', err);
@@ -842,7 +848,11 @@ async function loadDeposito() {
 
 // Renderizar tabela do depósito
 function renderDeposito() {
+    console.log('renderDeposito: Iniciando...');
     const tbody = document.getElementById('depositoTable');
+    console.log('renderDeposito: tbody encontrado?', !!tbody);
+    console.log('renderDeposito: depositoData.length =', depositoData.length);
+
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
@@ -855,6 +865,7 @@ function renderDeposito() {
     const startIndex = (depositoPage - 1) * depositoItemsPerPage;
     const endIndex = Math.min(startIndex + depositoItemsPerPage, totalItems);
     const paginatedItems = depositoData.slice(startIndex, endIndex);
+    console.log('renderDeposito: paginatedItems.length =', paginatedItems.length);
 
     // Atualizar UI de paginação
     document.getElementById('paginationInfoDeposito').innerHTML =
