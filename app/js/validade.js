@@ -928,19 +928,22 @@ function renderDeposito() {
     console.log('renderDeposito: tbody encontrado?', !!tbody);
     console.log('renderDeposito: depositoData.length =', depositoData.length);
 
+    if (!tbody) {
+        console.error('renderDeposito: Elemento depositoTable não encontrado!');
+        return;
+    }
+
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
-    // Paginação
-    const totalItems = depositoData.length;
+    // Usar total do servidor para paginação
+    const totalItems = depositoTotalItems;
     const totalPages = Math.ceil(totalItems / depositoItemsPerPage) || 1;
     if (depositoPage > totalPages) depositoPage = totalPages;
     if (depositoPage < 1) depositoPage = 1;
 
     const startIndex = (depositoPage - 1) * depositoItemsPerPage;
-    const endIndex = Math.min(startIndex + depositoItemsPerPage, totalItems);
-    const paginatedItems = depositoData.slice(startIndex, endIndex);
-    console.log('renderDeposito: paginatedItems.length =', paginatedItems.length);
+    const endIndex = Math.min(startIndex + depositoData.length, totalItems);
 
     // Atualizar UI de paginação
     document.getElementById('paginationInfoDeposito').innerHTML =
@@ -949,7 +952,7 @@ function renderDeposito() {
     document.getElementById('btnPrevPageDeposito').disabled = depositoPage === 1;
     document.getElementById('btnNextPageDeposito').disabled = depositoPage === totalPages;
 
-    if (paginatedItems.length === 0) {
+    if (depositoData.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="8" style="text-align: center; padding: 60px; color: var(--text-muted);">
@@ -961,7 +964,8 @@ function renderDeposito() {
         return;
     }
 
-    tbody.innerHTML = paginatedItems.map(item => {
+    // Usar depositoData diretamente (já vem paginado do servidor)
+    tbody.innerHTML = depositoData.map(item => {
         const validade = new Date(item.data_vencimento);
         const diasVencer = Math.ceil((validade - hoje) / (1000 * 60 * 60 * 24));
         const dataColeta = new Date(item.data_coleta);
@@ -1008,9 +1012,7 @@ function renderDeposito() {
         `;
     }).join('');
 
-    console.log('renderDeposito: innerHTML definido, primeiros 200 chars:', tbody.innerHTML.substring(0, 200));
-    console.log('renderDeposito: contentDeposito display:', document.getElementById('contentDeposito').style.display);
-
+    console.log('renderDeposito: Renderizado', depositoData.length, 'itens');
     updateDepositoActionButtons();
 }
 
@@ -1053,10 +1055,10 @@ function updateDepositoActionButtons() {
     document.getElementById('btnImprimirSelecionadosDeposito').style.display = hasSelection ? 'flex' : 'none';
 }
 
-// Paginação do depósito
+// Paginação do depósito - recarrega do servidor
 window.mudarPaginaDeposito = function (delta) {
     depositoPage += delta;
-    renderDeposito();
+    loadDeposito(); // Recarrega do servidor com a nova página
 };
 
 // Excluir item do depósito (soft delete)

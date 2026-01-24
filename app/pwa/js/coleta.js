@@ -702,26 +702,32 @@ async function buscarProdutoPerda() {
 async function buscarValidades(produtoId) {
     const validadeSelect = document.getElementById('validadePerda');
 
-    if (!currentLojaId) {
-        validadeSelect.innerHTML = '<option value="">Selecione a loja primeiro</option>';
-        return;
-    }
-
     try {
-        const { data, error } = await supabaseClient
+        let query = supabaseClient
             .from('coletados')
-            .select('id, validade, quantidade')
+            .select('id, validade, quantidade, loja_id')
             .eq('produto_id', produtoId)
-            .eq('loja_id', currentLojaId)
             .gt('quantidade', 0)
             .order('validade');
+
+        // Se tem loja selecionada, filtra por ela
+        if (currentLojaId) {
+            query = query.eq('loja_id', currentLojaId);
+        } else {
+            // Empresa unidade única (sem lojas): buscar coletados onde loja_id é null
+            // OU buscar todos da empresa via produto
+            // Vamos buscar itens onde loja_id é null OU listar todos disponíveis
+            query = query.is('loja_id', null);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
         validadesDisponiveis = data || [];
 
         if (validadesDisponiveis.length === 0) {
-            validadeSelect.innerHTML = '<option value="">Nenhuma validade encontrada</option>';
+            validadeSelect.innerHTML = '<option value="">Nenhuma validade encontrada para este produto</option>';
             return;
         }
 
