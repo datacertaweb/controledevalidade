@@ -910,7 +910,7 @@ async function loadDeposito() {
         depositoData = data || [];
         depositoTotalItems = count || 0;
         selectedDepositos = [];
-        renderDepositoServerPagination();
+        renderDeposito();
     } catch (err) {
         console.error('Erro ao carregar depósito:', err);
         document.getElementById('depositoTable').innerHTML = `
