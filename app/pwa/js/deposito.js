@@ -9,6 +9,13 @@ let selectedProdutoId = null;
 let selectedProdutoDescricao = null;
 let selectedProdutoCategoria = null;
 
+function montarCodigosBusca(codigo) {
+    const original = codigo.trim();
+    const numerico = original.replace(/\D/g, '');
+    const semZeros = numerico.replace(/^0+/, '');
+    return Array.from(new Set([original, numerico, semZeros].filter(Boolean)));
+}
+
 // Aguardar Supabase
 window.addEventListener('supabaseReady', initDeposito);
 setTimeout(() => { if (window.supabaseClient && !userData) initDeposito(); }, 500);
@@ -150,24 +157,29 @@ async function buscarProduto() {
     if (!userData || !userData.empresa_id) return;
 
     try {
-        // Buscar primeiro por EAN (código de barras)
-        let { data, error } = await supabaseClient
+        const codigosBusca = montarCodigosBusca(codigo);
+        let data = null;
+        let error = null;
+
+        const { data: eanData, error: eanError } = await supabaseClient
             .from('base')
             .select('id, descricao, categoria')
             .eq('empresa_id', userData.empresa_id)
-            .eq('ean', codigo)
-            .maybeSingle();
+            .in('ean', codigosBusca)
+            .limit(1);
 
-        // Se não encontrou por EAN, buscar por código interno
+        if (eanError) error = eanError;
+        if (eanData && eanData.length > 0) data = eanData[0];
+
         if (!data) {
-            const result = await supabaseClient
+            const { data: codigoData, error: codigoError } = await supabaseClient
                 .from('base')
                 .select('id, descricao, categoria')
                 .eq('empresa_id', userData.empresa_id)
-                .eq('codigo', codigo)
-                .maybeSingle();
-            data = result.data;
-            error = result.error;
+                .in('codigo', codigosBusca)
+                .limit(1);
+            if (codigoError) error = codigoError;
+            if (codigoData && codigoData.length > 0) data = codigoData[0];
         }
 
         if (error || !data) {
