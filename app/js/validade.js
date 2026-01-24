@@ -15,6 +15,7 @@ let selectedStatus = [];
 let dataInicio = null;
 let dataFim = null;
 let userLojaIds = null; // Lojas do usuário (null = todas)
+let empresaNome = null; // Nome da empresa (para unidade única)
 // Paginação
 let currentPage = 1;
 let itemsPerPage = 25;
@@ -50,7 +51,7 @@ async function initValidade() {
             userLojaIds = await auth.getUserLojas(userData.id);
         }
 
-        await Promise.all([loadLojas(), loadProdutos()]);
+        await Promise.all([loadLojas(), loadProdutos(), loadEmpresaNome()]);
         await loadEstoque();
         initEvents();
     } catch (error) {
@@ -251,6 +252,17 @@ async function loadProdutos() {
         produtos.map(p => `<option value="${p.id}">${p.descricao} ${p.codigo ? '(' + p.codigo + ')' : ''}</option>`).join('');
 }
 
+// Buscar nome da empresa para exibir quando não há loja (unidade única)
+async function loadEmpresaNome() {
+    const { data } = await supabaseClient
+        .from('empresas')
+        .select('nome')
+        .eq('id', userData.empresa_id)
+        .single();
+
+    empresaNome = data?.nome || null;
+}
+
 async function loadEstoque() {
     // Buscar todos os coletados com relações (sem filtro de empresa no Supabase)
     const { data, error } = await supabaseClient
@@ -425,7 +437,7 @@ function renderEstoque(lista, hoje) {
                     <strong>${item.base?.descricao || '-'}</strong>
                     ${item.lote ? `<br><small style="color: var(--text-muted);">Lote: ${item.lote}</small>` : ''}
                 </td>
-                <td>${item.lojas?.nome || '-'}</td>
+                <td>${item.lojas?.nome || empresaNome || '-'}</td>
                 <td>${item.locais?.nome || '-'}</td>
                 <td>${item.quantidade}</td>
                 <td>${val.toLocaleDateString('pt-BR')}</td>
