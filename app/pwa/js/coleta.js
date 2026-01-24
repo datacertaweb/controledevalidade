@@ -452,7 +452,7 @@ async function enviarTodos() {
         // carregarLoja define currentLojaId como null se não houver lojas.
         // Se a tabela 'coletados' tem FK para 'lojas', loja_id precisa ser um ID válido de loja ou null.
         // Se a regra é "loja_id deve receber o ID dessa empresa", isso implica que a empresa deve estar cadastrada na tabela lojas OU a FK permite.
-        
+
         // CORREÇÃO: Vamos assumir que se currentLojaId é null, tentamos buscar uma loja que tenha o mesmo ID da empresa (caso raro) 
         // ou, mais provável, criamos uma lógica para garantir que haja um loja_id válido se a regra exige.
         // Mas o prompt diz: "Cliente com apenas uma empresa (sem filiais) -> A empresa deve ser automaticamente considerada como loja -> loja_id deve receber o ID dessa empresa"
@@ -461,11 +461,11 @@ async function enviarTodos() {
         // Se currentLojaId for null, vamos tentar usar o empresa_id SE a regra de negócio permitir (mas cuidado com FK).
         // Por segurança, se for null, enviamos null (que é permitido na tabela coletados: loja_id uuid null).
         // Mas o usuário pediu explicitamente para corrigir a lógica.
-        
+
         // Vamos ajustar a lógica de `carregarLoja` para garantir que `currentLojaId` seja preenchido corretamente para unidade única?
         // Não, `carregarLoja` já faz o melhor que pode.
         // Vamos apenas usar `currentLojaId` aqui.
-        
+
         // AJUSTE CRÍTICO: Se a empresa não tem lojas cadastradas, mas o usuário quer salvar, o `loja_id` ficará NULL.
         // Se a regra diz que deve ser o ID da empresa, isso só funciona se a tabela `coletados` não tiver FK restrita para `lojas` OU se houver uma trigger/logica que permita.
         // Olhando o esquema (esquemaatualizado.sql):
@@ -475,7 +475,7 @@ async function enviarTodos() {
         // Mas o usuário disse: "A empresa deve ser automaticamente considerada como loja -> loja_id deve receber o ID dessa empresa".
         // Isso implica que o sistema deveria ter criado uma loja com o mesmo ID da empresa, ou o usuário está enganado sobre a FK.
         // Como não posso mudar o banco agora, vou seguir a lógica de usar `currentLojaId` que é derivado da seleção ou da loja do usuário.
-        
+
         // ATENÇÃO: Para perdas, a lógica é a mesma.
 
         for (const item of listaItens) {
@@ -893,11 +893,12 @@ async function enviarTodosPerda() {
             const { error: perdaError } = await supabaseClient.from('perdas').insert({
                 estoque_id: item.coletado_id,
                 produto_id: item.produto_id,
-                loja_id: currentLojaId,
+                loja_id: currentLojaId || coletado.loja_id, // Usa a loja do coletado se currentLojaId for null
                 local_id: coletado.local_id,
                 quantidade: item.quantidade,
                 valor_perda: valorPerda,
-                motivo: 'Coletado via App',
+                motivo: 'vencido', // Valor válido do enum motivo_perda
+                observacao: 'Registrado via App Coleta',
                 registrado_por: userData.id
             });
 

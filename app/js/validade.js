@@ -255,7 +255,7 @@ async function loadEstoque() {
     // Buscar todos os coletados com relações (sem filtro de empresa no Supabase)
     const { data, error } = await supabaseClient
         .from('coletados')
-        .select('*, base(descricao, valor_unitario, codigo, empresa_id), lojas(nome), locais(nome)')
+        .select('*, base(descricao, valor_unitario, codigo, ean, empresa_id), lojas(nome), locais(nome)')
         .order('validade');
 
     if (error) {
@@ -399,7 +399,7 @@ function renderEstoque(lista, hoje) {
     if (lista.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                <td colspan="8" style="text-align: center; padding: 60px; color: var(--text-muted);">
                     Nenhum item encontrado
                 </td>
             </tr>
@@ -418,6 +418,9 @@ function renderEstoque(lista, hoje) {
 
         return `
             <tr>
+                <td>
+                    <strong>${item.base?.codigo || item.base?.ean || '-'}</strong>
+                </td>
                 <td>
                     <strong>${item.base?.descricao || '-'}</strong>
                     ${item.lote ? `<br><small style="color: var(--text-muted);">Lote: ${item.lote}</small>` : ''}
