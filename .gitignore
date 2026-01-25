@@ -1,6 +1,11 @@
 # Dependências
 node_modules/
 
+testedesegurança/
+
+# App Mobile (repositório separado)
+mobile/
+
 # Arquivos de banco de dados (SENSÍVEL - não subir!)
 database/
 

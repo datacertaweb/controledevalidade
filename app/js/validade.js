@@ -1200,7 +1200,7 @@ window.imprimirSelecionadosDeposito = function () {
                     width: 19cm;
                     height: 26cm;
                     border: 1px solid #000;
-                    margin: auto;
+                    margin: 6mm auto 0;
                     border-radius: 5px;
                     user-select: none;
                     display: flex;
@@ -1297,6 +1297,9 @@ window.imprimirSelecionadosDeposito = function () {
             dataValidade = validadeDate.toLocaleDateString('pt-BR');
         }
         const dataColeta = item.data_coleta ? new Date(item.data_coleta).toLocaleDateString('pt-BR') : '-';
+        const codigoPrincipal = item.codigo_produto ? String(item.codigo_produto) : '';
+        const codigoEan = item.ean ? String(item.ean) : (item.codigo_ean ? String(item.codigo_ean) : '');
+        const codigosProduto = [codigoPrincipal, codigoEan].filter(Boolean).join(' | ');
 
         etiquetasHtml += `
             <div class="container">
@@ -1306,8 +1309,8 @@ window.imprimirSelecionadosDeposito = function () {
                 <div class="label">DESCRIÇÃO DO PRODUTO:</div>
                 <div class="description">${item.descricao_produto || '-'}</div>
 
-                <div class="label">CÓDIGO DO PRODUTO:</div>
-                <div class="product-code">${item.codigo_produto || '-'}</div>
+                <div class="label">CÓDIGOS DO PRODUTO:</div>
+                <div class="product-code">${codigosProduto || '-'}</div>
 
                 <div class="grid-labels">
                     <div>DATA DE VENCIMENTO:</div>
