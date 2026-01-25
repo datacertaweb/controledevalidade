@@ -191,6 +191,22 @@ window.auth = {
 
         if (error) throw error;
         return data;
+    },
+
+    async resetPassword(email) {
+        const { data, error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/app/reset-senha.html`
+        });
+        if (error) throw error;
+        return data;
+    },
+
+    async updatePassword(newPassword) {
+        const { data, error } = await window.supabaseClient.auth.updateUser({
+            password: newPassword
+        });
+        if (error) throw error;
+        return data;
     }
 };
 

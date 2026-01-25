@@ -39,6 +39,12 @@
                     <input type="password" id="password" required placeholder="••••••••">
                 </div>
 
+                <div class="form-group" style="text-align: right; margin-top: -8px;">
+                    <button type="button" id="btnForgotPassword" style="background: none; border: none; color: var(--accent-primary); font-size: 0.85rem; cursor: pointer; padding: 0;">
+                        Esqueceu a senha?
+                    </button>
+                </div>
+
                 <div id="errorMessage" class="error-message hidden"></div>
 
                 <button type="submit" class="btn btn-primary btn-block" id="btnLogin">
@@ -64,6 +70,7 @@
         const form = document.getElementById('loginForm');
         const btnLogin = document.getElementById('btnLogin');
         const errorMessage = document.getElementById('errorMessage');
+        const btnForgotPassword = document.getElementById('btnForgotPassword');
 
         function showError(msg) {
             errorMessage.textContent = msg;
@@ -90,6 +97,53 @@
                 console.error('Erro ao verificar usuário:', e);
             }
         });
+
+        if (btnForgotPassword) {
+            btnForgotPassword.addEventListener('click', async () => {
+                if (!window.supabaseClient) {
+                    showError('Aguarde, carregando...');
+                    return;
+                }
+
+                let loginInput = document.getElementById('email').value.trim();
+
+                if (!loginInput) {
+                    showError('Digite seu email ou usuário para recuperar a senha.');
+                    return;
+                }
+
+                try {
+                    let emailToUse = loginInput;
+                    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginInput);
+
+                    if (!isEmail) {
+                        const { data, error } = await window.supabaseClient.rpc('get_email_by_username', { uname: loginInput });
+
+                        if (error) {
+                            console.error('Erro RPC:', error);
+                            throw new Error('Erro ao validar usuário.');
+                        }
+
+                        if (!data) {
+                            throw new Error('Usuário não encontrado.');
+                        }
+
+                        emailToUse = data;
+                    }
+
+                    await auth.resetPassword(emailToUse);
+
+                    if (window.globalUI) {
+                        window.globalUI.showAlert('Verifique seu email', 'Enviamos um link para redefinir sua senha.', 'success');
+                    } else {
+                        alert('Se o email existir, você receberá um link para redefinir a senha.');
+                    }
+                } catch (err) {
+                    console.error('Erro ao enviar email de recuperação:', err);
+                    showError(err.message || 'Erro ao enviar email de recuperação.');
+                }
+            });
+        }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();

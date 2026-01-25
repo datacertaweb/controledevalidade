@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCerta - Redefinir Senha</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </div>
+                    <span class="logo-text">Data<span>Certa</span></span>
+                </div>
+                <p class="login-subtitle">Definir uma nova senha</p>
+            </div>
+
+            <form id="resetForm" class="login-form">
+                <div class="form-group">
+                    <label for="newPassword">Nova Senha</label>
+                    <input type="password" id="newPassword" required placeholder="Mínimo 6 caracteres">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar Senha</label>
+                    <input type="password" id="confirmPassword" required placeholder="Repita a nova senha">
+                </div>
+
+                <div id="errorMessage" class="error-message hidden"></div>
+                <div id="successMessage" class="error-message hidden" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #10B981;"></div>
+
+                <button type="submit" class="btn btn-primary btn-block" id="btnReset">
+                    <span class="btn-text">Salvar nova senha</span>
+                    <span class="btn-loading hidden">
+                        <svg class="spinner" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+                                stroke-dasharray="30 70" />
+                        </svg>
+                    </span>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>Após salvar, você poderá acessar o sistema com a nova senha.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script>
+        const form = document.getElementById('resetForm');
+        const btnReset = document.getElementById('btnReset');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.remove('hidden');
+            successMessage.classList.add('hidden');
+            btnReset.disabled = false;
+            btnReset.querySelector('.btn-text').classList.remove('hidden');
+            btnReset.querySelector('.btn-loading').classList.add('hidden');
+        }
+
+        function showSuccess(msg) {
+            successMessage.textContent = msg;
+            successMessage.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+        }
+
+        window.addEventListener('supabaseReady', async () => {
+            try {
+                const { data, error } = await window.supabaseClient.auth.getSession();
+                if (error) {
+                    showError('Erro ao validar a sessão. Tente usar o link novamente.');
+                    return;
+                }
+                if (!data || !data.session) {
+                    showError('Link de recuperação inválido ou expirado. Solicite um novo link.');
+                }
+            } catch (e) {
+                showError('Erro ao validar o link de recuperação.');
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!window.supabaseClient) {
+                showError('Aguarde, carregando...');
+                return;
+            }
+
+            const password = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            if (!password || password.length < 6) {
+                showError('A nova senha deve ter pelo menos 6 caracteres.');
+                return;
+            }
+
+            if (password !== confirm) {
+                showError('As senhas não conferem.');
+                return;
+            }
+
+            btnReset.disabled = true;
+            btnReset.querySelector('.btn-text').classList.add('hidden');
+            btnReset.querySelector('.btn-loading').classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+
+            try {
+                await auth.updatePassword(password);
+                showSuccess('Senha alterada com sucesso. Redirecionando para o login...');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+            } catch (err) {
+                console.error('Erro ao alterar senha:', err);
+                showError(err.message || 'Erro ao alterar senha.');
+            }
+        });
+    </script>
+</body>
+
+</html>
+
