@@ -1182,68 +1182,144 @@ window.imprimirSelecionadosDeposito = function () {
 
     const itensSelecionados = depositoData.filter(d => selectedDepositos.includes(d.id));
 
-    // Gerar HTML das etiquetas
     let etiquetasHtml = `
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="UTF-8">
             <title>Etiquetas de Depósito</title>
+            <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
             <style>
                 @page { size: A4; margin: 0; }
-                body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
-                .etiqueta {
+                body {
+                    background-color: white;
+                    margin: 0;
+                    padding: 0;
+                }
+                .container {
                     width: 19cm;
                     height: 26cm;
                     border: 1px solid #000;
                     margin: auto;
-                    page-break-after: always;
+                    border-radius: 5px;
+                    user-select: none;
                     display: flex;
                     flex-direction: column;
-                    box-sizing: border-box;
                 }
-                .etiqueta:last-child { page-break-after: auto; }
-                .label { font-size: 14px; padding: 8px; font-weight: bold; background: #f0f0f0; }
-                .value { font-size: 28px; padding: 12px; text-align: center; font-weight: bold; border-bottom: 1px solid #000; }
-                .value-big { font-size: 180px; font-weight: 800; text-align: center; flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-                .mes { font-size: 200px; line-height: 1; }
-                .ano { font-size: 150px; line-height: 1; }
-                .grid { display: flex; border-bottom: 1px solid #000; }
-                .grid-item { flex: 1; padding: 10px; text-align: center; }
-                .grid-item:first-child { border-right: 1px solid #000; }
-                .grid-item .label { font-size: 12px; background: none; padding: 4px; }
-                .grid-item .val { font-size: 24px; font-weight: bold; }
+                .container:not(:last-of-type) { page-break-after: always; }
+                .label {
+                    font-size: 15px;
+                    color: black;
+                    padding: 5px;
+                    font-family: 'Comfortaa', sans-serif;
+                    font-weight: bold;
+                }
+                .operator {
+                    border-bottom: 1px solid;
+                    text-align: center;
+                    font-weight: 800;
+                    font-size: 25px;
+                    padding: 0.25rem 0.5rem;
+                    user-select: text;
+                    font-family: Verdana, Geneva, Tahoma, sans-serif;
+                    align-items: center;
+                }
+                .description {
+                    font-weight: 800;
+                    font-size: 40px;
+                    padding: 10px;
+                    border-bottom: 1px solid black;
+                    line-height: 1.25;
+                    text-align: center;
+                    font-family: Verdana, Geneva, Tahoma, sans-serif;
+                }
+                .product-code {
+                    font-weight: 800;
+                    font-size: 40px;
+                    text-align: center;
+                    border-bottom: 1px solid black;
+                    padding: 0.25rem 0.5rem;
+                    user-select: text;
+                    font-family: Verdana, Geneva, Tahoma, sans-serif;
+                }
+                .grid-labels {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    font-size: 13px;
+                    color: #000000;
+                    font-family: 'Comfortaa', sans-serif;
+                    font-weight: bold;
+                }
+                .grid-labels div { padding: 15px; }
+                .grid-labels div:first-child { border-right: 1px solid black; }
+                .grid-values {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    text-align: center;
+                    font-family: monospace;
+                    font-weight: 800;
+                    font-size: 1.5rem;
+                    border-right: none;
+                    border-top: none;
+                    border-bottom: 1px solid black;
+                }
+                .grid-values div {
+                    padding: 10px;
+                    user-select: text;
+                    font-family: Arial, Helvetica, sans-serif;
+                    font-size: 32px;
+                }
+                .grid-values div:first-child { border-right: 1px solid black; }
+                .big-date {
+                    text-align: center;
+                    font-family: Arial;
+                    font-weight: 600;
+                    line-height: 1;
+                    user-select: text;
+                    margin-bottom: 0;
+                }
+                .mes, .ano { font-family: Arial, Helvetica, sans-serif; }
+                .mes { font-size: 250px; }
+                .ano { font-size: 250px; }
             </style>
         </head>
         <body>
     `;
 
     itensSelecionados.forEach(item => {
-        const validade = new Date(item.data_vencimento);
-        const mes = String(validade.getMonth() + 1).padStart(2, '0');
-        const ano = validade.getFullYear();
-        const dataColeta = new Date(item.data_coleta).toLocaleDateString('pt-BR');
-        const dataValidade = validade.toLocaleDateString('pt-BR');
+        const validadeDate = new Date(item.data_vencimento);
+        let mes = '--';
+        let ano = '----';
+        let dataValidade = '-';
+        if (!isNaN(validadeDate)) {
+            mes = String(validadeDate.getMonth() + 1).padStart(2, '0');
+            ano = validadeDate.getFullYear();
+            dataValidade = validadeDate.toLocaleDateString('pt-BR');
+        }
+        const dataColeta = item.data_coleta ? new Date(item.data_coleta).toLocaleDateString('pt-BR') : '-';
 
         etiquetasHtml += `
-            <div class="etiqueta">
+            <div class="container">
                 <div class="label">OPERADOR:</div>
-                <div class="value">${item.usuario_nome || '-'}</div>
+                <div class="operator">${item.usuario_nome || '-'}</div>
+
                 <div class="label">DESCRIÇÃO DO PRODUTO:</div>
-                <div class="value">${item.descricao_produto || '-'}</div>
+                <div class="description">${item.descricao_produto || '-'}</div>
+
                 <div class="label">CÓDIGO DO PRODUTO:</div>
-                <div class="value">${item.codigo_produto}</div>
-                <div class="grid">
-                    <div class="grid-item">
-                        <div class="label">DATA DE VENCIMENTO:</div>
-                        <div class="val">${dataValidade}</div>
-                    </div>
-                    <div class="grid-item">
-                        <div class="label">DATA DA COLETA:</div>
-                        <div class="val">${dataColeta}</div>
-                    </div>
+                <div class="product-code">${item.codigo_produto || '-'}</div>
+
+                <div class="grid-labels">
+                    <div>DATA DE VENCIMENTO:</div>
+                    <div>DATA DA COLETA:</div>
                 </div>
-                <div class="value-big">
+
+                <div class="grid-values">
+                    <div>${dataValidade}</div>
+                    <div>${dataColeta}</div>
+                </div>
+
+                <div class="big-date">
                     <div class="mes">${mes}</div>
                     <div class="ano">${ano}</div>
                 </div>
@@ -1253,7 +1329,6 @@ window.imprimirSelecionadosDeposito = function () {
 
     etiquetasHtml += '</body></html>';
 
-    // Abrir em nova janela para impressão
     const printWindow = window.open('', '_blank');
     printWindow.document.write(etiquetasHtml);
     printWindow.document.close();
