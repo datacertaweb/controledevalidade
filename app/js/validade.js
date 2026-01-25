@@ -1177,10 +1177,42 @@ window.salvarEdicaoDeposito = async function (e) {
 };
 
 // Imprimir etiquetas selecionadas
-window.imprimirSelecionadosDeposito = function () {
+window.imprimirSelecionadosDeposito = async function () {
     if (selectedDepositos.length === 0) return;
 
     const itensSelecionados = depositoData.filter(d => selectedDepositos.includes(d.id));
+
+    const itensComCodigos = await Promise.all(itensSelecionados.map(async (item) => {
+        const codigoInformado = item.codigo_produto ? String(item.codigo_produto) : '';
+        let codigoBase = '';
+        let eanBase = '';
+        if (codigoInformado) {
+            const { data: eanMatch } = await supabaseClient
+                .from('base')
+                .select('codigo, ean')
+                .eq('empresa_id', userData.empresa_id)
+                .eq('ean', codigoInformado)
+                .maybeSingle();
+            if (eanMatch) {
+                codigoBase = eanMatch.codigo || '';
+                eanBase = eanMatch.ean || '';
+            } else {
+                const { data: codeMatch } = await supabaseClient
+                    .from('base')
+                    .select('codigo, ean')
+                    .eq('empresa_id', userData.empresa_id)
+                    .eq('codigo', codigoInformado)
+                    .maybeSingle();
+                if (codeMatch) {
+                    codigoBase = codeMatch.codigo || '';
+                    eanBase = codeMatch.ean || '';
+                } else {
+                    codigoBase = codigoInformado;
+                }
+            }
+        }
+        return { ...item, codigo_base: codigoBase, ean_base: eanBase };
+    }));
 
     let etiquetasHtml = `
         <!DOCTYPE html>
@@ -1286,7 +1318,7 @@ window.imprimirSelecionadosDeposito = function () {
         <body>
     `;
 
-    itensSelecionados.forEach(item => {
+    itensComCodigos.forEach(item => {
         const validadeDate = new Date(item.data_vencimento);
         let mes = '--';
         let ano = '----';
@@ -1297,9 +1329,7 @@ window.imprimirSelecionadosDeposito = function () {
             dataValidade = validadeDate.toLocaleDateString('pt-BR');
         }
         const dataColeta = item.data_coleta ? new Date(item.data_coleta).toLocaleDateString('pt-BR') : '-';
-        const codigoPrincipal = item.codigo_produto ? String(item.codigo_produto) : '';
-        const codigoEan = item.ean ? String(item.ean) : (item.codigo_ean ? String(item.codigo_ean) : '');
-        const codigosProduto = [codigoPrincipal, codigoEan].filter(Boolean).join(' | ');
+        const codigosProduto = [item.codigo_base, item.ean_base].filter(Boolean).join(' | ');
 
         etiquetasHtml += `
             <div class="container">
