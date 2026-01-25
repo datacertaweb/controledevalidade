@@ -4,14 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataCerta - Locais</title>
+    <title>DataCerta - Perdas</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/validade.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">
@@ -53,7 +52,7 @@
                     </svg></span>
                 <span class="nav-text">Validades</span>
             </a>
-            <a href="perdas.html" class="nav-item">
+            <a href="perdas.html" class="nav-item active">
                 <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 6h18" />
                         <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
@@ -84,7 +83,7 @@
                     </svg></span>
                 <span class="nav-text">Lojas</span>
             </a>
-            <a href="locais.html" class="nav-item active">
+            <a href="locais.html" class="nav-item">
                 <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
@@ -113,10 +112,8 @@
         </div>
     </aside>
 
-    <!-- Sidebar Overlay for Mobile -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Main Content -->
     <main class="main-content">
         <header class="page-header">
             <div class="header-left">
@@ -128,84 +125,117 @@
                     </svg>
                 </button>
                 <div class="page-title">
-                    <h1>Locais</h1>
-                    <p class="page-subtitle">Setores de armazenamento (Mercearia, Frios, etc.)</p>
+                    <h1>Perdas</h1>
+                    <p class="page-subtitle">Visualize as perdas registradas</p>
                 </div>
-            </div>
-            <div class="header-actions">
-                <select class="filter-input" id="lojaFilter" style="min-width: 200px;">
-                    <option value="">Selecione a loja</option>
-                </select>
-                <button class="btn btn-primary" id="btnNovoLocal" disabled>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    Novo Local
-                </button>
             </div>
         </header>
 
-        <!-- Lista de Locais -->
-        <section class="table-section">
-            <div class="table-wrapper">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Ordem</th>
-                            <th>Nome</th>
-                            <th>Descrição</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="locaisTable">
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                                Selecione uma loja para ver os locais</td>
-                        </tr>
-                    </tbody>
-                </table>
+        <section class="filter-section"
+            style="background: var(--bg-card); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border-secondary);">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; align-items: end;">
+                <div class="filter-group">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Loja</label>
+                    <div id="dropdownLoja" class="multiselect-dropdown"></div>
+                </div>
+                <div class="filter-group">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Local</label>
+                    <div id="dropdownLocal" class="multiselect-dropdown"></div>
+                </div>
+                <div class="filter-group">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Motivo</label>
+                    <div id="dropdownMotivo" class="multiselect-dropdown"></div>
+                </div>
+                <div class="filter-group">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Período
+                        De</label>
+                    <input type="date" class="filter-input" id="filterDataInicio"
+                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-secondary); background: var(--bg-primary); font-size: 14px;">
+                </div>
+                <div class="filter-group">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Até</label>
+                    <input type="date" class="filter-input" id="filterDataFim"
+                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-secondary); background: var(--bg-primary); font-size: 14px;">
+                </div>
+                <div class="filter-group">
+                    <label
+                        style="display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Buscar</label>
+                    <input type="text" class="filter-input" id="filterSearch" placeholder="Produto ou código..."
+                        style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-secondary); background: var(--bg-primary); font-size: 14px;">
+                </div>
+                <button class="btn btn-outline" id="btnLimparFiltros"
+                    style="padding: 10px 20px; border-radius: 8px; font-weight: 500;">
+                    Limpar
+                </button>
             </div>
         </section>
-    </main>
 
-    <!-- Modal Novo Local -->
-    <div class="modal-overlay" id="modalLocal">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="modalTitle">Novo Local</h2>
-                <button class="modal-close" id="modalClose">&times;</button>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Loja</th>
+                        <th>Local</th>
+                        <th>Qtd</th>
+                        <th>Valor (R$)</th>
+                        <th>Motivo</th>
+                        <th>Data</th>
+                        <th>Observação</th>
+                    </tr>
+                </thead>
+                <tbody id="perdasTable">
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px;">Carregando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination"
+            style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--border-secondary);">
+            <div class="pagination-info" style="color: var(--text-secondary); font-size: 14px;">
+                Mostrando <strong id="paginationInfo">1-25 de 0</strong> itens
             </div>
-            <div class="modal-body">
-                <form id="formLocal">
-                    <input type="hidden" id="localId">
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 0 0 80px;">
-                            <label for="localOrdem">Ordem</label>
-                            <input type="number" id="localOrdem" value="0" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="localNome">Nome *</label>
-                            <input type="text" id="localNome" required placeholder="Ex: Mercearia, Frios, Padaria">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="localDescricao">Descrição</label>
-                        <textarea id="localDescricao" rows="2" placeholder="Descrição opcional"></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-outline" id="btnCancelModal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Salvar</button>
-                    </div>
-                </form>
+            <div class="pagination-controls" style="display: flex; gap: 8px; align-items: center;">
+                <div class="items-per-page"
+                    style="margin-right: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 13px; color: var(--text-muted);">Itens por página:</span>
+                    <select id="itemsPerPage"
+                        style="padding: 6px; border-radius: 6px; border: 1px solid var(--border-secondary); background: var(--bg-primary); font-size: 13px;">
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="75">75</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+                <button class="pagination-btn" id="btnPrevPage" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                        height="16">
+                        <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                </button>
+                <span id="pageNumberDisplay"
+                    style="font-size: 14px; font-weight: 500; min-width: 60px; text-align: center;">Página 1</span>
+                <button class="pagination-btn" id="btnNextPage" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                        height="16">
+                        <polyline points="9 18 15 12 9 6" />
+                    </svg>
             </div>
         </div>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
-    <script src="js/locais.js"></script>
+    <script src="js/perdas.js"></script>
 </body>
 
 </html>

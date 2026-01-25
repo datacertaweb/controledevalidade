@@ -749,9 +749,10 @@ async function adicionarItemPerda() {
     const codigo = document.getElementById('codigoPerda').value.trim();
     const validadeId = document.getElementById('validadePerda').value;
     const qtd = document.getElementById('quantidadePerda').value;
+    const motivo = document.getElementById('motivoPerda').value;
 
-    if (!codigo || !validadeId || !qtd) {
-        window.globalUI.showAlert('Campos Obrigatórios', 'Preencha Código, Validade e Quantidade.', 'warning');
+    if (!codigo || !validadeId || !qtd || !motivo) {
+        window.globalUI.showAlert('Campos Obrigatórios', 'Preencha Código, Validade, Quantidade e Motivo.', 'warning');
         return;
     }
 
@@ -783,6 +784,7 @@ async function adicionarItemPerda() {
         quantidade: qtdNum,
         validade: itemColetado.validade,
         qtdDisponivel: itemColetado.quantidade,
+        motivo: motivo,
         checked: false
     };
 
@@ -799,6 +801,7 @@ function limparFormularioPerda() {
     document.getElementById('validadePerda').innerHTML = '<option value="">Busque o produto primeiro...</option>';
     document.getElementById('descricaoPerda').value = '';
     document.getElementById('descricaoPerda').placeholder = 'Aguardando código...';
+    document.getElementById('motivoPerda').value = '';
 
     selectedProdutoIdPerda = null;
     selectedProdutoDescricaoPerda = null;
@@ -839,6 +842,7 @@ function renderizarListaPerda() {
                 <div class="item-meta">
                     <span>${item.codigo}</span>
                     <span>Val: ${formatarData(item.validade)}</span>
+                    <span>Motivo: ${item.motivo}</span>
                 </div>
             </div>
             <div class="item-qty" style="color: #DC2626;">${item.quantidade} un</div>
@@ -897,7 +901,7 @@ async function enviarTodosPerda() {
                 local_id: coletado.local_id,
                 quantidade: item.quantidade,
                 valor_perda: valorPerda,
-                motivo: 'vencido', // Valor válido do enum motivo_perda
+                motivo: item.motivo,
                 observacao: 'Registrado via App Coleta',
                 registrado_por: userData.id
             });
