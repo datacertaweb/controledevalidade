@@ -90,20 +90,30 @@ async function loadLojas() {
 let allLocais = [];
 
 async function loadAllLocais() {
-    const lojasIds = lojas.map(l => l.id);
-    if (lojasIds.length === 0) {
+    // Buscar locais vinculados às categorias da empresa
+    const { data } = await supabaseClient
+        .from('local_categorias')
+        .select('local_id, categoria, locais(id, nome, loja_id)')
+        .eq('empresa_id', userData.empresa_id);
+
+    if (!data || data.length === 0) {
         allLocais = [];
+        renderMultiSelect('dropdownLocal', [], selectedLocais, (selected) => {
+            selectedLocais = selected;
+            currentPage = 1;
+            filterAndRender();
+        });
         return;
     }
 
-    const { data } = await supabaseClient
-        .from('locais')
-        .select('*')
-        .in('loja_id', lojasIds)
-        .eq('ativo', true)
-        .order('nome');
-
-    allLocais = data || [];
+    // Extrair locais únicos (podem ter múltiplas entradas por categoria)
+    const locaisMap = new Map();
+    data.forEach(item => {
+        if (item.locais && item.locais.id) {
+            locaisMap.set(item.locais.id, item.locais);
+        }
+    });
+    allLocais = Array.from(locaisMap.values());
 
     const uniqueLocais = [...new Set(allLocais.map(l => l.nome))].sort();
     const localOptions = uniqueLocais.map(nome => ({ value: nome, label: nome }));
