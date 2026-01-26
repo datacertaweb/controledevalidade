@@ -88,6 +88,7 @@ async function loadLojas() {
 }
 
 let allLocais = [];
+let localCategoriasMap = {}; // Mapeamento: nome do local -> array de categorias
 
 async function loadAllLocais() {
     // Buscar locais vinculados às categorias da empresa
@@ -98,6 +99,7 @@ async function loadAllLocais() {
 
     if (!data || data.length === 0) {
         allLocais = [];
+        localCategoriasMap = {};
         renderMultiSelect('dropdownLocal', [], selectedLocais, (selected) => {
             selectedLocais = selected;
             currentPage = 1;
@@ -106,11 +108,22 @@ async function loadAllLocais() {
         return;
     }
 
-    // Extrair locais únicos (podem ter múltiplas entradas por categoria)
+    // Extrair locais únicos e criar mapeamento local -> categorias
     const locaisMap = new Map();
+    localCategoriasMap = {};
+
     data.forEach(item => {
         if (item.locais && item.locais.id) {
             locaisMap.set(item.locais.id, item.locais);
+
+            // Adicionar categoria ao mapeamento
+            const localNome = item.locais.nome;
+            if (!localCategoriasMap[localNome]) {
+                localCategoriasMap[localNome] = [];
+            }
+            if (item.categoria && !localCategoriasMap[localNome].includes(item.categoria)) {
+                localCategoriasMap[localNome].push(item.categoria);
+            }
         }
     });
     allLocais = Array.from(locaisMap.values());
@@ -164,10 +177,23 @@ function filterAndRender() {
         filtered = filtered.filter(p => selectedLojas.includes(p.loja_id));
     }
 
+    // Filtro de Locais - filtra perdas pelas CATEGORIAS vinculadas aos locais selecionados
     if (selectedLocais.length > 0) {
+        // Coletar todas as categorias dos locais selecionados
+        const categoriasDoLocal = [];
+        selectedLocais.forEach(localNome => {
+            const categorias = localCategoriasMap[localNome] || [];
+            categorias.forEach(cat => {
+                if (!categoriasDoLocal.includes(cat)) {
+                    categoriasDoLocal.push(cat);
+                }
+            });
+        });
+
+        // Filtrar perdas que possuem a categoria vinculada aos locais selecionados
         filtered = filtered.filter(p => {
-            const localNome = p.locais?.nome || '';
-            return selectedLocais.includes(localNome);
+            const produtoCategoria = p.base?.categoria || '';
+            return categoriasDoLocal.includes(produtoCategoria);
         });
     }
 

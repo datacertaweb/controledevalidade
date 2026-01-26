@@ -479,43 +479,10 @@ async function enviarTodos() {
         // ATENÇÃO: Para perdas, a lógica é a mesma.
 
         for (const item of listaItens) {
-            // Buscar ou criar local_id
+            // Não criar local automaticamente - local_id fica null
+            // Os locais devem ser criados manualmente na página de Locais
+            // e vinculados às categorias via local_categorias
             let localId = null;
-            if (item.categoria) { // Alterado de setor para categoria
-                let query = supabaseClient
-                    .from('locais')
-                    .select('id')
-                    .ilike('nome', item.categoria)
-                    .maybeSingle();
-
-                if (currentLojaId) {
-                    query = query.eq('loja_id', currentLojaId);
-                } else {
-                    // Se não tem loja (unidade única), busca locais da empresa
-                    query = query.eq('empresa_id', userData.empresa_id).is('loja_id', null);
-                }
-
-                const { data: localData } = await query;
-
-                if (localData) {
-                    localId = localData.id;
-                } else {
-                    // Criar local
-                    const novoLocalObj = {
-                        nome: item.categoria,
-                        descricao: 'Criado via App Coleta (Categoria)',
-                        empresa_id: userData.empresa_id,
-                        loja_id: currentLojaId // Pode ser null
-                    };
-
-                    const { data: novoLocal } = await supabaseClient
-                        .from('locais')
-                        .insert(novoLocalObj)
-                        .select()
-                        .single();
-                    if (novoLocal) localId = novoLocal.id;
-                }
-            }
 
             registros.push({
                 produto_id: item.produto_id,
