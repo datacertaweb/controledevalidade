@@ -209,7 +209,7 @@ function renderPerdas(lista) {
             <tr>
                 <td><strong>${item.base?.descricao || '-'}</strong></td>
                 <td>${item.lojas?.nome || '-'}</td>
-                <td>${item.locais?.nome || '-'}</td>
+                <td>${item.base?.categoria || '-'}</td>
                 <td>${item.quantidade || 0}</td>
                 <td>R$ ${parseFloat(item.valor_perda || 0).toFixed(2)}</td>
                 <td>${item.motivo || '-'}</td>

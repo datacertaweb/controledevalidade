@@ -469,7 +469,7 @@ function renderEstoque(lista, hoje) {
                     ${item.lote ? `<br><small style="color: var(--text-muted);">Lote: ${item.lote}</small>` : ''}
                 </td>
                 <td>${item.lojas?.nome || empresaNome || '-'}</td>
-                <td>${item.locais?.nome || '-'}</td>
+                <td>${item.base?.categoria || '-'}</td>
                 <td>${item.quantidade}</td>
                 <td>${val.toLocaleDateString('pt-BR')}</td>
                 <td>
