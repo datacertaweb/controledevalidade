@@ -154,7 +154,7 @@
                         <tr>
                             <th>Ordem</th>
                             <th>Nome</th>
-                            <th>Descrição</th>
+                            <th>Categorias</th>
                             <th>Status</th>
                             <th>Ações</th>
                         </tr>
@@ -191,8 +191,10 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="localDescricao">Descrição</label>
-                        <textarea id="localDescricao" rows="2" placeholder="Descrição opcional"></textarea>
+                        <label>Categorias</label>
+                        <div class="multiselect-dropdown" id="dropdownCategorias" style="min-height: 42px;"></div>
+                        <small style="color: var(--text-muted); font-size: 11px;">Selecione as categorias de produtos
+                            que pertencem a este local</small>
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-outline" id="btnCancelModal">Cancelar</button>

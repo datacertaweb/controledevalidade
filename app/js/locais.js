@@ -8,6 +8,10 @@ let locais = [];
 let selectedLoja = null;
 let isEmpresaSemLoja = false; // Flag para empresas de unidade única
 
+// Categorias
+let allCategorias = []; // Todas as categorias únicas da base
+let selectedCategorias = []; // Categorias selecionadas no modal
+
 window.addEventListener('supabaseReady', initLocais);
 setTimeout(() => { if (window.supabaseClient) initLocais(); }, 500);
 
@@ -77,16 +81,22 @@ async function loadLojas() {
 }
 
 async function loadLocais() {
+    // Carregar categorias únicas da base de produtos
+    await loadAllCategorias();
+
     // Para empresas sem loja, busca locais diretamente pela empresa
     if (isEmpresaSemLoja) {
         const { data } = await supabaseClient
             .from('locais')
-            .select('*')
+            .select('*, local_categorias(categoria)')
             .eq('empresa_id', userData.empresa_id)
             .is('loja_id', null)
             .order('ordem');
 
-        locais = data || [];
+        locais = (data || []).map(l => ({
+            ...l,
+            categorias: (l.local_categorias || []).map(lc => lc.categoria)
+        }));
         renderLocais();
         return;
     }
@@ -100,12 +110,35 @@ async function loadLocais() {
 
     const { data } = await supabaseClient
         .from('locais')
-        .select('*')
+        .select('*, local_categorias(categoria)')
         .eq('loja_id', selectedLoja)
         .order('ordem');
 
-    locais = data || [];
+    locais = (data || []).map(l => ({
+        ...l,
+        categorias: (l.local_categorias || []).map(lc => lc.categoria)
+    }));
     renderLocais();
+}
+
+// Carregar todas as categorias únicas da base de produtos
+async function loadAllCategorias() {
+    const { data, error } = await supabaseClient
+        .from('base')
+        .select('categoria')
+        .eq('empresa_id', userData.empresa_id)
+        .eq('ativo', true)
+        .not('categoria', 'is', null);
+
+    if (error) {
+        console.error('Erro ao carregar categorias:', error);
+        allCategorias = [];
+        return;
+    }
+
+    // Extrair categorias únicas e ordenar
+    const uniqueCategorias = [...new Set(data.map(p => p.categoria).filter(Boolean))];
+    allCategorias = uniqueCategorias.sort();
 }
 
 function renderLocais() {
@@ -135,7 +168,7 @@ function renderLocais() {
         <tr>
             <td style="width: 60px; text-align: center;">${local.ordem}</td>
             <td><strong>${local.nome}</strong></td>
-            <td>${local.descricao || '-'}</td>
+            <td>${renderCategoriaBadges(local.categorias)}</td>
             <td>
                 <span class="validity-badge ${local.ativo ? 'ok' : 'expired'}">
                     ${local.ativo ? 'Ativo' : 'Inativo'}
@@ -219,6 +252,9 @@ function initEvents() {
         document.getElementById('formLocal').reset();
         document.getElementById('localId').value = '';
         document.getElementById('localOrdem').value = locais.length;
+        // Renderizar multiselect de categorias (vazio)
+        selectedCategorias = [];
+        renderCategoriasMultiSelect();
         modal.classList.add('active');
     });
 
@@ -250,24 +286,55 @@ async function saveLocal(e) {
         loja_id: isEmpresaSemLoja ? null : selectedLoja,
         empresa_id: userData.empresa_id,
         nome: document.getElementById('localNome').value,
-        descricao: document.getElementById('localDescricao').value || null,
         ordem: parseInt(document.getElementById('localOrdem').value) || 0
     };
 
     try {
+        let localId = id;
+
         if (id) {
+            // Update existing local
             const { error } = await supabaseClient.from('locais').update(data).eq('id', id);
             if (error) throw error;
         } else {
-            const { error } = await supabaseClient.from('locais').insert(data);
+            // Insert new local
+            const { data: inserted, error } = await supabaseClient.from('locais').insert(data).select('id').single();
             if (error) throw error;
+            localId = inserted.id;
         }
+
+        // Salvar categorias vinculadas
+        await saveLocalCategorias(localId);
 
         document.getElementById('modalLocal').classList.remove('active');
         await loadLocais();
+        window.globalUI.showToast('success', 'Local salvo com sucesso!');
     } catch (error) {
         console.error('Erro:', error);
         window.globalUI.showToast('error', 'Erro ao salvar: ' + error.message);
+    }
+}
+
+// Salvar categorias vinculadas ao local
+async function saveLocalCategorias(localId) {
+    // Primeiro, remover categorias antigas
+    await supabaseClient
+        .from('local_categorias')
+        .delete()
+        .eq('local_id', localId);
+
+    // Inserir novas categorias
+    if (selectedCategorias.length > 0) {
+        const records = selectedCategorias.map(cat => ({
+            local_id: localId,
+            categoria: cat,
+            empresa_id: userData.empresa_id
+        }));
+
+        const { error } = await supabaseClient.from('local_categorias').insert(records);
+        if (error) {
+            console.error('Erro ao salvar categorias:', error);
+        }
     }
 }
 
@@ -278,8 +345,11 @@ window.editLocal = async function (id) {
     document.getElementById('modalTitle').textContent = 'Editar Local';
     document.getElementById('localId').value = local.id;
     document.getElementById('localNome').value = local.nome;
-    document.getElementById('localDescricao').value = local.descricao || '';
     document.getElementById('localOrdem').value = local.ordem || 0;
+
+    // Pré-selecionar categorias do local
+    selectedCategorias = local.categorias || [];
+    renderCategoriasMultiSelect();
 
     document.getElementById('modalLocal').classList.add('active');
 };
@@ -303,3 +373,101 @@ window.deleteLocal = async function (id) {
         window.globalUI.showToast('error', 'Erro ao excluir: ' + error.message);
     }
 };
+
+// =============================================
+// FUNÇÕES AUXILIARES PARA CATEGORIAS
+// =============================================
+
+// Renderizar badges de categorias na tabela
+function renderCategoriaBadges(categorias) {
+    if (!categorias || categorias.length === 0) {
+        return '<span style="color: var(--text-muted); font-style: italic;">Nenhuma categoria</span>';
+    }
+
+    // Mostrar até 3 badges + contador se houver mais
+    const maxShow = 3;
+    const badges = categorias.slice(0, maxShow).map(cat =>
+        `<span style="display: inline-block; background: var(--primary-light, #E0F2F1); color: var(--primary, #14B8A6); 
+                padding: 2px 8px; border-radius: 12px; font-size: 11px; margin: 2px;">${cat}</span>`
+    ).join('');
+
+    const extra = categorias.length > maxShow
+        ? `<span style="color: var(--text-muted); font-size: 11px;"> +${categorias.length - maxShow}</span>`
+        : '';
+
+    return badges + extra;
+}
+
+// Renderizar multi-select de categorias no modal
+function renderCategoriasMultiSelect() {
+    const container = document.getElementById('dropdownCategorias');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (allCategorias.length === 0) {
+        container.innerHTML = '<span style="color: var(--text-muted); padding: 10px;">Nenhuma categoria encontrada na base de produtos</span>';
+        return;
+    }
+
+    const count = selectedCategorias.length;
+    const labelText = count === 0 ? 'Selecione as categorias' : `${count} categoria(s) selecionada(s)`;
+
+    const btn = document.createElement('div');
+    btn.className = 'dropdown-btn';
+    btn.innerHTML = `<span>${labelText}</span>`;
+    btn.style.cssText = 'cursor: pointer; padding: 10px 12px; border: 1px solid var(--border-secondary); border-radius: 8px; background: var(--bg-primary);';
+
+    const content = document.createElement('div');
+    content.className = 'dropdown-content';
+    content.style.cssText = 'position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border-secondary); border-radius: 8px; max-height: 200px; overflow-y: auto; z-index: 100; display: none;';
+
+    allCategorias.forEach(cat => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        item.style.cssText = 'padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;';
+        const isSelected = selectedCategorias.includes(cat);
+
+        item.innerHTML = `
+            <input type="checkbox" value="${cat}" ${isSelected ? 'checked' : ''} style="cursor: pointer;">
+            <span style="flex: 1;">${cat}</span>
+        `;
+
+        item.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'INPUT') {
+                const checkbox = item.querySelector('input');
+                checkbox.checked = !checkbox.checked;
+            }
+            const checkbox = item.querySelector('input');
+            const value = checkbox.value;
+
+            if (checkbox.checked) {
+                if (!selectedCategorias.includes(value)) selectedCategorias.push(value);
+            } else {
+                const index = selectedCategorias.indexOf(value);
+                if (index > -1) selectedCategorias.splice(index, 1);
+            }
+
+            const newCount = selectedCategorias.length;
+            btn.querySelector('span').textContent = newCount === 0 ? 'Selecione as categorias' : `${newCount} categoria(s) selecionada(s)`;
+        });
+
+        content.appendChild(item);
+    });
+
+    container.style.position = 'relative';
+    container.appendChild(btn);
+    container.appendChild(content);
+
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        content.style.display = content.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Fechar ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) {
+            content.style.display = 'none';
+        }
+    });
+}

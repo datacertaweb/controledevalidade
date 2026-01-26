@@ -881,6 +881,7 @@ async function startImport() {
     const BATCH_SIZE = 500;
     let imported = 0;
     let errors = 0;
+    let errorDetails = []; // Coletar detalhes dos erros
 
     for (let i = 0; i < validItems.length; i += BATCH_SIZE) {
         const batch = validItems.slice(i, i + BATCH_SIZE);
@@ -900,23 +901,95 @@ async function startImport() {
 
             if (error) throw error;
             imported += batch.length;
-        } catch (err) {
-            console.error('Erro no batch:', err);
-            errors += batch.length;
+        } catch (batchError) {
+            console.warn('Erro no batch, tentando inserir individualmente...', batchError.message);
+
+            // Fallback: tentar inserir cada registro individualmente
+            for (let j = 0; j < records.length; j++) {
+                const record = records[j];
+                const originalItem = batch[j];
+
+                try {
+                    const { error: singleError } = await supabaseClient
+                        .from('base')
+                        .insert(record);
+
+                    if (singleError) {
+                        errors++;
+                        errorDetails.push({
+                            linha: originalItem.lineNumber,
+                            codigo: record.codigo,
+                            descricao: record.descricao?.substring(0, 30),
+                            erro: singleError.message
+                        });
+                    } else {
+                        imported++;
+                    }
+                } catch (singleErr) {
+                    errors++;
+                    errorDetails.push({
+                        linha: originalItem.lineNumber,
+                        codigo: record.codigo,
+                        descricao: record.descricao?.substring(0, 30),
+                        erro: singleErr.message
+                    });
+                }
+            }
         }
 
         // Atualizar progresso
         const progress = Math.round(((i + batch.length) / validItems.length) * 100);
         document.getElementById('importProgress').style.width = progress + '%';
         document.getElementById('importProgressText').textContent =
-            `Importando... ${i + batch.length} de ${validItems.length}`;
+            `Importando... ${i + batch.length} de ${validItems.length} (${imported} ok, ${errors} erros)`;
     }
 
-    // Resultado
-    showImportResult(imported, errors);
+    // Resultado com detalhes
+    showImportResult(imported, errors, errorDetails);
 }
 
-function showImportResult(imported, errors) {
+function showImportResult(imported, errors, errorDetails = []) {
+    let errorSection = '';
+
+    if (errors > 0 && errorDetails.length > 0) {
+        // Agrupar erros por tipo
+        const errorsByType = {};
+        errorDetails.forEach(e => {
+            const tipo = e.erro.includes('duplicate') || e.erro.includes('unique')
+                ? 'Duplicado'
+                : e.erro.includes('null') || e.erro.includes('violates')
+                    ? 'Dado inválido'
+                    : 'Outro';
+            if (!errorsByType[tipo]) errorsByType[tipo] = [];
+            errorsByType[tipo].push(e);
+        });
+
+        errorSection = `
+            <div style="margin-top: 20px; text-align: left; max-height: 200px; overflow-y: auto; 
+                        background: #FEE2E2; border-radius: 8px; padding: 15px;">
+                <h4 style="margin: 0 0 10px 0; color: #B91C1C;">📋 Detalhes dos Erros (${errors})</h4>
+                ${Object.entries(errorsByType).map(([tipo, items]) => `
+                    <div style="margin-bottom: 10px;">
+                        <strong style="color: #DC2626;">${tipo}: ${items.length}</strong>
+                        <ul style="margin: 5px 0; padding-left: 20px; font-size: 12px; color: #7F1D1D;">
+                            ${items.slice(0, 5).map(e => `
+                                <li>Linha ${e.linha}: ${e.codigo || '-'} - ${e.descricao || 'sem desc'}...</li>
+                            `).join('')}
+                            ${items.length > 5 ? `<li>... e mais ${items.length - 5}</li>` : ''}
+                        </ul>
+                    </div>
+                `).join('')}
+            </div>
+            <button class="btn btn-outline btn-sm" id="btnDownloadErrors" 
+                    style="margin-top: 10px;" onclick="downloadErrorReport()">
+                📥 Baixar Relatório de Erros
+            </button>
+        `;
+
+        // Salvar erros globalmente para download
+        window._importErrorDetails = errorDetails;
+    }
+
     const resultHtml = `
         <div style="margin-bottom: 20px;">
             ${imported > 0 ? `
@@ -927,11 +1000,29 @@ function showImportResult(imported, errors) {
                 <p style="color: #EF4444; margin-top: 10px;">${errors} registros com erro</p>
             ` : ''}
         </div>
+        ${errorSection}
     `;
 
     document.getElementById('importResult').innerHTML = resultHtml;
     showImportStep(4);
 }
+
+// Função para download do relatório de erros
+window.downloadErrorReport = function () {
+    const errors = window._importErrorDetails || [];
+    if (errors.length === 0) return;
+
+    let csv = 'LINHA;CODIGO;DESCRICAO;ERRO\n';
+    errors.forEach(e => {
+        csv += `${e.linha};"${e.codigo || ''}";"${e.descricao || ''}";"${e.erro}"\n`;
+    });
+
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `erros_importacao_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+};
 
 function downloadTemplate() {
     const content = `CODIGO;DESCRICAO;EAN;CATEGORIA
