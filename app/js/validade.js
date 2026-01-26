@@ -12,6 +12,7 @@ let estoque = [];
 let selectedLojas = [];
 let selectedLocais = [];
 let selectedStatus = [];
+let selectedCategorias = [];
 let dataInicio = null;
 let dataFim = null;
 let userLojaIds = null; // Lojas do usuário (null = todas)
@@ -110,6 +111,9 @@ async function loadLojas() {
         currentPage = 1;
         filterAndRender();
     });
+
+    // Inicializar Dropdown de Categorias (após carregar produtos)
+    await loadCategorias();
 }
 
 let allLocais = []; // Todos os locais da empresa
@@ -143,6 +147,25 @@ async function loadAllLocais() {
     });
 
     locais = allLocais;
+}
+
+// Carregar categorias únicas dos produtos para o filtro
+async function loadCategorias() {
+    const { data } = await supabaseClient
+        .from('base')
+        .select('categoria')
+        .eq('empresa_id', userData.empresa_id)
+        .eq('ativo', true)
+        .not('categoria', 'is', null);
+
+    const uniqueCategorias = [...new Set((data || []).map(p => p.categoria).filter(Boolean))].sort();
+    const categoriaOptions = uniqueCategorias.map(cat => ({ value: cat, label: cat }));
+
+    renderMultiSelect('dropdownCategoria', categoriaOptions, selectedCategorias, (selected) => {
+        selectedCategorias = selected;
+        currentPage = 1;
+        filterAndRender();
+    });
 }
 
 // Função Genérica para Multi-Select Dropdown
@@ -267,7 +290,7 @@ async function loadEstoque() {
     // Buscar todos os coletados com relações (sem filtro de empresa no Supabase)
     const { data, error } = await supabaseClient
         .from('coletados')
-        .select('*, base(descricao, valor_unitario, codigo, ean, empresa_id), lojas(nome), locais(nome)')
+        .select('*, base(descricao, valor_unitario, codigo, ean, empresa_id, categoria), lojas(nome), locais(nome)')
         .order('validade');
 
     if (error) {
@@ -323,6 +346,14 @@ function filterAndRender() {
         filtered = filtered.filter(e => {
             const localNome = e.locais?.nome || '';
             return selectedLocais.includes(localNome);
+        });
+    }
+
+    // Filtro de Categorias (multi-seleção)
+    if (selectedCategorias.length > 0) {
+        filtered = filtered.filter(e => {
+            const categoria = e.base?.categoria || '';
+            return selectedCategorias.includes(categoria);
         });
     }
 
@@ -565,6 +596,7 @@ function initEvents() {
         // Resetar variáveis
         selectedLojas = [];
         selectedLocais = [];
+        selectedCategorias = [];
         selectedStatus = [];
         dataInicio = null;
         dataFim = null;
@@ -579,8 +611,10 @@ function initEvents() {
         });
 
         // Local (recarregar todos)
-        await loadAllLocais(); // Agora loadAllLocais deve incluir o reset de página no callback se possível, ou garantir que filterAndRender seja chamado.
-        // loadAllLocais chama renderMultiSelect que chama filterAndRender. Vamos atualizar loadAllLocais também.
+        await loadAllLocais();
+
+        // Categorias
+        await loadCategorias();
 
         // Status
         const statusOptions = [
