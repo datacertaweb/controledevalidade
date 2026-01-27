@@ -61,3 +61,5 @@ npm-debug.log*
 # Arquivos compilados
 *.min.js.map
 *.min.css.map
+
+*.JSON

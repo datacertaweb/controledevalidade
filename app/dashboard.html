@@ -783,6 +783,16 @@
                 </div>
             </div>
             <div class="header-actions">
+                <!-- Botão de Notificações -->
+                <button class="btn btn-ghost" id="btnNotifications" onclick="notifications.showNotificationsModal()"
+                    style="position: relative; padding: 8px 12px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    <span class="notification-badge"
+                        style="display: none; position: absolute; top: 2px; right: 2px; background: #EF4444; color: white; font-size: 10px; font-weight: 600; min-width: 16px; height: 16px; border-radius: 50%; align-items: center; justify-content: center;">0</span>
+                </button>
                 <button class="btn btn-outline" onclick="exportarRelatorio()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"
                         style="margin-right: 8px;">
@@ -1121,7 +1131,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/notifications.js"></script>
     <script src="js/dashboard.js"></script>
+    <script>
+        // Inicializar notificações após login
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkAndInitNotifications = () => {
+                if (window.supabaseClient && window.notifications) {
+                    window.notifications.init();
+                } else {
+                    setTimeout(checkAndInitNotifications, 500);
+                }
+            };
+            checkAndInitNotifications();
+        });
+    </script>
 </body>
 
 </html>
