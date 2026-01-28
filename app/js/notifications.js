@@ -137,12 +137,10 @@ const notifications = {
                 </div>
             `;
 
+        // Apenas mostrar botão de marcar todas se houver notificações
         const actions = this.items.length > 0
-            ? [
-                { text: 'Marcar todas como lidas', class: 'btn-cancel', onClick: () => this.handleMarkAllRead() },
-                { text: 'Fechar', class: 'btn-confirm' }
-            ]
-            : [{ text: 'Fechar', class: 'btn-confirm' }];
+            ? [{ text: 'Marcar todas como lidas', class: 'btn-primary', onClick: () => this.handleMarkAllRead() }]
+            : [];
 
         if (window.ui && window.ui.showModal) {
             ui.showModal('Notificações', content, actions);
