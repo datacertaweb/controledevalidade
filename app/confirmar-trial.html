@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCerta - Confirmar Email</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .confirm-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-xl);
+        }
+
+        .confirm-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-2xl);
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: var(--shadow-lg), 0 0 60px rgba(20, 184, 166, 0.1);
+        }
+
+        .status-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+        }
+
+        .status-icon.loading {
+            border: 4px solid var(--border-secondary);
+            border-top-color: var(--accent-primary);
+            animation: spin 0.8s linear infinite;
+        }
+
+        .status-icon.success {
+            background: linear-gradient(135deg, var(--color-success) 0%, #059669 100%);
+        }
+
+        .status-icon.error {
+            background: linear-gradient(135deg, var(--color-danger) 0%, #DC2626 100%);
+        }
+
+        .status-icon svg {
+            width: 40px;
+            height: 40px;
+            color: white;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .confirm-title {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .confirm-message {
+            font-size: var(--font-size-md);
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xl);
+            line-height: 1.6;
+        }
+
+        .trial-info {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            text-align: left;
+        }
+
+        .trial-info h4 {
+            font-size: var(--font-size-sm);
+            color: var(--accent-primary);
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .trial-info ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .trial-info li {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-xs) 0;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .trial-info li svg {
+            width: 16px;
+            height: 16px;
+            color: var(--color-success);
+        }
+
+        .confirm-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .confirm-actions .btn {
+            width: 100%;
+            padding: var(--spacing-md);
+        }
+
+        .credentials-box {
+            background: #1E293B;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            text-align: left;
+        }
+
+        .credentials-box h4 {
+            font-size: var(--font-size-sm);
+            color: #94A3B8;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .credential-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .credential-item:last-child {
+            border-bottom: none;
+        }
+
+        .credential-item label {
+            font-size: var(--font-size-sm);
+            color: #64748B;
+        }
+
+        .credential-item span {
+            font-family: monospace;
+            font-size: var(--font-size-sm);
+            color: #E2E8F0;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body class="confirm-page">
+    <div class="confirm-card">
+        <!-- Loading State -->
+        <div id="loadingState">
+            <div class="status-icon loading"></div>
+            <h1 class="confirm-title">Confirmando seu email...</h1>
+            <p class="confirm-message">Aguarde enquanto ativamos seu período de teste.</p>
+        </div>
+
+        <!-- Success State -->
+        <div id="successState" style="display: none;">
+            <div class="status-icon success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h1 class="confirm-title">Email Confirmado!</h1>
+            <p class="confirm-message">Seu período de teste de 7 dias foi ativado com sucesso.</p>
+
+            <div class="trial-info">
+                <h4>O que você pode fazer agora:</h4>
+                <ul>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Cadastrar até 500 produtos
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Adicionar até 2 usuários
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Gerenciar 1 loja
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Testar todas as funcionalidades
+                    </li>
+                </ul>
+            </div>
+
+            <div class="credentials-box">
+                <h4>Suas credenciais de acesso:</h4>
+                <div class="credential-item">
+                    <label>Email:</label>
+                    <span id="userEmail">-</span>
+                </div>
+                <div class="credential-item">
+                    <label>Senha temporária:</label>
+                    <span id="userPassword">-</span>
+                </div>
+                <p style="font-size: 12px; color: #94A3B8; margin-top: 12px;">
+                    ⚠️ Guarde sua senha! Você poderá alterá-la após fazer login.
+                </p>
+            </div>
+
+            <div class="confirm-actions">
+                <a href="login.html" class="btn btn-primary">
+                    Fazer Login
+                </a>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" style="display: none;">
+            <div class="status-icon error">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </div>
+            <h1 class="confirm-title">Erro na Confirmação</h1>
+            <p class="confirm-message" id="errorMessage">
+                Não foi possível confirmar seu email. O link pode ter expirado ou já foi utilizado.
+            </p>
+
+            <div class="confirm-actions">
+                <a href="trial.html" class="btn btn-primary">
+                    Tentar Novamente
+                </a>
+                <a href="login.html" class="btn btn-outline">
+                    Já tenho uma conta
+                </a>
+            </div>
+        </div>
+
+        <!-- Already Confirmed State -->
+        <div id="alreadyConfirmedState" style="display: none;">
+            <div class="status-icon success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h1 class="confirm-title">Email já confirmado</h1>
+            <p class="confirm-message">
+                Seu email já foi confirmado anteriormente. Faça login para acessar o sistema.
+            </p>
+
+            <div class="confirm-actions">
+                <a href="login.html" class="btn btn-primary">
+                    Fazer Login
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script>
+        // =====================================================
+        // ELEMENTOS
+        // =====================================================
+
+        const loadingState = document.getElementById('loadingState');
+        const successState = document.getElementById('successState');
+        const errorState = document.getElementById('errorState');
+        const alreadyConfirmedState = document.getElementById('alreadyConfirmedState');
+        const errorMessage = document.getElementById('errorMessage');
+        const userEmail = document.getElementById('userEmail');
+        const userPassword = document.getElementById('userPassword');
+
+        // =====================================================
+        // GERAR SENHA ALEATÓRIA
+        // =====================================================
+
+        function gerarSenhaTemporaria() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+            let senha = '';
+            for (let i = 0; i < 10; i++) {
+                senha += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return senha;
+        }
+
+        // =====================================================
+        // CONFIRMAR TOKEN
+        // =====================================================
+
+        async function confirmarToken() {
+            try {
+                // Obter token da URL
+                const params = new URLSearchParams(window.location.search);
+                const token = params.get('token');
+
+                if (!token) {
+                    mostrarErro('Token de confirmação não encontrado.');
+                    return;
+                }
+
+                // Aguardar Supabase
+                if (!window.supabaseClient) {
+                    await new Promise(resolve => {
+                        window.addEventListener('supabaseReady', resolve, { once: true });
+                    });
+                }
+
+                // Buscar registro de trial pelo token
+                const { data: trial, error: trialError } = await window.supabaseClient
+                    .from('trials_registro')
+                    .select('*')
+                    .eq('token_confirmacao', token)
+                    .single();
+
+                if (trialError || !trial) {
+                    mostrarErro('Token inválido ou expirado.');
+                    return;
+                }
+
+                // Verificar se token expirou
+                if (trial.token_expira_em && new Date(trial.token_expira_em) < new Date()) {
+                    mostrarErro('Este link de confirmação expirou. Por favor, faça um novo cadastro.');
+                    return;
+                }
+
+                // Verificar se já foi confirmado
+                if (trial.status === 'ativo' || trial.status === 'convertido') {
+                    loadingState.style.display = 'none';
+                    alreadyConfirmedState.style.display = 'block';
+                    return;
+                }
+
+                // Gerar senha temporária
+                const senhaTemporaria = gerarSenhaTemporaria();
+
+                // Calcular data de fim do trial (7 dias)
+                const dataInicio = new Date();
+                const dataFim = new Date();
+                dataFim.setDate(dataFim.getDate() + 7);
+
+                // Atualizar registro do trial
+                const { error: updateError } = await window.supabaseClient
+                    .from('trials_registro')
+                    .update({
+                        status: 'ativo',
+                        email_confirmado: true,
+                        data_inicio: dataInicio.toISOString(),
+                        data_fim: dataFim.toISOString()
+                    })
+                    .eq('id', trial.id);
+
+                if (updateError) {
+                    console.error('Erro ao atualizar trial:', updateError);
+                    mostrarErro('Erro ao ativar sua conta. Por favor, tente novamente.');
+                    return;
+                }
+
+                // Criar empresa no sistema
+                const { data: empresa, error: empresaError } = await window.supabaseClient
+                    .from('empresas')
+                    .insert({
+                        nome: trial.nome_empresa,
+                        cnpj: trial.cpf_cnpj,
+                        email: trial.email,
+                        telefone: trial.telefone,
+                        endereco: `${trial.rua}, ${trial.numero}${trial.complemento ? ' - ' + trial.complemento : ''}, ${trial.bairro}, ${trial.cidade}`,
+                        cep: trial.cep,
+                        status: 'trial',
+                        trial_ends_at: dataFim.toISOString()
+                    })
+                    .select()
+                    .single();
+
+                if (empresaError) {
+                    console.error('Erro ao criar empresa:', empresaError);
+                    mostrarErro('Erro ao criar sua empresa. Por favor, entre em contato com o suporte.');
+                    return;
+                }
+
+                // Atualizar trial com empresa_id
+                await window.supabaseClient
+                    .from('trials_registro')
+                    .update({ empresa_id: empresa.id })
+                    .eq('id', trial.id);
+
+                // Criar usuário admin
+                const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
+                    email: trial.email,
+                    password: senhaTemporaria,
+                    options: {
+                        data: {
+                            nome: trial.nome_cliente,
+                            empresa_id: empresa.id
+                        }
+                    }
+                });
+
+                if (authError) {
+                    console.error('Erro ao criar usuário:', authError);
+                    // Continuar mesmo com erro, pois a empresa foi criada
+                }
+
+                // Criar registro na tabela usuarios
+                if (authData?.user) {
+                    await window.supabaseClient
+                        .from('usuarios')
+                        .insert({
+                            id: authData.user.id,
+                            nome: trial.nome_cliente,
+                            email: trial.email,
+                            username: trial.email.split('@')[0],
+                            empresa_id: empresa.id,
+                            tipo: 'empresa',
+                            ativo: true
+                        });
+                }
+
+                // Mostrar sucesso
+                mostrarSucesso(trial.email, senhaTemporaria);
+
+            } catch (error) {
+                console.error('Erro na confirmação:', error);
+                mostrarErro('Ocorreu um erro inesperado. Por favor, tente novamente.');
+            }
+        }
+
+        // =====================================================
+        // UI HELPERS
+        // =====================================================
+
+        function mostrarSucesso(email, senha) {
+            loadingState.style.display = 'none';
+            successState.style.display = 'block';
+            userEmail.textContent = email;
+            userPassword.textContent = senha;
+        }
+
+        function mostrarErro(mensagem) {
+            loadingState.style.display = 'none';
+            errorState.style.display = 'block';
+            errorMessage.textContent = mensagem;
+        }
+
+        // =====================================================
+        // INICIALIZAÇÃO
+        // =====================================================
+
+        document.addEventListener('DOMContentLoaded', confirmarToken);
+    </script>
+</body>
+
+</html>

@@ -63,3 +63,11 @@ npm-debug.log*
 *.min.css.map
 
 *.JSON
+
+# Documentação
+abacatepay/documentation-main.zip
+abacatepay/
+
+# Planilhas de precificação (interno)
+preços.xlsx
+*.xlsx

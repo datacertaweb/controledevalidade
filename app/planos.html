@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCerta - Planos e Preços</title>
+    <meta name="description"
+        content="Escolha o plano ideal para seu negócio. DataCerta - Sistema de controle de validade.">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Pricing Page Styles */
+        .pricing-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+            padding: var(--spacing-2xl) var(--spacing-xl);
+        }
+
+        .pricing-header {
+            text-align: center;
+            color: white;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .pricing-header .logo {
+            justify-content: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .pricing-header h1 {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .pricing-header p {
+            font-size: var(--font-size-lg);
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Billing Toggle */
+        .billing-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-md);
+            margin: var(--spacing-xl) 0;
+        }
+
+        .billing-toggle span {
+            color: white;
+            font-size: var(--font-size-sm);
+            opacity: 0.7;
+            transition: opacity var(--transition-fast);
+        }
+
+        .billing-toggle span.active {
+            opacity: 1;
+            font-weight: 600;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 56px;
+            height: 28px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: background var(--transition-fast);
+        }
+
+        .toggle-switch.active {
+            background: var(--accent-primary);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            transition: transform var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(28px);
+        }
+
+        .discount-badge {
+            background: var(--color-success);
+            color: white;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+        }
+
+        /* Pricing Grid */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Pricing Card */
+        .pricing-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg), 0 0 40px rgba(20, 184, 166, 0.1);
+        }
+
+        .pricing-card.featured {
+            border: 2px solid var(--accent-primary);
+            box-shadow: 0 0 40px rgba(20, 184, 166, 0.2);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Mais Popular';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-gradient);
+            color: white;
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .plan-description {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .plan-price {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .price-amount {
+            display: flex;
+            align-items: baseline;
+            gap: var(--spacing-xs);
+        }
+
+        .price-currency {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .price-value {
+            font-size: var(--font-size-4xl);
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .price-period {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+        }
+
+        .price-annual {
+            font-size: var(--font-size-sm);
+            color: var(--color-success);
+            margin-top: var(--spacing-xs);
+        }
+
+        .price-contact {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Features List */
+        .plan-features {
+            flex: 1;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) 0;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .feature-item svg {
+            width: 18px;
+            height: 18px;
+            color: var(--color-success);
+            flex-shrink: 0;
+        }
+
+        /* CTA Button */
+        .plan-cta {
+            margin-top: auto;
+        }
+
+        .plan-cta .btn {
+            width: 100%;
+            padding: var(--spacing-md);
+        }
+
+        .plan-cta .btn-outline {
+            border-color: var(--border-secondary);
+            color: var(--text-primary);
+        }
+
+        .plan-cta .btn-outline:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* Footer */
+        .pricing-footer {
+            text-align: center;
+            margin-top: var(--spacing-2xl);
+            color: white;
+        }
+
+        .pricing-footer p {
+            opacity: 0.7;
+            font-size: var(--font-size-sm);
+        }
+
+        .pricing-footer a {
+            color: var(--accent-primary-light);
+            text-decoration: none;
+        }
+
+        .pricing-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+
+            .pricing-header h1 {
+                font-size: var(--font-size-2xl);
+            }
+        }
+    </style>
+</head>
+
+<body class="pricing-page">
+    <!-- Header -->
+    <header class="pricing-header">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+            </div>
+            <span class="logo-text">Data<span>Certa</span></span>
+        </div>
+        <h1>Escolha o plano ideal para seu negócio</h1>
+        <p>Comece com 7 dias grátis. Cancele quando quiser.</p>
+
+        <!-- Billing Toggle -->
+        <div class="billing-toggle">
+            <span id="labelMensal" class="active">Mensal</span>
+            <div class="toggle-switch" id="billingToggle"></div>
+            <span id="labelAnual">Anual</span>
+            <span class="discount-badge">Economize 20%</span>
+        </div>
+    </header>
+
+    <!-- Pricing Grid -->
+    <div class="pricing-grid" id="pricingGrid">
+        <!-- Cards serão inseridos via JavaScript -->
+        <div class="pricing-card">
+            <div style="text-align:center;padding:40px;color:var(--text-muted);">
+                Carregando planos...
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="pricing-footer">
+        <p>Dúvidas? Entre em contato: <a href="mailto:suporte@datacerta.com.br">suporte@datacerta.com.br</a></p>
+        <p style="margin-top: var(--spacing-sm);"><a href="login.html">Já tem uma conta? Faça login</a></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script>
+        // =====================================================
+        // VARIÁVEIS GLOBAIS
+        // =====================================================
+
+        let planos = [];
+        let isAnual = false;
+
+        // =====================================================
+        // ELEMENTOS DO DOM
+        // =====================================================
+
+        const billingToggle = document.getElementById('billingToggle');
+        const labelMensal = document.getElementById('labelMensal');
+        const labelAnual = document.getElementById('labelAnual');
+        const pricingGrid = document.getElementById('pricingGrid');
+
+        // =====================================================
+        // TOGGLE MENSAL/ANUAL
+        // =====================================================
+
+        billingToggle.addEventListener('click', () => {
+            isAnual = !isAnual;
+            billingToggle.classList.toggle('active', isAnual);
+            labelMensal.classList.toggle('active', !isAnual);
+            labelAnual.classList.toggle('active', isAnual);
+            renderPlanos();
+        });
+
+        // =====================================================
+        // CARREGAR PLANOS DO SUPABASE
+        // =====================================================
+
+        async function carregarPlanos() {
+            try {
+                // Aguardar Supabase
+                if (!window.supabaseClient) {
+                    await new Promise(resolve => {
+                        window.addEventListener('supabaseReady', resolve, { once: true });
+                    });
+                }
+
+                const { data, error } = await window.supabaseClient
+                    .from('planos')
+                    .select('*')
+                    .eq('ativo', true)
+                    .eq('visivel', true)
+                    .order('ordem', { ascending: true });
+
+                if (error) throw error;
+
+                planos = data || [];
+                renderPlanos();
+
+            } catch (error) {
+                console.error('Erro ao carregar planos:', error);
+                pricingGrid.innerHTML = `
+                    <div class="pricing-card">
+                        <div style="text-align:center;padding:40px;color:var(--color-danger);">
+                            Erro ao carregar planos. Recarregue a página.
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // =====================================================
+        // RENDERIZAR PLANOS
+        // =====================================================
+
+        function renderPlanos() {
+            if (planos.length === 0) {
+                pricingGrid.innerHTML = `
+                    <div class="pricing-card">
+                        <div style="text-align:center;padding:40px;color:var(--text-muted);">
+                            Nenhum plano disponível no momento.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            pricingGrid.innerHTML = planos.map(plano => {
+                const preco = isAnual ? plano.preco_anual : plano.preco_mensal;
+                const periodo = isAnual ? '/ano' : '/mês';
+                const isFeatured = plano.destaque;
+                const isContact = preco === 0 && (plano.nome === 'Personalizado' || plano.nome === 'Enterprise');
+
+                // Parse features
+                let features = [];
+                try {
+                    features = typeof plano.features === 'string' ? JSON.parse(plano.features) : (plano.features || []);
+                } catch (e) {
+                    features = [];
+                }
+
+                return `
+                    <div class="pricing-card ${isFeatured ? 'featured' : ''}">
+                        <h3 class="plan-name">${plano.nome}</h3>
+                        <p class="plan-description">${plano.descricao || ''}</p>
+                        
+                        <div class="plan-price">
+                            ${isContact ? `
+                                <span class="price-contact">Sob Consulta</span>
+                            ` : `
+                                <div class="price-amount">
+                                    <span class="price-currency">R$</span>
+                                    <span class="price-value">${Math.floor(preco)}</span>
+                                    <span class="price-period">${periodo}</span>
+                                </div>
+                                ${isAnual ? `
+                                    <div class="price-annual">
+                                        Equivale a R$ ${Math.floor(preco / 12)}/mês
+                                    </div>
+                                ` : ''}
+                            `}
+                        </div>
+                        
+                        <div class="plan-features">
+                            ${features.map(feature => `
+                                <div class="feature-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                    <span>${feature}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="plan-cta">
+                            ${isContact ? `
+                                <a href="mailto:suporte@datacerta.com.br?subject=Interesse no plano ${plano.nome}" class="btn btn-outline">
+                                    Falar com Vendas
+                                </a>
+                            ` : `
+                                <button class="btn ${isFeatured ? 'btn-primary' : 'btn-outline'}" 
+                                        onclick="selecionarPlano('${plano.id}', ${isAnual})">
+                                    ${isFeatured ? 'Começar Agora' : 'Selecionar'}
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // =====================================================
+        // SELECIONAR PLANO E IR PARA CHECKOUT
+        // =====================================================
+
+        async function selecionarPlano(planoId, anual) {
+            // Verificar se usuário está logado
+            try {
+                const user = await auth.getUser();
+
+                if (user) {
+                    // Usuário logado - redirecionar para checkout
+                    const periodo = anual ? 'anual' : 'mensal';
+                    window.location.href = `checkout.html?plano=${planoId}&periodo=${periodo}`;
+                } else {
+                    // Não logado - salvar escolha e redirecionar para trial
+                    localStorage.setItem('planoSelecionado', JSON.stringify({ planoId, anual }));
+                    window.location.href = 'trial.html';
+                }
+            } catch (error) {
+                // Não logado
+                localStorage.setItem('planoSelecionado', JSON.stringify({ planoId, anual }));
+                window.location.href = 'trial.html';
+            }
+        }
+
+        // =====================================================
+        // INICIALIZAÇÃO
+        // =====================================================
+
+        document.addEventListener('DOMContentLoaded', carregarPlanos);
+    </script>
+</body>
+
+</html>

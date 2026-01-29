@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCerta - Acesso Bloqueado</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .blocked-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-xl);
+        }
+
+        .blocked-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: var(--shadow-lg), 0 0 60px rgba(20, 184, 166, 0.1);
+        }
+
+        .blocked-header {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+            padding: var(--spacing-2xl);
+            text-align: center;
+            color: white;
+        }
+
+        .blocked-header.expired {
+            background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+        }
+
+        .blocked-header.inadimplente {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+        }
+
+        .blocked-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+        }
+
+        .blocked-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .blocked-header h1 {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .blocked-header p {
+            opacity: 0.9;
+            font-size: var(--font-size-sm);
+        }
+
+        .blocked-content {
+            padding: var(--spacing-xl);
+        }
+
+        .blocked-reason {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .blocked-reason h4 {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .blocked-reason p {
+            color: var(--text-primary);
+            font-size: var(--font-size-md);
+            line-height: 1.6;
+        }
+
+        .plan-comparison {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .plan-comparison h4 {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .plan-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-md);
+        }
+
+        .plan-option {
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            text-align: center;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .plan-option:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .plan-option.recommended {
+            border-color: var(--accent-primary);
+            background: rgba(20, 184, 166, 0.1);
+        }
+
+        .plan-option .plan-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .plan-option .plan-price {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .plan-option .plan-price span {
+            font-size: var(--font-size-xs);
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .blocked-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .blocked-actions .btn {
+            width: 100%;
+            padding: var(--spacing-md);
+        }
+
+        .blocked-footer {
+            text-align: center;
+            padding: var(--spacing-lg);
+            border-top: 1px solid var(--border-secondary);
+        }
+
+        .blocked-footer p {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+        }
+
+        .blocked-footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        .countdown {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: var(--spacing-md) 0;
+        }
+    </style>
+</head>
+
+<body class="blocked-page">
+    <div class="blocked-card">
+        <!-- Header - dinâmico baseado no motivo -->
+        <div class="blocked-header" id="blockedHeader">
+            <div class="blocked-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                </svg>
+            </div>
+            <h1 id="blockedTitle">Acesso Bloqueado</h1>
+            <p id="blockedSubtitle">Seu acesso ao sistema foi temporariamente suspenso</p>
+        </div>
+
+        <div class="blocked-content">
+            <!-- Motivo do bloqueio -->
+            <div class="blocked-reason">
+                <h4>Motivo</h4>
+                <p id="blockedReason">Seu período de teste expirou.</p>
+            </div>
+
+            <!-- Opções de planos -->
+            <div class="plan-comparison" id="planSection">
+                <h4>Escolha um plano para continuar</h4>
+                <div class="plan-options" id="planOptions">
+                    <div class="plan-option" onclick="selecionarPlano('starter')">
+                        <div class="plan-name">Starter</div>
+                        <div class="plan-price">R$ 97<span>/mês</span></div>
+                    </div>
+                    <div class="plan-option recommended" onclick="selecionarPlano('basico')">
+                        <div class="plan-name">Básico</div>
+                        <div class="plan-price">R$ 197<span>/mês</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ações -->
+            <div class="blocked-actions">
+                <a href="planos.html" class="btn btn-primary">
+                    Ver Todos os Planos
+                </a>
+                <button class="btn btn-outline" id="btnUpdatePayment" style="display: none;"
+                    onclick="atualizarPagamento()">
+                    Atualizar Dados de Pagamento
+                </button>
+            </div>
+        </div>
+
+        <div class="blocked-footer">
+            <p>Dúvidas? <a href="mailto:suporte@datacerta.com.br">Entre em contato</a></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="js/checkout.js"></script>
+    <script>
+        // =====================================================
+        // CONFIGURAÇÕES
+        // =====================================================
+
+        const BLOCK_REASONS = {
+            trial_expired: {
+                title: 'Período de Teste Expirado',
+                subtitle: 'Seus 7 dias de teste chegaram ao fim',
+                reason: 'Para continuar usando o DataCerta, escolha um dos nossos planos abaixo.',
+                headerClass: 'expired',
+                showPaymentButton: false
+            },
+            subscription_expired: {
+                title: 'Assinatura Expirada',
+                subtitle: 'Sua assinatura não foi renovada',
+                reason: 'Sua assinatura expirou. Renove seu plano para recuperar o acesso ao sistema.',
+                headerClass: 'expired',
+                showPaymentButton: true
+            },
+            payment_failed: {
+                title: 'Problema no Pagamento',
+                subtitle: 'Não conseguimos processar seu pagamento',
+                reason: 'Houve um problema com a cobrança da sua assinatura. Por favor, atualize seus dados de pagamento.',
+                headerClass: 'inadimplente',
+                showPaymentButton: true
+            },
+            inactive: {
+                title: 'Conta Inativa',
+                subtitle: 'Sua conta foi desativada',
+                reason: 'Sua conta está inativa. Entre em contato com o suporte para mais informações.',
+                headerClass: 'inadimplente',
+                showPaymentButton: false
+            }
+        };
+
+        // =====================================================
+        // ELEMENTOS
+        // =====================================================
+
+        const blockedHeader = document.getElementById('blockedHeader');
+        const blockedTitle = document.getElementById('blockedTitle');
+        const blockedSubtitle = document.getElementById('blockedSubtitle');
+        const blockedReason = document.getElementById('blockedReason');
+        const btnUpdatePayment = document.getElementById('btnUpdatePayment');
+
+        // =====================================================
+        // CARREGAR MOTIVO DO BLOQUEIO
+        // =====================================================
+
+        async function carregarMotivo() {
+            try {
+                // Obter motivo da URL
+                const params = new URLSearchParams(window.location.search);
+                let reason = params.get('reason') || 'trial_expired';
+
+                // Se não tiver motivo na URL, verificar status da empresa
+                if (!reason || !BLOCK_REASONS[reason]) {
+                    if (window.accessControl && window.accessControl.verificarStatusEmpresa) {
+                        const status = await window.accessControl.verificarStatusEmpresa();
+                        reason = status.status;
+                    }
+                }
+
+                const config = BLOCK_REASONS[reason] || BLOCK_REASONS.trial_expired;
+
+                // Atualizar UI
+                blockedHeader.className = `blocked-header ${config.headerClass}`;
+                blockedTitle.textContent = config.title;
+                blockedSubtitle.textContent = config.subtitle;
+                blockedReason.textContent = config.reason;
+
+                if (config.showPaymentButton) {
+                    btnUpdatePayment.style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar motivo:', error);
+            }
+        }
+
+        // =====================================================
+        // AÇÕES
+        // =====================================================
+
+        function selecionarPlano(plano) {
+            window.location.href = `planos.html?highlight=${plano}`;
+        }
+
+        async function atualizarPagamento() {
+            try {
+                await abrirPortalCliente();
+            } catch (error) {
+                console.error('Erro ao abrir portal:', error);
+                alert('Erro ao abrir página de pagamento. Tente novamente.');
+            }
+        }
+
+        // =====================================================
+        // INICIALIZAÇÃO
+        // =====================================================
+
+        document.addEventListener('DOMContentLoaded', carregarMotivo);
+    </script>
+</body>
+
+</html>
