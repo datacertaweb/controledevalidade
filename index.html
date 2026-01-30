@@ -1233,6 +1233,41 @@
                 if (error) throw error;
 
                 planos = data || [];
+
+                // FALLBACK: Se não houver planos no banco, usar estáticos
+                if (planos.length === 0) {
+                    console.warn('Nenhum plano encontrado no banco. Usando fallback estático.');
+                    planos = [
+                        {
+                            nome: 'Básico',
+                            preco_mensal: 49,
+                            preco_anual: 470,
+                            descricao: 'Ideal para pequenos comércios',
+                            destaque: false,
+                            ordem: 1,
+                            features: ['Até 1.000 produtos', '1 Usuário', '1 Loja', 'Suporte por Email']
+                        },
+                        {
+                            nome: 'Profissional',
+                            preco_mensal: 99,
+                            preco_anual: 950,
+                            descricao: 'Para negócios em crescimento',
+                            destaque: true,
+                            ordem: 2,
+                            features: ['Até 5.000 produtos', '5 Usuários', '3 Lojas', 'Suporte Prioritário', 'Dashboard Avançado']
+                        },
+                        {
+                            nome: 'Enterprise',
+                            preco_mensal: 0,
+                            preco_anual: 0,
+                            descricao: 'Para grandes redes',
+                            destaque: false,
+                            ordem: 3,
+                            features: ['Produtos Ilimitados', 'Usuários Ilimitados', 'Lojas Ilimitadas', 'API Dedicada', 'Gerente de Conta']
+                        }
+                    ];
+                }
+
                 renderPlanos();
 
             } catch (error) {
