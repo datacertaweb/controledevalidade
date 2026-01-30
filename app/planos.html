@@ -435,31 +435,40 @@
                     console.warn('Nenhum plano encontrado no banco. Usando fallback estático.');
                     planos = [
                         {
-                            nome: 'Básico',
-                            preco_mensal: 49,
-                            preco_anual: 470,
-                            descricao: 'Ideal para pequenos comércios',
+                            nome: 'Starter',
+                            preco_mensal: 79,
+                            preco_anual: 759,
+                            descricao: 'Ideal para pequenos negócios',
                             destaque: false,
                             ordem: 1,
-                            features: ['Até 1.000 produtos', '1 Usuário', '1 Loja', 'Suporte por Email']
+                            features: ['5.000 produtos', '3 usuários', '1 loja', 'Suporte por email', 'Relatórios básicos']
                         },
                         {
-                            nome: 'Profissional',
-                            preco_mensal: 99,
-                            preco_anual: 950,
+                            nome: 'Básico',
+                            preco_mensal: 149,
+                            preco_anual: 1429,
                             descricao: 'Para negócios em crescimento',
                             destaque: true,
                             ordem: 2,
-                            features: ['Até 5.000 produtos', '5 Usuários', '3 Lojas', 'Suporte Prioritário', 'Dashboard Avançado']
+                            features: ['10.000 produtos', '10 usuários', '3 lojas', 'Suporte prioritário', 'Relatórios avançados', 'Exportação de dados']
+                        },
+                        {
+                            nome: 'Profissional',
+                            preco_mensal: 299,
+                            preco_anual: 2869,
+                            descricao: 'Para redes de lojas',
+                            destaque: false,
+                            ordem: 3,
+                            features: ['50.000 produtos', '30 usuários', '10 lojas', 'Suporte 24/7', 'Relatórios personalizados', 'API de integração', 'Treinamento incluso']
                         },
                         {
                             nome: 'Enterprise',
                             preco_mensal: 0,
                             preco_anual: 0,
-                            descricao: 'Para grandes redes',
+                            descricao: 'Solução completa para grandes empresas',
                             destaque: false,
-                            ordem: 3,
-                            features: ['Produtos Ilimitados', 'Usuários Ilimitados', 'Lojas Ilimitadas', 'API Dedicada', 'Gerente de Conta']
+                            ordem: 5,
+                            features: ['Produtos ilimitados', 'Usuários ilimitados', 'Lojas ilimitadas', 'Suporte VIP 24/7', 'API completa', 'Integrações customizadas', 'SLA garantido', 'Gerente de conta dedicado']
                         }
                     ];
                 }
