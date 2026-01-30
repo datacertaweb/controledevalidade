@@ -14,8 +14,23 @@
         /* Pricing Page Styles */
         .pricing-page {
             min-height: 100vh;
-            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
-            padding: var(--spacing-2xl) var(--spacing-xl);
+            background: radial-gradient(circle at top, #1E293B 0%, #0F172A 100%);
+            padding: 80px 24px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .pricing-page::before {
+            content: '';
+            position: absolute;
+            top: -10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
         }
 
         .pricing-header {
@@ -113,78 +128,91 @@
         }
 
         /* Pricing Card */
+        /* Pricing Card Premium */
         .pricing-card {
-            background: var(--bg-card);
-            border-radius: var(--radius-xl);
-            padding: var(--spacing-xl);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 32px;
             display: flex;
             flex-direction: column;
             position: relative;
-            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+            transition: all 0.3s ease;
         }
 
         .pricing-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg), 0 0 40px rgba(20, 184, 166, 0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+            border-color: rgba(20, 184, 166, 0.3);
         }
 
         .pricing-card.featured {
-            border: 2px solid var(--accent-primary);
-            box-shadow: 0 0 40px rgba(20, 184, 166, 0.2);
+            background: rgba(20, 184, 166, 0.05);
+            border: 1px solid #14B8A6;
+            box-shadow: 0 0 30px rgba(20, 184, 166, 0.15);
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-8px);
         }
 
         .pricing-card.featured::before {
-            content: 'Mais Popular';
+            display: none;
+            /* Remove old badge implementation */
+        }
+
+        .popular-badge {
             position: absolute;
-            top: -12px;
+            top: -14px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--accent-gradient);
+            background: #14B8A6;
             color: white;
-            padding: var(--spacing-xs) var(--spacing-md);
-            border-radius: var(--radius-full);
-            font-size: var(--font-size-xs);
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
+            z-index: 20;
         }
 
         .plan-name {
-            font-size: var(--font-size-xl);
+            font-size: 24px;
             font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: var(--spacing-xs);
+            color: white;
+            margin-bottom: 8px;
         }
 
         .plan-description {
-            font-size: var(--font-size-sm);
-            color: var(--text-muted);
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .plan-price {
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .price-amount {
-            display: flex;
-            align-items: baseline;
-            gap: var(--spacing-xs);
-        }
-
-        .price-currency {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            color: var(--text-secondary);
+            font-size: 14px;
+            color: #94A3B8;
+            margin-bottom: 24px;
+            min-height: 42px;
+            /* Alignment */
         }
 
         .price-value {
-            font-size: var(--font-size-4xl);
-            font-weight: 700;
-            color: var(--text-primary);
+            font-size: 42px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -1px;
+        }
+
+        .price-currency {
+            font-size: 20px;
+            color: #94A3B8;
+            font-weight: 500;
         }
 
         .price-period {
-            font-size: var(--font-size-sm);
-            color: var(--text-muted);
+            font-size: 14px;
+            color: #64748B;
         }
 
         .price-annual {
@@ -208,27 +236,57 @@
         .feature-item {
             display: flex;
             align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-sm) 0;
-            font-size: var(--font-size-sm);
-            color: var(--text-secondary);
+            gap: 12px;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #E2E8F0;
         }
 
         .feature-item svg {
             width: 18px;
             height: 18px;
-            color: var(--color-success);
+            color: #14B8A6;
+            /* Teal */
             flex-shrink: 0;
         }
 
-        /* CTA Button */
         .plan-cta {
             margin-top: auto;
         }
 
         .plan-cta .btn {
             width: 100%;
-            padding: var(--spacing-md);
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .plan-cta .btn-primary {
+            background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+        }
+
+        .plan-cta .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
+        }
+
+        .plan-cta .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .plan-cta .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: white;
         }
 
         .plan-cta .btn-outline {

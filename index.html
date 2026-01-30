@@ -4,15 +4,1322 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataCerta - Redirecionando...</title>
-    <script>
-        // Redirecionar para o dashboard (que vai para o login se não autenticado)
-        window.location.href = 'app/dashboard.html';
-    </script>
+    <title>DataCerta - Controle de Validade de Produtos | Gestão Inteligente</title>
+    <meta name="description"
+        content="Sistema completo de controle de validade de produtos. Evite perdas, automatize alertas e gerencie seu estoque com eficiência.">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ================================================
+           LANDING PAGE STYLES - MODERN THEME
+        ================================================ */
+
+        body.landing-page {
+            background: #FFFFFF;
+        }
+
+        /* ================================================
+           HEADER/NAV
+        ================================================ */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .nav.scrolled {
+            background: rgba(30, 41, 59, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-logo-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+        }
+
+        .nav-logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .nav-logo-text span {
+            color: var(--accent-primary-light);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-primary-light);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .nav .btn-outline:hover {
+            border-color: var(--accent-primary-light);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* ================================================
+           HERO SECTION - DARK GRADIENT
+        ================================================ */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 120px 40px 80px;
+        }
+
+        .hero-bg-shape {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.25) 0%, transparent 60%);
+            top: -300px;
+            right: -200px;
+            pointer-events: none;
+        }
+
+        .hero-bg-shape-2 {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(45, 212, 191, 0.15) 0%, transparent 60%);
+            bottom: -150px;
+            left: -150px;
+            pointer-events: none;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content h1 {
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            color: white;
+        }
+
+        .hero-content h1 span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-content p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 40px;
+            max-width: 500px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent-primary-light);
+        }
+
+        .hero-stat-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .hero-visual {
+            position: relative;
+        }
+
+        .hero-mockup {
+            width: 100%;
+            max-width: 550px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 60px rgba(20, 184, 166, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-floating-card {
+            position: absolute;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .floating-card-1 {
+            top: 10%;
+            left: -50px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .floating-card-2 {
+            bottom: 20%;
+            right: -30px;
+            animation: float 3s ease-in-out infinite 1s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .floating-card-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-gradient);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .floating-card-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: white;
+        }
+
+        .floating-card-text {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .floating-card-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* ================================================
+           SECTIONS
+        ================================================ */
+        .section {
+            padding: 100px 40px;
+        }
+
+        .section-alt {
+            background: var(--bg-secondary);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-label {
+            display: inline-block;
+            background: rgba(20, 184, 166, 0.1);
+            color: var(--accent-primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ================================================
+           FEATURES
+        ================================================ */
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            border: 1px solid var(--border-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-lg), var(--shadow-glow);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--accent-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: white;
+        }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .feature-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ================================================
+           BENEFITS
+        ================================================ */
+        .benefits-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .benefit-list {
+            list-style: none;
+        }
+
+        .benefit-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .benefit-check {
+            width: 28px;
+            height: 28px;
+            background: rgba(20, 184, 166, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .benefit-check svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--accent-primary);
+        }
+
+        .benefit-text h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .benefit-text p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* ================================================
+           PRICING (Dynamic from Supabase) - DARK THEME
+        ================================================ */
+        .pricing-section {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+        }
+
+        .pricing-section .section-label {
+            background: rgba(20, 184, 166, 0.2);
+        }
+
+        .pricing-section .section-title {
+            color: white;
+        }
+
+        .pricing-section .section-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .billing-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .billing-toggle span {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.2s;
+        }
+
+        .billing-toggle span.active {
+            color: white;
+            font-weight: 600;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 56px;
+            height: 28px;
+            background: var(--bg-tertiary);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-switch.active {
+            background: var(--accent-primary);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(28px);
+        }
+
+        .discount-badge {
+            background: var(--color-success);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .pricing-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .pricing-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid var(--border-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg), var(--shadow-glow);
+        }
+
+        .pricing-card.featured {
+            border: 2px solid var(--accent-primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Mais Popular';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-gradient);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .plan-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .plan-price {
+            margin-bottom: 24px;
+        }
+
+        .price-amount {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        .price-currency {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .price-value {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .price-period {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .price-annual {
+            font-size: 13px;
+            color: var(--color-success);
+            margin-top: 4px;
+        }
+
+        .price-contact {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .plan-features {
+            flex: 1;
+            margin-bottom: 24px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .feature-item svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--color-success);
+            flex-shrink: 0;
+        }
+
+        .plan-cta {
+            margin-top: auto;
+        }
+
+        .plan-cta .btn {
+            width: 100%;
+            padding: 14px;
+            justify-content: center;
+        }
+
+        /* ================================================
+           CTA SECTION
+        ================================================ */
+        .cta-section {
+            background: var(--accent-gradient);
+            text-align: center;
+            padding: 80px 40px;
+        }
+
+        .cta-section h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: white;
+        }
+
+        .cta-section p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 32px;
+        }
+
+        .cta-section .btn {
+            background: white;
+            color: var(--accent-primary);
+        }
+
+        .cta-section .btn:hover {
+            background: var(--bg-primary);
+        }
+
+        /* ================================================
+           FOOTER
+        ================================================ */
+        .footer {
+            background: var(--sidebar-bg);
+            padding: 60px 40px 30px;
+            color: white;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px;
+        }
+
+        .footer-brand .nav-logo-text {
+            color: white;
+        }
+
+        .footer-brand p {
+            color: var(--sidebar-text);
+            font-size: 14px;
+            margin-top: 16px;
+            max-width: 280px;
+        }
+
+        .footer-column h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column li {
+            margin-bottom: 12px;
+        }
+
+        .footer-column a {
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-column a:hover {
+            color: var(--accent-primary);
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 40px auto 0;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--sidebar-text);
+        }
+
+        .footer-bottom a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        /* ================================================
+           RESPONSIVE
+        ================================================ */
+        @media (max-width: 1024px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-content p {
+                margin: 0 auto 40px;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .hero-stats {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .benefits-container {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                padding: 16px 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 100px 20px 60px;
+            }
+
+            .hero-content h1 {
+                font-size: 32px;
+            }
+
+            .section {
+                padding: 60px 20px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        /* Loading state */
+        .pricing-loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-muted);
+        }
+    </style>
 </head>
 
-<body>
-    <p>Redirecionando...</p>
+<body class="landing-page">
+    <!-- Navigation -->
+    <nav class="nav" id="navbar">
+        <a href="#" class="nav-logo">
+            <div class="nav-logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+            </div>
+            <span class="nav-logo-text">Data<span>Certa</span></span>
+        </a>
+
+        <div class="nav-links">
+            <a href="#features">Funcionalidades</a>
+            <a href="#benefits">Benefícios</a>
+            <a href="#pricing">Preços</a>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="app/login.html" class="btn btn-outline">Entrar</a>
+            <a href="app/trial.html" class="btn btn-primary">Cadastre-se Grátis</a>
+        </div>
+
+        <button class="mobile-menu-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+        </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg-shape"></div>
+        <div class="hero-bg-shape-2"></div>
+
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Controle de Validade <span>Inteligente</span></h1>
+                <p>Sistema completo para gestão de validades de produtos. Evite perdas, automatize alertas e tome
+                    decisões baseadas em dados.</p>
+
+                <div class="hero-buttons">
+                    <a href="app/trial.html" class="btn btn-primary btn-lg">
+                        Cadastre-se e Teste Grátis
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                    </a>
+                    <a href="#pricing" class="btn btn-outline btn-lg">Ver Preços</a>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">30%</div>
+                        <div class="hero-stat-label">Redução de perdas</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">2h</div>
+                        <div class="hero-stat-label">Economia/dia</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">100%</div>
+                        <div class="hero-stat-label">Em nuvem</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="hero-floating-card floating-card-1">
+                    <div class="floating-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                    </div>
+                    <div class="floating-card-text">Produtos verificados</div>
+                    <div class="floating-card-value">+1.247 hoje</div>
+                </div>
+
+                <img src="img/dash.png" alt="Dashboard DataCerta" class="hero-mockup">
+
+                <div class="hero-floating-card floating-card-2">
+                    <div class="floating-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                    </div>
+                    <div class="floating-card-text">Alertas enviados</div>
+                    <div class="floating-card-value">15 hoje</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section section-alt" id="features">
+        <div class="section-header">
+            <span class="section-label">Funcionalidades</span>
+            <h2 class="section-title">Tudo que você precisa</h2>
+            <p class="section-subtitle">Ferramentas completas para gerenciar validades de produtos de forma eficiente.
+            </p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">Controle de Validade</h3>
+                <p class="feature-text">Monitore todas as datas de validade do seu estoque em tempo real.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">Alertas Automáticos</h3>
+                <p class="feature-text">Receba notificações quando produtos estiverem próximos do vencimento.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">App Mobile</h3>
+                <p class="feature-text">Colete dados com seu celular usando leitura de código de barras.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">Relatórios Detalhados</h3>
+                <p class="feature-text">Dashboard com gráficos e métricas. Exporte dados para Excel.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">Multi-usuários</h3>
+                <p class="feature-text">Gerencie sua equipe com níveis de acesso e permissões.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                        <line x1="12" y1="22.08" x2="12" y2="12" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">Multi-lojas</h3>
+                <p class="feature-text">Gerencie várias filiais de um único lugar com dados consolidados.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="section" id="benefits">
+        <div class="benefits-container">
+            <div>
+                <span class="section-label">Benefícios</span>
+                <h2 class="section-title">Por que escolher o DataCerta?</h2>
+                <p style="color: var(--text-secondary); margin: 20px 0 40px;">Desenvolvido para supermercados, farmácias
+                    e estabelecimentos que precisam de controle rigoroso de validade.</p>
+
+                <ul class="benefit-list">
+                    <li class="benefit-item">
+                        <div class="benefit-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <div class="benefit-text">
+                            <h4>Reduza perdas em até 30%</h4>
+                            <p>Identifique produtos antes do vencimento e tome ações preventivas.</p>
+                        </div>
+                    </li>
+                    <li class="benefit-item">
+                        <div class="benefit-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <div class="benefit-text">
+                            <h4>Economize tempo</h4>
+                            <p>Automatize processos manuais e libere sua equipe.</p>
+                        </div>
+                    </li>
+                    <li class="benefit-item">
+                        <div class="benefit-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <div class="benefit-text">
+                            <h4>Atenda à legislação</h4>
+                            <p>Mantenha registros completos para fiscalizações.</p>
+                        </div>
+                    </li>
+                    <li class="benefit-item">
+                        <div class="benefit-check">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <div class="benefit-text">
+                            <h4>Acesse de qualquer lugar</h4>
+                            <p>100% na nuvem. Acesse pelo computador, tablet ou celular.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div style="text-align: center;">
+                <img src="img/appmobile.png" alt="DataCerta Mobile"
+                    style="max-width: 100%; border-radius: 20px; box-shadow: var(--shadow-lg);">
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section (Dynamic) -->
+    <section class="section pricing-section" id="pricing">
+        <div class="section-header">
+            <span class="section-label">Preços</span>
+            <h2 class="section-title">Planos para todos os tamanhos</h2>
+            <p class="section-subtitle">Escolha o plano ideal para o seu negócio. Comece com 7 dias grátis.</p>
+        </div>
+
+        <div class="billing-toggle">
+            <span id="labelMensal" class="active">Mensal</span>
+            <div class="toggle-switch" id="billingToggle"></div>
+            <span id="labelAnual">Anual</span>
+            <span class="discount-badge">Economize 20%</span>
+        </div>
+
+        <div class="pricing-grid" id="pricingGrid">
+            <div class="pricing-loading">Carregando planos...</div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <h2>Pronto para eliminar perdas?</h2>
+        <p>Comece agora com 7 dias grátis. Sem compromisso, sem cartão de crédito.</p>
+        <a href="app/trial.html" class="btn btn-lg">
+            Cadastre-se Agora e Teste Grátis
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+            </svg>
+        </a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <a href="#" class="nav-logo">
+                    <div class="nav-logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </div>
+                    <span class="nav-logo-text">Data<span>Certa</span></span>
+                </a>
+                <p>Sistema completo de controle de validade de produtos para supermercados, farmácias e
+                    estabelecimentos.</p>
+            </div>
+
+            <div class="footer-column">
+                <h4>Produto</h4>
+                <ul>
+                    <li><a href="#features">Funcionalidades</a></li>
+                    <li><a href="#pricing">Preços</a></li>
+                    <li><a href="app/trial.html">Teste Grátis</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4>Empresa</h4>
+                <ul>
+                    <li><a href="#">Sobre</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Contato</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4>Suporte</h4>
+                <ul>
+                    <li><a href="#">Central de Ajuda</a></li>
+                    <li><a href="#">Documentação</a></li>
+                    <li><a href="mailto:suporte@datacerta.com.br">suporte@datacerta.com.br</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 DataCerta. Todos os direitos reservados.</p>
+            <p>
+                <a href="#">Termos de Uso</a> ·
+                <a href="#">Política de Privacidade</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script>
+        // =====================================================
+        // NAVBAR SCROLL
+        // =====================================================
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // =====================================================
+        // PRICING - DYNAMIC FROM SUPABASE
+        // =====================================================
+        let planos = [];
+        let isAnual = false;
+
+        const billingToggle = document.getElementById('billingToggle');
+        const labelMensal = document.getElementById('labelMensal');
+        const labelAnual = document.getElementById('labelAnual');
+        const pricingGrid = document.getElementById('pricingGrid');
+
+        // Toggle mensal/anual
+        billingToggle.addEventListener('click', () => {
+            isAnual = !isAnual;
+            billingToggle.classList.toggle('active', isAnual);
+            labelMensal.classList.toggle('active', !isAnual);
+            labelAnual.classList.toggle('active', isAnual);
+            renderPlanos();
+        });
+
+        // Carregar planos do Supabase
+        async function carregarPlanos() {
+            try {
+                if (!window.supabaseClient) {
+                    await new Promise(resolve => {
+                        window.addEventListener('supabaseReady', resolve, { once: true });
+                    });
+                }
+
+                const { data, error } = await window.supabaseClient
+                    .from('planos')
+                    .select('*')
+                    .eq('ativo', true)
+                    .eq('visivel', true)
+                    .order('ordem', { ascending: true });
+
+                if (error) throw error;
+
+                planos = data || [];
+                renderPlanos();
+
+            } catch (error) {
+                console.error('Erro ao carregar planos:', error);
+                pricingGrid.innerHTML = '<div class="pricing-loading" style="color: var(--color-danger);">Erro ao carregar planos.</div>';
+            }
+        }
+
+        // Renderizar planos
+        function renderPlanos() {
+            if (planos.length === 0) {
+                pricingGrid.innerHTML = '<div class="pricing-loading">Nenhum plano disponível.</div>';
+                return;
+            }
+
+            pricingGrid.innerHTML = planos.map(plano => {
+                const preco = isAnual ? plano.preco_anual : plano.preco_mensal;
+                const periodo = isAnual ? '/ano' : '/mês';
+                const isFeatured = plano.destaque;
+                const isContact = preco === 0 && (plano.nome === 'Personalizado' || plano.nome === 'Enterprise');
+
+                let features = [];
+                try {
+                    features = typeof plano.features === 'string' ? JSON.parse(plano.features) : (plano.features || []);
+                } catch (e) {
+                    features = [];
+                }
+
+                return `
+                    <div class="pricing-card ${isFeatured ? 'featured' : ''}">
+                        <h3 class="plan-name">${plano.nome}</h3>
+                        <p class="plan-description">${plano.descricao || ''}</p>
+                        
+                        <div class="plan-price">
+                            ${isContact ? `
+                                <span class="price-contact">Sob Consulta</span>
+                            ` : `
+                                <div class="price-amount">
+                                    <span class="price-currency">R$</span>
+                                    <span class="price-value">${Math.floor(preco)}</span>
+                                    <span class="price-period">${periodo}</span>
+                                </div>
+                                ${isAnual ? `<div class="price-annual">Equivale a R$ ${Math.floor(preco / 12)}/mês</div>` : ''}
+                            `}
+                        </div>
+                        
+                        <div class="plan-features">
+                            ${features.map(feature => `
+                                <div class="feature-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                    <span>${feature}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="plan-cta">
+                            ${isContact ? `
+                                <a href="mailto:suporte@datacerta.com.br?subject=Interesse no plano ${plano.nome}" class="btn btn-outline">
+                                    Falar com Vendas
+                                </a>
+                            ` : `
+                                <a href="app/planos.html" class="btn ${isFeatured ? 'btn-primary' : 'btn-outline'}">
+                                    ${isFeatured ? 'Começar Agora' : 'Selecionar'}
+                                </a>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Init
+        document.addEventListener('DOMContentLoaded', carregarPlanos);
+    </script>
 </body>
 
 </html>

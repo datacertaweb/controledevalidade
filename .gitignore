@@ -71,3 +71,6 @@ abacatepay/
 # Planilhas de precificação (interno)
 preços.xlsx
 *.xlsx
+chaves-stripe.txt
+
+dashboard-demo.html
