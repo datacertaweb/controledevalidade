@@ -59,9 +59,16 @@ async function criarSessaoCheckout({ planoId, periodo, empresaId, email }) {
 
     if (error) {
         console.error('Erro ao criar sessão:', error);
+        console.error('Detalhes do erro:', error.message, error.context);
+        throw new Error(error.message || 'Erro ao iniciar checkout. Tente novamente.');
+    }
+
+    if (!data) {
+        console.error('Nenhum dado retornado da função');
         throw new Error('Erro ao iniciar checkout. Tente novamente.');
     }
 
+    console.log('Sessão criada com sucesso:', data);
     return data;
 }
 
@@ -86,6 +93,13 @@ async function redirecionarParaCheckout(planoId, periodo) {
         if (!userData || !userData.empresa_id) {
             throw new Error('Dados da empresa não encontrados');
         }
+
+        console.log('Criando sessão com:', {
+            planoId,
+            periodo,
+            empresaId: userData.empresa_id,
+            email: user.email
+        });
 
         // Criar sessão de checkout
         const session = await criarSessaoCheckout({
