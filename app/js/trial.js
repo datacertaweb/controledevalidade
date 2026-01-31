@@ -88,10 +88,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!email) {
                     throw new Error('Email não encontrado para reenvio.');
                 }
+                const basePath = window.location.pathname.includes('/app/')
+                    ? window.location.pathname.split('/app/')[0]
+                    : '';
                 const { error } = await window.supabaseClient.auth.resend({
                     type: 'signup',
                     email,
-                    options: { emailRedirectTo: `${window.location.origin}/app/confirmar-trial.html` }
+                    options: { emailRedirectTo: `${window.location.origin}${basePath}/app/confirmar-trial.html` }
                 });
                 if (error) throw error;
                 btnResendConfirm.textContent = 'Email reenviado';
@@ -361,7 +364,11 @@ async function enviarCadastro(dados) {
         throw new Error('Sistema ainda carregando. Aguarde.');
     }
 
-    const redirectTo = `${window.location.origin}/app/confirmar-trial.html`;
+    // Detectar a base URL corretamente (para GitHub Pages que usa subdiretório)
+    const basePath = window.location.pathname.includes('/app/')
+        ? window.location.pathname.split('/app/')[0]
+        : '';
+    const redirectTo = `${window.location.origin}${basePath}/app/confirmar-trial.html`;
 
     const { data: signUpData, error: signUpError } = await window.supabaseClient.auth.signUp({
         email: dados.email.toLowerCase(),

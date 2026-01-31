@@ -80,16 +80,29 @@ const notifications = {
     // Marcar notificação como lida
     async markAsRead(notificationId) {
         try {
-            const { error } = await window.supabaseClient
+            console.log('Marcando notificação como lida:', notificationId);
+            const { data, error } = await window.supabaseClient
                 .rpc('marcar_notificacao_lida', { p_notificacao_id: notificationId });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Erro RPC marcar_notificacao_lida:', error);
+                throw error;
+            }
+            
+            console.log('Resultado marcar_notificacao_lida:', data);
+            
+            if (data === false) {
+                console.warn('A função retornou false - verifique se o usuário está registrado na tabela usuarios');
+            }
 
             // Atualizar badge
             await this.updateBadge();
-            return true;
+            return data === true;
         } catch (err) {
             console.error('Erro ao marcar como lida:', err);
+            if (window.globalUI) {
+                window.globalUI.showToast('error', 'Erro ao marcar notificação como lida');
+            }
             return false;
         }
     },
@@ -97,21 +110,32 @@ const notifications = {
     // Marcar todas como lidas
     async markAllAsRead() {
         try {
+            console.log('Marcando todas notificações como lidas...');
             const { data, error } = await window.supabaseClient
                 .rpc('marcar_todas_notificacoes_lidas');
 
-            if (error) throw error;
+            if (error) {
+                console.error('Erro RPC marcar_todas_notificacoes_lidas:', error);
+                throw error;
+            }
+            
+            console.log('Notificações marcadas como lidas:', data);
 
             // Atualizar badge
             await this.updateBadge();
 
             if (window.ui) {
                 ui.toast(`${data || 0} notificações marcadas como lidas`, 'success');
+            } else if (window.globalUI) {
+                window.globalUI.showToast('success', `${data || 0} notificações marcadas como lidas`);
             }
 
             return data;
         } catch (err) {
             console.error('Erro ao marcar todas como lidas:', err);
+            if (window.globalUI) {
+                window.globalUI.showToast('error', 'Erro ao marcar notificações como lidas');
+            }
             return 0;
         }
     },
