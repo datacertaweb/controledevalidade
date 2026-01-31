@@ -121,14 +121,13 @@
         /* Pricing Grid */
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: var(--spacing-lg);
             max-width: 1200px;
             margin: 0 auto;
         }
 
-        /* Pricing Card */
-        /* Pricing Card Premium */
+        /* Pricing Card - Altura uniforme */
         .pricing-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(12px);
@@ -140,6 +139,7 @@
             flex-direction: column;
             position: relative;
             transition: all 0.3s ease;
+            min-height: 480px;
         }
 
         .pricing-card:hover {
@@ -152,17 +152,12 @@
             background: rgba(20, 184, 166, 0.05);
             border: 1px solid #14B8A6;
             box-shadow: 0 0 30px rgba(20, 184, 166, 0.15);
-            transform: scale(1.05);
+            transform: scale(1.02);
             z-index: 10;
         }
 
         .pricing-card.featured:hover {
-            transform: scale(1.05) translateY(-8px);
-        }
-
-        .pricing-card.featured::before {
-            display: none;
-            /* Remove old badge implementation */
+            transform: scale(1.02) translateY(-8px);
         }
 
         .popular-badge {
@@ -194,7 +189,6 @@
             color: #94A3B8;
             margin-bottom: 24px;
             min-height: 42px;
-            /* Alignment */
         }
 
         .price-value {
@@ -222,15 +216,16 @@
         }
 
         .price-contact {
-            font-size: var(--font-size-xl);
+            font-size: 24px;
             font-weight: 600;
-            color: var(--text-primary);
+            color: white;
         }
 
-        /* Features List */
+        /* Features List - Altura uniforme */
         .plan-features {
             flex: 1;
             margin-bottom: var(--spacing-lg);
+            min-height: 200px;
         }
 
         .feature-item {
@@ -246,7 +241,6 @@
             width: 18px;
             height: 18px;
             color: #14B8A6;
-            /* Teal */
             flex-shrink: 0;
         }
 
@@ -254,6 +248,7 @@
             margin-top: auto;
         }
 
+        /* Botões sem hover effect */
         .plan-cta .btn {
             width: 100%;
             padding: 14px;
@@ -262,9 +257,9 @@
             text-align: center;
             border: none;
             cursor: pointer;
-            transition: all 0.2s;
             text-decoration: none;
             display: inline-block;
+            transition: none;
         }
 
         .plan-cta .btn-primary {
@@ -273,29 +268,10 @@
             box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
         }
 
-        .plan-cta .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
-        }
-
         .plan-cta .btn-outline {
             background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-        }
-
-        .plan-cta .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: white;
-        }
-
-        .plan-cta .btn-outline {
-            border-color: var(--border-secondary);
-            color: var(--text-primary);
-        }
-
-        .plan-cta .btn-outline:hover {
-            background: var(--bg-tertiary);
         }
 
         /* Footer */
@@ -320,6 +296,12 @@
         }
 
         /* Responsive */
+        @media (max-width: 1024px) {
+            .pricing-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @media (max-width: 768px) {
             .pricing-grid {
                 grid-template-columns: 1fr;
@@ -328,6 +310,14 @@
 
             .pricing-header h1 {
                 font-size: var(--font-size-2xl);
+            }
+
+            .pricing-card {
+                min-height: auto;
+            }
+
+            .plan-features {
+                min-height: auto;
             }
         }
     </style>
@@ -371,28 +361,39 @@
 
     <!-- Footer -->
     <footer class="pricing-footer">
-        <p>Dúvidas? Entre em contato: <a href="mailto:suporte@datacerta.com.br">suporte@datacerta.com.br</a></p>
-        <p style="margin-top: var(--spacing-sm);"><a href="login.html">Já tem uma conta? Faça login</a></p>
+        <p>Dúvidas? Entre em contato: <a href="mailto:datacerta.contato@gmail.com">datacerta.contato@gmail.com</a></p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="../js/supabase.js"></script>
+    <script src="js/checkout.js"></script>
     <script>
+        // =====================================================
+        // VERIFICAR AUTENTICAÇÃO
+        // =====================================================
+
+        async function verificarAutenticacao() {
+            try {
+                const user = await auth.getUser();
+                if (!user) {
+                    // Redirecionar para login se não estiver autenticado
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Erro ao verificar autenticação:', error);
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
         // =====================================================
         // VARIÁVEIS GLOBAIS
         // =====================================================
 
         let planos = [
-            {
-                id: '72e555c3-d5a3-44cb-a76f-d0e95f9e2706',
-                nome: 'Gratuito',
-                preco_mensal: 0,
-                preco_anual: 0,
-                descricao: 'Plano gratuito para teste',
-                destaque: false,
-                ordem: 0,
-                features: []
-            },
             {
                 id: '7b049e15-47d6-4b45-8abe-303a926c0199',
                 nome: 'Starter',
@@ -401,7 +402,15 @@
                 descricao: 'Ideal para pequenos negócios',
                 destaque: false,
                 ordem: 1,
-                features: ['5.000 produtos', '3 usuários', '1 loja', 'Suporte por email', 'Relatórios básicos']
+                stripe_product_id: 'prod_TtUiaXS5z7ROuE',
+                features: [
+                    '5.000 produtos (Banco de Dados)',
+                    '3 usuários',
+                    '1 loja',
+                    'Suporte por e-mail',
+                    'Relatórios',
+                    'Exportação de dados'
+                ]
             },
             {
                 id: 'ec582d76-260c-4012-8cb1-44a8a28ac5eb',
@@ -411,7 +420,15 @@
                 descricao: 'Para negócios em crescimento',
                 destaque: true,
                 ordem: 2,
-                features: ['10.000 produtos', '10 usuários', '3 lojas', 'Suporte prioritário', 'Relatórios avançados', 'Exportação de dados']
+                stripe_product_id: 'prod_TtUiQJoJ9k2TV5',
+                features: [
+                    '10.000 produtos (Banco de Dados)',
+                    '10 usuários',
+                    '3 lojas',
+                    'Suporte prioritário',
+                    'Relatórios avançados',
+                    'Exportação de dados'
+                ]
             },
             {
                 id: '8f4aaa4d-c2ce-484c-b3f7-a98fa263319e',
@@ -421,17 +438,15 @@
                 descricao: 'Para redes de lojas',
                 destaque: false,
                 ordem: 3,
-                features: ['50.000 produtos', '30 usuários', '10 lojas', 'Suporte 24/7', 'Relatórios personalizados', 'API de integração', 'Treinamento incluso']
-            },
-            {
-                id: '80177a42-ebcd-4cee-ae58-43211b4bfde1',
-                nome: 'Personalizado',
-                preco_mensal: 0,
-                preco_anual: 0,
-                descricao: 'Plano customizado para suas necessidades',
-                destaque: false,
-                ordem: 4,
-                features: ['Produtos personalizados', 'Usuários personalizados', 'Lojas personalizadas', 'Suporte dedicado', 'Funcionalidades sob demanda']
+                stripe_product_id: 'prod_TtUixfauvhrel3',
+                features: [
+                    '50.000 produtos (Banco de Dados)',
+                    '30 usuários',
+                    '10 lojas',
+                    'Suporte prioritário',
+                    'Relatórios personalizados',
+                    'Treinamento incluso'
+                ]
             },
             {
                 id: '665e3eb9-ca1e-499d-a40b-275aa5e4f080',
@@ -440,8 +455,11 @@
                 preco_anual: 0,
                 descricao: 'Solução completa para grandes empresas',
                 destaque: false,
-                ordem: 5,
-                features: ['Produtos ilimitados', 'Usuários ilimitados', 'Lojas ilimitadas', 'Suporte VIP 24/7', 'API completa', 'Integrações customizadas', 'SLA garantido', 'Gerente de conta dedicado']
+                ordem: 4,
+                features: [
+                    'Todas as outras funcionalidades',
+                    'Sob Consulta'
+                ]
             }
         ];
         let isAnual = false;
@@ -487,18 +505,14 @@
                 const preco = isAnual ? plano.preco_anual : plano.preco_mensal;
                 const periodo = isAnual ? '/ano' : '/mês';
                 const isFeatured = plano.destaque;
-                const isContact = preco === 0 && (plano.nome === 'Personalizado' || plano.nome === 'Enterprise');
+                const isContact = plano.nome === 'Enterprise';
 
                 // Parse features
-                let features = [];
-                try {
-                    features = typeof plano.features === 'string' ? JSON.parse(plano.features) : (plano.features || []);
-                } catch (e) {
-                    features = [];
-                }
+                let features = Array.isArray(plano.features) ? plano.features : [];
 
                 return `
                     <div class="pricing-card ${isFeatured ? 'featured' : ''}">
+                        ${isFeatured ? '<div class="popular-badge">Mais Popular</div>' : ''}
                         <h3 class="plan-name">${plano.nome}</h3>
                         <p class="plan-description">${plano.descricao || ''}</p>
                         
@@ -532,13 +546,13 @@
                         
                         <div class="plan-cta">
                             ${isContact ? `
-                                <a href="mailto:suporte@datacerta.com.br?subject=Interesse no plano ${plano.nome}" class="btn btn-outline">
+                                <a href="mailto:datacerta.contato@gmail.com?subject=Interesse no plano ${plano.nome}" class="btn btn-outline">
                                     Falar com Vendas
                                 </a>
                             ` : `
                                 <button class="btn ${isFeatured ? 'btn-primary' : 'btn-outline'}" 
                                         onclick="selecionarPlano('${plano.id}', ${isAnual})">
-                                    ${isFeatured ? 'Começar Agora' : 'Selecionar'}
+                                    Selecionar
                                 </button>
                             `}
                         </div>
@@ -548,27 +562,31 @@
         }
 
         // =====================================================
-        // SELECIONAR PLANO E IR PARA CHECKOUT
+        // SELECIONAR PLANO E IR PARA CHECKOUT DA STRIPE
         // =====================================================
 
         async function selecionarPlano(planoId, anual) {
-            // Verificar se usuário está logado
             try {
-                const user = await auth.getUser();
+                // Mostrar loading
+                const btns = document.querySelectorAll('.plan-cta .btn');
+                btns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.6';
+                });
 
-                if (user) {
-                    // Usuário logado - redirecionar para checkout
-                    const periodo = anual ? 'anual' : 'mensal';
-                    window.location.href = `checkout.html?plano=${planoId}&periodo=${periodo}`;
-                } else {
-                    // Não logado - salvar escolha e redirecionar para trial
-                    localStorage.setItem('planoSelecionado', JSON.stringify({ planoId, anual }));
-                    window.location.href = 'trial.html';
-                }
+                // Redirecionar para checkout da Stripe
+                await redirecionarParaCheckout(planoId, anual ? 'anual' : 'mensal');
+
             } catch (error) {
-                // Não logado
-                localStorage.setItem('planoSelecionado', JSON.stringify({ planoId, anual }));
-                window.location.href = 'trial.html';
+                console.error('Erro ao selecionar plano:', error);
+                alert('Erro ao iniciar checkout. Tente novamente.');
+
+                // Restaurar botões
+                const btns = document.querySelectorAll('.plan-cta .btn');
+                btns.forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                });
             }
         }
 
@@ -576,7 +594,12 @@
         // INICIALIZAÇÃO
         // =====================================================
 
-        document.addEventListener('DOMContentLoaded', renderPlanos);
+        document.addEventListener('DOMContentLoaded', async () => {
+            const autenticado = await verificarAutenticacao();
+            if (autenticado) {
+                renderPlanos();
+            }
+        });
     </script>
 </body>
 
