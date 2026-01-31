@@ -315,12 +315,24 @@
             const params = new URLSearchParams(window.location.search);
             const code = params.get('code');
 
+            // Supabase v2: Processar tokens do hash fragment usando setSession
             const hash = window.location.hash || '';
-            if (hash.includes('access_token=') && window.supabaseClient?.auth?.getSessionFromUrl) {
-                const { error } = await window.supabaseClient.auth.getSessionFromUrl({ storeSession: true });
-                if (error) throw error;
-                window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
-                return;
+            if (hash.includes('access_token=')) {
+                const hashParams = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
+                const accessToken = hashParams.get('access_token');
+                const refreshToken = hashParams.get('refresh_token');
+                
+                if (accessToken && refreshToken) {
+                    const { error } = await window.supabaseClient.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken
+                    });
+                    if (error) throw error;
+                    
+                    // Limpar o hash da URL
+                    window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+                    return;
+                }
             }
 
             if (code && window.supabaseClient?.auth?.exchangeCodeForSession) {
