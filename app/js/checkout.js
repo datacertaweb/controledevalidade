@@ -41,6 +41,15 @@ async function ensureSupabaseAuth() {
     return token;
 }
 
+function getSupabaseInvokeHeaders(token) {
+    if (!window.supabaseClient) return undefined;
+    const apiKey = window.supabaseClient.supabaseKey || window.supabaseClient.headers?.apikey || null;
+    const headers = {};
+    if (apiKey) headers.apikey = apiKey;
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return Object.keys(headers).length ? headers : undefined;
+}
+
 // =====================================================
 // CRIAR SESSÃO DE CHECKOUT
 // =====================================================
@@ -68,7 +77,7 @@ async function criarSessaoCheckout({ planoId, periodo, empresaId, email }) {
             success_url: `${BASE_URL}/app/checkout-sucesso.html?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${BASE_URL}/app/planos.html?cancelado=1`
         },
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+        headers: getSupabaseInvokeHeaders(token)
     });
 
     if (error) {
@@ -159,7 +168,7 @@ async function verificarSessaoCheckout(sessionId) {
 
     const { data, error } = await window.supabaseClient.functions.invoke('stripe-checkout-status', {
         body: { session_id: sessionId },
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+        headers: getSupabaseInvokeHeaders(token)
     });
 
     if (error) {
@@ -196,7 +205,7 @@ async function abrirPortalCliente() {
                 empresa_id: userData.empresa_id,
                 return_url: `${BASE_URL}/app/dashboard.html`
             },
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined
+            headers: getSupabaseInvokeHeaders(token)
         });
 
         if (error) {
@@ -239,7 +248,7 @@ async function cancelarAssinatura(motivo = '') {
                 empresa_id: userData.empresa_id,
                 motivo: motivo
             },
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined
+            headers: getSupabaseInvokeHeaders(token)
         });
 
         if (error) {
