@@ -554,6 +554,30 @@
                     </div>
                 </div>
 
+                <!-- Section: Acesso -->
+                <div class="form-section">
+                    <div class="form-section-title">Acesso</div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="username">Usuário *</label>
+                            <input type="text" id="username" required placeholder="Seu usuário (ex: salomao.leme)">
+                            <span class="input-hint">Você poderá entrar com email ou usuário</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Senha *</label>
+                            <input type="password" id="password" required placeholder="Crie uma senha">
+                            <span class="input-hint">Mínimo de 8 caracteres</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passwordConfirm">Confirme a Senha *</label>
+                        <input type="password" id="passwordConfirm" required placeholder="Digite novamente a senha">
+                    </div>
+                </div>
+
                 <!-- Section: Endereço -->
                 <div class="form-section">
                     <div class="form-section-title">Endereço da Empresa</div>
@@ -633,6 +657,9 @@
                 <h2>Cadastro Realizado!</h2>
                 <p>Enviamos um email de confirmação para <strong id="emailConfirmacao"></strong>.<br>Clique no link do
                     email para ativar seu trial.</p>
+                <button type="button" class="btn btn-outline" id="btnResendConfirm" style="width: 100%; margin-bottom: 12px;">
+                    Reenviar email de confirmação
+                </button>
                 <a href="login.html" class="btn btn-primary">Ir para o Login</a>
             </div>
 

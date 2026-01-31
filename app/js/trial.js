@@ -13,6 +13,7 @@ const alertError = document.getElementById('alertError');
 const formLoading = document.getElementById('formLoading');
 const successScreen = document.getElementById('successScreen');
 const emailConfirmacao = document.getElementById('emailConfirmacao');
+const btnResendConfirm = document.getElementById('btnResendConfirm');
 
 // Inputs
 const inputs = {
@@ -21,6 +22,9 @@ const inputs = {
     telefone: document.getElementById('telefone'),
     nomeCliente: document.getElementById('nomeCliente'),
     email: document.getElementById('email'),
+    username: document.getElementById('username'),
+    password: document.getElementById('password'),
+    passwordConfirm: document.getElementById('passwordConfirm'),
     cep: document.getElementById('cep'),
     cidade: document.getElementById('cidade'),
     rua: document.getElementById('rua'),
@@ -73,6 +77,31 @@ document.addEventListener('DOMContentLoaded', () => {
     inputs.cep.addEventListener('input', () => {
         wrappers.cep.classList.remove('valid', 'invalid');
     });
+
+    if (btnResendConfirm) {
+        btnResendConfirm.addEventListener('click', async () => {
+            try {
+                if (!window.supabaseClient) {
+                    throw new Error('Sistema ainda carregando. Aguarde.');
+                }
+                const email = (emailConfirmacao?.textContent || inputs.email.value || '').trim();
+                if (!email) {
+                    throw new Error('Email não encontrado para reenvio.');
+                }
+                const { error } = await window.supabaseClient.auth.resend({
+                    type: 'signup',
+                    email,
+                    options: { emailRedirectTo: `${window.location.origin}/app/confirmar-trial.html` }
+                });
+                if (error) throw error;
+                btnResendConfirm.textContent = 'Email reenviado';
+                btnResendConfirm.disabled = true;
+            } catch (err) {
+                console.error('Erro ao reenviar confirmação:', err);
+                showError(err.message || 'Erro ao reenviar email de confirmação.');
+            }
+        });
+    }
 });
 
 // =====================================================
@@ -277,14 +306,50 @@ async function verificarDuplicidade(cpfCnpj, telefone, email) {
     return true;
 }
 
-// =====================================================
-// GERAR TOKEN DE CONFIRMAÇÃO
-// =====================================================
+function normalizarUsername(value) {
+    return (value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '.')
+        .replace(/[^a-z0-9._-]/g, '');
+}
 
-function gerarTokenConfirmacao() {
-    const array = new Uint8Array(32);
-    crypto.getRandomValues(array);
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+function validarUsername(value) {
+    const uname = normalizarUsername(value);
+    if (uname.length < 3) return { ok: false, message: 'Usuário deve ter pelo menos 3 caracteres.' };
+    if (uname.length > 30) return { ok: false, message: 'Usuário deve ter no máximo 30 caracteres.' };
+    if (!/^[a-z0-9][a-z0-9._-]*[a-z0-9]$/.test(uname)) {
+        return { ok: false, message: 'Usuário deve começar e terminar com letra ou número.' };
+    }
+    if (/(\.\.|__|--)/.test(uname)) {
+        return { ok: false, message: 'Usuário não pode ter caracteres repetidos (.., __, --).' };
+    }
+    return { ok: true, value: uname };
+}
+
+function validarSenha(password, confirm) {
+    if (!password || password.length < 8) {
+        return { ok: false, message: 'A senha deve ter pelo menos 8 caracteres.' };
+    }
+    if (password !== confirm) {
+        return { ok: false, message: 'As senhas não conferem.' };
+    }
+    return { ok: true };
+}
+
+async function verificarUsernameDisponivel(username) {
+    if (!window.supabaseClient) {
+        throw new Error('Sistema ainda carregando. Aguarde.');
+    }
+    const { data, error } = await window.supabaseClient.rpc('get_email_by_username', { uname: username });
+    if (error) {
+        console.error('Erro ao verificar username:', error);
+        throw new Error('Erro ao verificar usuário. Tente novamente.');
+    }
+    if (data) {
+        throw new Error('Este usuário já está em uso. Escolha outro.');
+    }
+    return true;
 }
 
 // =====================================================
@@ -296,10 +361,41 @@ async function enviarCadastro(dados) {
         throw new Error('Sistema ainda carregando. Aguarde.');
     }
 
-    // Gerar token de confirmação
-    const token = gerarTokenConfirmacao();
-    const tokenExpiraEm = new Date();
-    tokenExpiraEm.setHours(tokenExpiraEm.getHours() + 24); // Expira em 24h
+    const redirectTo = `${window.location.origin}/app/confirmar-trial.html`;
+
+    const { data: signUpData, error: signUpError } = await window.supabaseClient.auth.signUp({
+        email: dados.email.toLowerCase(),
+        password: dados.password,
+        options: {
+            emailRedirectTo: redirectTo,
+            data: {
+                tipo: 'empresa',
+                nome: dados.nomeCliente,
+                username: dados.username,
+                trial: {
+                    nome_empresa: dados.nomeEmpresa,
+                    cpf_cnpj: dados.cpfCnpj.replace(/[^\d]/g, ''),
+                    telefone: dados.telefone.replace(/[^\d]/g, ''),
+                    cep: dados.cep.replace(/[^\d]/g, ''),
+                    cidade: dados.cidade,
+                    rua: dados.rua,
+                    bairro: dados.bairro,
+                    numero: dados.numero,
+                    complemento: dados.complemento || null,
+                    uf: dados.uf,
+                    device_fingerprint: dados.deviceFingerprint
+                }
+            }
+        }
+    });
+
+    if (signUpError) {
+        console.error('Erro ao criar usuário no Auth:', signUpError);
+        if (signUpError.status === 400) {
+            throw new Error(signUpError.message || 'Não foi possível criar a conta. Verifique os dados.');
+        }
+        throw new Error(signUpError.message || 'Erro ao criar conta. Tente novamente.');
+    }
 
     // Preparar dados para inserção
     const registro = {
@@ -316,8 +412,6 @@ async function enviarCadastro(dados) {
         complemento: dados.complemento || null,
         uf: dados.uf,
         device_fingerprint: dados.deviceFingerprint,
-        token_confirmacao: token,
-        token_expira_em: tokenExpiraEm.toISOString(),
         status: 'pendente'
     };
 
@@ -330,20 +424,13 @@ async function enviarCadastro(dados) {
     if (error) {
         console.error('Erro ao inserir trial:', error);
 
-        // Verificar se é erro de duplicidade
         if (error.code === '23505') {
             throw new Error('Este CPF/CNPJ ou telefone já foi utilizado.');
         }
-
-        throw new Error('Erro ao processar cadastro. Tente novamente.');
+        return { trial: null, signUp: signUpData };
     }
 
-    // TODO: Enviar email de confirmação
-    // Por enquanto, apenas logamos o token
-    console.log('Token de confirmação gerado:', token);
-    console.log('Link de confirmação:', `${window.location.origin}/app/confirmar-trial.html?token=${token}`);
-
-    return data[0];
+    return { trial: data?.[0] || null, signUp: signUpData };
 }
 
 // =====================================================
@@ -386,6 +473,18 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
+    const usernameCheck = validarUsername(inputs.username.value);
+    if (!usernameCheck.ok) {
+        showError(usernameCheck.message);
+        return;
+    }
+
+    const senhaCheck = validarSenha(inputs.password.value, inputs.passwordConfirm.value);
+    if (!senhaCheck.ok) {
+        showError(senhaCheck.message);
+        return;
+    }
+
     if (!inputs.cep.value.trim() || inputs.cep.value.replace(/[^\d]/g, '').length !== 8) {
         showError('Informe um CEP válido.');
         return;
@@ -413,6 +512,8 @@ form.addEventListener('submit', async (e) => {
             inputs.email.value
         );
 
+        await verificarUsernameDisponivel(usernameCheck.value);
+
         // Enviar cadastro
         const dados = {
             nomeEmpresa: inputs.nomeEmpresa.value.trim(),
@@ -420,6 +521,8 @@ form.addEventListener('submit', async (e) => {
             telefone: inputs.telefone.value,
             nomeCliente: inputs.nomeCliente.value.trim(),
             email: inputs.email.value.trim(),
+            username: usernameCheck.value,
+            password: inputs.password.value,
             cep: inputs.cep.value,
             cidade: inputs.cidade.value,
             rua: inputs.rua.value,

@@ -47,12 +47,12 @@ window.auth = {
         const user = await this.getUser();
         if (!user) return false;
 
-        const { data, error } = await window.supabaseClient
+        const { data } = await window.supabaseClient
             .from('master_users')
             .select('id, role, ativo')
             .eq('id', user.id)
             .eq('ativo', true)
-            .single();
+            .maybeSingle();
 
         return !!data;
     },
@@ -69,7 +69,7 @@ window.auth = {
             .from('master_users')
             .select('*')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
         if (masterData) {
             return { ...masterData, tipo: 'master' };
@@ -158,7 +158,17 @@ window.auth = {
     /**
      * Login com email e senha
      */
-    async signIn(email, password) {
+    async signIn(emailOrUsername, password) {
+        let email = (emailOrUsername || '').trim();
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+        if (!isEmail) {
+            const { data, error } = await window.supabaseClient.rpc('get_email_by_username', { uname: email });
+            if (error) throw error;
+            if (!data) throw new Error('Usuário não encontrado.');
+            email = data;
+        }
+
         const { data, error } = await window.supabaseClient.auth.signInWithPassword({
             email,
             password

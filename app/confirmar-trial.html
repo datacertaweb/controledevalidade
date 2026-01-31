@@ -222,11 +222,11 @@
                     <span id="userEmail">-</span>
                 </div>
                 <div class="credential-item">
-                    <label>Senha temporária:</label>
-                    <span id="userPassword">-</span>
+                    <label>Usuário:</label>
+                    <span id="userUsername">-</span>
                 </div>
                 <p style="font-size: 12px; color: #94A3B8; margin-top: 12px;">
-                    ⚠️ Guarde sua senha! Você poderá alterá-la após fazer login.
+                    Você já definiu sua senha no cadastro. Use-a para entrar.
                 </p>
             </div>
 
@@ -283,181 +283,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
     <script>
-        // =====================================================
-        // ELEMENTOS
-        // =====================================================
-
         const loadingState = document.getElementById('loadingState');
         const successState = document.getElementById('successState');
         const errorState = document.getElementById('errorState');
         const alreadyConfirmedState = document.getElementById('alreadyConfirmedState');
         const errorMessage = document.getElementById('errorMessage');
         const userEmail = document.getElementById('userEmail');
-        const userPassword = document.getElementById('userPassword');
+        const userUsername = document.getElementById('userUsername');
 
-        // =====================================================
-        // GERAR SENHA ALEATÓRIA
-        // =====================================================
-
-        function gerarSenhaTemporaria() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
-            let senha = '';
-            for (let i = 0; i < 10; i++) {
-                senha += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return senha;
-        }
-
-        // =====================================================
-        // CONFIRMAR TOKEN
-        // =====================================================
-
-        async function confirmarToken() {
-            try {
-                // Obter token da URL
-                const params = new URLSearchParams(window.location.search);
-                const token = params.get('token');
-
-                if (!token) {
-                    mostrarErro('Token de confirmação não encontrado.');
-                    return;
-                }
-
-                // Aguardar Supabase
-                if (!window.supabaseClient) {
-                    await new Promise(resolve => {
-                        window.addEventListener('supabaseReady', resolve, { once: true });
-                    });
-                }
-
-                // Buscar registro de trial pelo token
-                const { data: trial, error: trialError } = await window.supabaseClient
-                    .from('trials_registro')
-                    .select('*')
-                    .eq('token_confirmacao', token)
-                    .single();
-
-                if (trialError || !trial) {
-                    mostrarErro('Token inválido ou expirado.');
-                    return;
-                }
-
-                // Verificar se token expirou
-                if (trial.token_expira_em && new Date(trial.token_expira_em) < new Date()) {
-                    mostrarErro('Este link de confirmação expirou. Por favor, faça um novo cadastro.');
-                    return;
-                }
-
-                // Verificar se já foi confirmado
-                if (trial.status === 'ativo' || trial.status === 'convertido') {
-                    loadingState.style.display = 'none';
-                    alreadyConfirmedState.style.display = 'block';
-                    return;
-                }
-
-                // Gerar senha temporária
-                const senhaTemporaria = gerarSenhaTemporaria();
-
-                // Calcular data de fim do trial (7 dias)
-                const dataInicio = new Date();
-                const dataFim = new Date();
-                dataFim.setDate(dataFim.getDate() + 7);
-
-                // Atualizar registro do trial
-                const { error: updateError } = await window.supabaseClient
-                    .from('trials_registro')
-                    .update({
-                        status: 'ativo',
-                        email_confirmado: true,
-                        data_inicio: dataInicio.toISOString(),
-                        data_fim: dataFim.toISOString()
-                    })
-                    .eq('id', trial.id);
-
-                if (updateError) {
-                    console.error('Erro ao atualizar trial:', updateError);
-                    mostrarErro('Erro ao ativar sua conta. Por favor, tente novamente.');
-                    return;
-                }
-
-                // Criar empresa no sistema
-                const { data: empresa, error: empresaError } = await window.supabaseClient
-                    .from('empresas')
-                    .insert({
-                        nome: trial.nome_empresa,
-                        cnpj: trial.cpf_cnpj,
-                        email: trial.email,
-                        telefone: trial.telefone,
-                        endereco: `${trial.rua}, ${trial.numero}${trial.complemento ? ' - ' + trial.complemento : ''}, ${trial.bairro}, ${trial.cidade}`,
-                        cep: trial.cep,
-                        status: 'trial',
-                        trial_ends_at: dataFim.toISOString()
-                    })
-                    .select()
-                    .single();
-
-                if (empresaError) {
-                    console.error('Erro ao criar empresa:', empresaError);
-                    mostrarErro('Erro ao criar sua empresa. Por favor, entre em contato com o suporte.');
-                    return;
-                }
-
-                // Atualizar trial com empresa_id
-                await window.supabaseClient
-                    .from('trials_registro')
-                    .update({ empresa_id: empresa.id })
-                    .eq('id', trial.id);
-
-                // Criar usuário admin
-                const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
-                    email: trial.email,
-                    password: senhaTemporaria,
-                    options: {
-                        data: {
-                            nome: trial.nome_cliente,
-                            empresa_id: empresa.id
-                        }
-                    }
-                });
-
-                if (authError) {
-                    console.error('Erro ao criar usuário:', authError);
-                    // Continuar mesmo com erro, pois a empresa foi criada
-                }
-
-                // Criar registro na tabela usuarios
-                if (authData?.user) {
-                    await window.supabaseClient
-                        .from('usuarios')
-                        .insert({
-                            id: authData.user.id,
-                            nome: trial.nome_cliente,
-                            email: trial.email,
-                            username: trial.email.split('@')[0],
-                            empresa_id: empresa.id,
-                            tipo: 'empresa',
-                            ativo: true
-                        });
-                }
-
-                // Mostrar sucesso
-                mostrarSucesso(trial.email, senhaTemporaria);
-
-            } catch (error) {
-                console.error('Erro na confirmação:', error);
-                mostrarErro('Ocorreu um erro inesperado. Por favor, tente novamente.');
-            }
-        }
-
-        // =====================================================
-        // UI HELPERS
-        // =====================================================
-
-        function mostrarSucesso(email, senha) {
+        function mostrarSucesso(email, username) {
             loadingState.style.display = 'none';
             successState.style.display = 'block';
-            userEmail.textContent = email;
-            userPassword.textContent = senha;
+            userEmail.textContent = email || '-';
+            userUsername.textContent = username || '-';
         }
 
         function mostrarErro(mensagem) {
@@ -466,11 +304,168 @@
             errorMessage.textContent = mensagem;
         }
 
-        // =====================================================
-        // INICIALIZAÇÃO
-        // =====================================================
+        async function waitSupabase() {
+            if (window.supabaseClient) return;
+            await new Promise(resolve => {
+                window.addEventListener('supabaseReady', resolve, { once: true });
+            });
+        }
 
-        document.addEventListener('DOMContentLoaded', confirmarToken);
+        async function ensureSessionFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+
+            if (code && window.supabaseClient?.auth?.exchangeCodeForSession) {
+                const { error } = await window.supabaseClient.auth.exchangeCodeForSession(code);
+                if (error) throw error;
+                params.delete('code');
+                const clean = params.toString();
+                const newUrl = `${window.location.pathname}${clean ? `?${clean}` : ''}`;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+        }
+
+        async function criarEmpresa({ nomeEmpresa, cpfCnpj, telefone, email, trialEndsAt }) {
+            const payload = {
+                nome: nomeEmpresa,
+                cnpj: cpfCnpj || null,
+                email,
+                telefone: telefone || null,
+                status: 'trial',
+                trial_ends_at: trialEndsAt
+            };
+
+            const { data, error } = await window.supabaseClient
+                .from('empresas')
+                .insert(payload)
+                .select()
+                .single();
+
+            if (error) throw error;
+            return data;
+        }
+
+        async function obterRoleAdminId(empresaId) {
+            const { data } = await window.supabaseClient
+                .from('roles')
+                .select('id')
+                .eq('empresa_id', empresaId)
+                .eq('is_admin', true)
+                .maybeSingle();
+            return data?.id || null;
+        }
+
+        async function upsertUsuarioEmpresa({ userId, empresaId, roleId, email, nome, username }) {
+            const payload = {
+                id: userId,
+                empresa_id: empresaId,
+                role_id: roleId,
+                email,
+                nome,
+                username,
+                ativo: true
+            };
+
+            const { error } = await window.supabaseClient
+                .from('usuarios')
+                .upsert(payload, { onConflict: 'id' });
+
+            if (error) throw error;
+        }
+
+        async function marcarTrialAtivo(email, empresaId, dataInicio, dataFim) {
+            const { error } = await window.supabaseClient
+                .from('trials_registro')
+                .update({
+                    status: 'ativo',
+                    email_confirmado: true,
+                    empresa_id: empresaId,
+                    data_inicio: dataInicio,
+                    data_fim: dataFim
+                })
+                .eq('email', email.toLowerCase())
+                .in('status', ['pendente', 'ativo']);
+
+            if (error) {
+                console.warn('Não foi possível atualizar trials_registro:', error);
+            }
+        }
+
+        async function ativarTrial() {
+            try {
+                await waitSupabase();
+                await ensureSessionFromUrl();
+
+                const { data: userRes, error: userErr } = await window.supabaseClient.auth.getUser();
+                const user = userRes?.user;
+                if (userErr || !user) {
+                    mostrarErro('Sessão inválida. Abra novamente pelo link do email de confirmação.');
+                    return;
+                }
+
+                const { data: usuarioExistente } = await window.supabaseClient
+                    .from('usuarios')
+                    .select('empresa_id, username')
+                    .eq('id', user.id)
+                    .maybeSingle();
+
+                if (usuarioExistente?.empresa_id) {
+                    loadingState.style.display = 'none';
+                    alreadyConfirmedState.style.display = 'block';
+                    return;
+                }
+
+                const meta = user.user_metadata || {};
+                const trial = meta.trial || {};
+
+                const nomeEmpresa = trial.nome_empresa || meta.nome_empresa || '';
+                const cpfCnpj = trial.cpf_cnpj || meta.cpf_cnpj || null;
+                const telefone = trial.telefone || meta.telefone || null;
+                const nome = meta.nome || meta.nome_cliente || '';
+                const username = meta.username || '';
+
+                if (!nomeEmpresa || !user.email) {
+                    mostrarErro('Dados do cadastro não encontrados. Refaça o cadastro do trial.');
+                    return;
+                }
+
+                const dataInicio = new Date();
+                const dataFim = new Date();
+                dataFim.setDate(dataFim.getDate() + 7);
+
+                const empresa = await criarEmpresa({
+                    nomeEmpresa,
+                    cpfCnpj,
+                    telefone,
+                    email: user.email,
+                    trialEndsAt: dataFim.toISOString()
+                });
+
+                const roleId = await obterRoleAdminId(empresa.id);
+
+                await upsertUsuarioEmpresa({
+                    userId: user.id,
+                    empresaId: empresa.id,
+                    roleId,
+                    email: user.email,
+                    nome,
+                    username
+                });
+
+                await window.supabaseClient.auth.updateUser({
+                    data: { empresa_id: empresa.id, tipo: 'empresa' }
+                });
+
+                await marcarTrialAtivo(user.email, empresa.id, dataInicio.toISOString(), dataFim.toISOString());
+
+                mostrarSucesso(user.email, username);
+            } catch (error) {
+                console.error('Erro ao ativar trial:', error);
+                mostrarErro(error.message || 'Erro ao ativar sua conta. Tente novamente.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', ativarTrial);
     </script>
 </body>
 
