@@ -28,6 +28,20 @@ async function initStripe() {
 }
 
 // =====================================================
+// SUPABASE READY / AUTH
+// =====================================================
+async function ensureSupabaseAuth() {
+    if (!window.supabaseClient) {
+        await new Promise(resolve => {
+            window.addEventListener('supabaseReady', resolve, { once: true });
+        });
+    }
+    const { data } = await window.supabaseClient.auth.getSession();
+    const token = data?.session?.access_token || null;
+    return token;
+}
+
+// =====================================================
 // CRIAR SESSÃO DE CHECKOUT
 // =====================================================
 
@@ -41,9 +55,8 @@ async function initStripe() {
  * @returns {Promise<{sessionId: string, url: string}>}
  */
 async function criarSessaoCheckout({ planoId, periodo, empresaId, email }) {
-    if (!window.supabaseClient) {
-        throw new Error('Supabase não inicializado');
-    }
+    const token = await ensureSupabaseAuth();
+    if (!window.supabaseClient) throw new Error('Supabase não inicializado');
 
     // Chamar Edge Function para criar sessão
     const { data, error } = await window.supabaseClient.functions.invoke('stripe-checkout', {
@@ -54,12 +67,13 @@ async function criarSessaoCheckout({ planoId, periodo, empresaId, email }) {
             email: email,
             success_url: `${BASE_URL}/app/checkout-sucesso.html?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${BASE_URL}/app/planos.html?cancelado=1`
-        }
+        },
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
     });
 
     if (error) {
         console.error('Erro ao criar sessão:', error);
-        console.error('Detalhes do erro:', error.message, error.context);
+        console.error('Detalhes do erro:', error.message, error.context || '', 'status:', error.status || '');
         throw new Error(error.message || 'Erro ao iniciar checkout. Tente novamente.');
     }
 
@@ -140,12 +154,12 @@ async function redirecionarParaCheckout(planoId, periodo) {
  * @returns {Promise<Object>}
  */
 async function verificarSessaoCheckout(sessionId) {
-    if (!window.supabaseClient) {
-        throw new Error('Supabase não inicializado');
-    }
+    const token = await ensureSupabaseAuth();
+    if (!window.supabaseClient) throw new Error('Supabase não inicializado');
 
     const { data, error } = await window.supabaseClient.functions.invoke('stripe-checkout-status', {
-        body: { session_id: sessionId }
+        body: { session_id: sessionId },
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
     });
 
     if (error) {
@@ -176,11 +190,13 @@ async function abrirPortalCliente() {
         }
 
         // Chamar Edge Function para criar sessão do portal
+        const token = await ensureSupabaseAuth();
         const { data, error } = await window.supabaseClient.functions.invoke('stripe-portal', {
             body: {
                 empresa_id: userData.empresa_id,
                 return_url: `${BASE_URL}/app/dashboard.html`
-            }
+            },
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined
         });
 
         if (error) {
@@ -217,11 +233,13 @@ async function cancelarAssinatura(motivo = '') {
             throw new Error('Dados da empresa não encontrados');
         }
 
+        const token = await ensureSupabaseAuth();
         const { data, error } = await window.supabaseClient.functions.invoke('stripe-cancel', {
             body: {
                 empresa_id: userData.empresa_id,
                 motivo: motivo
-            }
+            },
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined
         });
 
         if (error) {
