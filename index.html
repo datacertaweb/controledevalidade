@@ -1340,15 +1340,12 @@
             const hashParams = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
             const type = hashParams.get('type');
 
-            if (type === 'signup') {
-                window.location.replace(`${window.location.origin}/app/confirmar-trial.html${hash}`);
-                return;
-            }
-
             if (type === 'recovery') {
                 window.location.replace(`${window.location.origin}/app/reset-senha.html${hash}`);
                 return;
             }
+
+            window.location.replace(`${window.location.origin}/app/confirmar-trial.html${hash}`);
         })();
 
         // =====================================================
