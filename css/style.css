@@ -466,6 +466,18 @@ body {
     background: var(--bg-tertiary);
 }
 
+/* Botão Sair na sidebar - sempre com fundo branco */
+.sidebar-footer .btn-ghost {
+    background: white;
+    color: var(--sidebar-bg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-footer .btn-ghost:hover {
+    background: #f1f5f9;
+    color: var(--sidebar-bg);
+}
+
 .btn-danger {
     background: linear-gradient(135deg, var(--color-danger) 0%, #DC2626 100%);
     color: white;
@@ -679,6 +691,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
 }
 
 .form-group label {
