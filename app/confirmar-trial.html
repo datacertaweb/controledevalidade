@@ -321,14 +321,14 @@
                 const hashParams = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
                 const accessToken = hashParams.get('access_token');
                 const refreshToken = hashParams.get('refresh_token');
-                
+
                 if (accessToken && refreshToken) {
                     const { error } = await window.supabaseClient.auth.setSession({
                         access_token: accessToken,
                         refresh_token: refreshToken
                     });
                     if (error) throw error;
-                    
+
                     // Limpar o hash da URL
                     window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
                     return;
@@ -423,6 +423,7 @@
                     return;
                 }
 
+                // Verificar se já tem empresa
                 const { data: usuarioExistente } = await window.supabaseClient
                     .from('usuarios')
                     .select('empresa_id, username')
@@ -449,34 +450,35 @@
                     return;
                 }
 
-                const dataInicio = new Date();
-                const dataFim = new Date();
-                dataFim.setDate(dataFim.getDate() + 7);
+                // Usar função RPC segura para ativar o trial
+                const { data: resultado, error: rpcError } = await window.supabaseClient
+                    .rpc('ativar_trial_empresa', {
+                        p_nome_empresa: nomeEmpresa,
+                        p_cpf_cnpj: cpfCnpj,
+                        p_telefone: telefone,
+                        p_email: user.email,
+                        p_nome_usuario: nome,
+                        p_username: username
+                    });
 
-                const empresa = await criarEmpresa({
-                    nomeEmpresa,
-                    cpfCnpj,
-                    telefone,
-                    email: user.email,
-                    trialEndsAt: dataFim.toISOString()
-                });
+                if (rpcError) {
+                    console.error('Erro RPC ativar_trial_empresa:', rpcError);
+                    throw new Error(rpcError.message || 'Erro ao ativar trial');
+                }
 
-                const roleId = await obterRoleAdminId(empresa.id);
+                if (!resultado?.success) {
+                    if (resultado?.already_exists) {
+                        loadingState.style.display = 'none';
+                        alreadyConfirmedState.style.display = 'block';
+                        return;
+                    }
+                    throw new Error(resultado?.error || 'Erro ao ativar trial');
+                }
 
-                await upsertUsuarioEmpresa({
-                    userId: user.id,
-                    empresaId: empresa.id,
-                    roleId,
-                    email: user.email,
-                    nome,
-                    username
-                });
-
+                // Atualizar user metadata com empresa_id
                 await window.supabaseClient.auth.updateUser({
-                    data: { empresa_id: empresa.id, tipo: 'empresa' }
+                    data: { empresa_id: resultado.empresa_id, tipo: 'empresa' }
                 });
-
-                await marcarTrialAtivo(user.email, empresa.id, dataInicio.toISOString(), dataFim.toISOString());
 
                 mostrarSucesso(user.email, username);
             } catch (error) {
