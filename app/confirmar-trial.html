@@ -315,6 +315,14 @@
             const params = new URLSearchParams(window.location.search);
             const code = params.get('code');
 
+            const hash = window.location.hash || '';
+            if (hash.includes('access_token=') && window.supabaseClient?.auth?.getSessionFromUrl) {
+                const { error } = await window.supabaseClient.auth.getSessionFromUrl({ storeSession: true });
+                if (error) throw error;
+                window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+                return;
+            }
+
             if (code && window.supabaseClient?.auth?.exchangeCodeForSession) {
                 const { error } = await window.supabaseClient.auth.exchangeCodeForSession(code);
                 if (error) throw error;
