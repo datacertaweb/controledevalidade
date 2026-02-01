@@ -111,7 +111,9 @@
             <a href="planos.html" class="btn btn-primary btn-sm"
                 style="margin-top: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                    </polygon>
                 </svg>
                 Meu Plano
             </a>
@@ -227,7 +229,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
+    <script src="js/access-control.js"></script>
     <script src="js/lojas.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const waitForSupabase = () => new Promise((resolve) => {
+                const check = () => (window.supabaseClient && window.accessControl) ? resolve() : setTimeout(check, 100);
+                check();
+            });
+            await waitForSupabase();
+            const hasAccess = await window.accessControl.protegerPagina();
+            if (!hasAccess) return;
+        });
+    </script>
 </body>
 
 </html>

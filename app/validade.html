@@ -557,7 +557,29 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
+    <script src="js/access-control.js"></script>
     <script src="js/validade.js"></script>
+    <script>
+        // Verificar acesso antes de inicializar
+        document.addEventListener('DOMContentLoaded', async () => {
+            const waitForSupabase = () => {
+                return new Promise((resolve) => {
+                    const check = () => {
+                        if (window.supabaseClient && window.accessControl) {
+                            resolve();
+                        } else {
+                            setTimeout(check, 100);
+                        }
+                    };
+                    check();
+                });
+            };
+            await waitForSupabase();
+
+            const hasAccess = await window.accessControl.protegerPagina();
+            if (!hasAccess) return;
+        });
+    </script>
 </body>
 
 </html>

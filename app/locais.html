@@ -216,7 +216,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
+    <script src="js/access-control.js"></script>
     <script src="js/locais.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const waitForSupabase = () => new Promise((resolve) => {
+                const check = () => (window.supabaseClient && window.accessControl) ? resolve() : setTimeout(check, 100);
+                check();
+            });
+            await waitForSupabase();
+            const hasAccess = await window.accessControl.protegerPagina();
+            if (!hasAccess) return;
+        });
+    </script>
 </body>
 
 </html>
