@@ -71,50 +71,60 @@ async function criarSessaoCheckout({ planoId, periodo, empresaId, email }) {
 
     console.log('Token JWT disponível:', !!sessionData.session.access_token);
 
-    // Chamar Edge Function para criar sessão
-    // O Supabase SDK v2 automaticamente inclui o token JWT quando o usuário está logado
-    const { data, error } = await window.supabaseClient.functions.invoke('stripe-checkout', {
-        body: {
-            plano_id: planoId,
-            periodo: periodo,
-            empresa_id: empresaId,
-            email: email,
-            success_url: `${BASE_URL}/app/checkout-sucesso.html?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${BASE_URL}/app/planos.html?cancelado=1`
-        }
-    });
-
-    if (error) {
-        console.error('Erro ao criar sessão:', error);
-
-        let serverErrorMsg = '';
-        if (error instanceof window.supabaseClient.functions.FunctionsHttpError || (error.context && typeof error.context.json === 'function')) {
-            try {
-                // Tenta ler o corpo da resposta de erro
-                const errorBody = await error.context.json();
-                console.error('DETALHES DO ERRO (SERVIDOR):', errorBody);
-                if (errorBody.error) serverErrorMsg = errorBody.error;
-                if (errorBody.details) serverErrorMsg += ` (${errorBody.details})`;
-            } catch (e) {
-                console.warn('Não foi possível ler detalhes do erro do servidor:', e);
-                // Tente ler como texto se JSON falhar
-                try {
-                    const textBody = await error.context.text();
-                    console.error('CORPO DO ERRO (TEXTO):', textBody);
-                } catch (e2) { }
+    try {
+        // Chamar Edge Function para criar sessão
+        const { data, error } = await window.supabaseClient.functions.invoke('stripe-checkout', {
+            body: {
+                plano_id: planoId,
+                periodo: periodo,
+                empresa_id: empresaId,
+                email: email,
+                success_url: `${BASE_URL}/app/checkout-sucesso.html?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${BASE_URL}/app/planos.html?cancelado=1`
             }
+        });
+
+        if (error) {
+            console.error('Erro ao criar sessão:', error);
+
+            // Tentar extrair mensagem de erro detalhada do servidor
+            let errorMessage = 'Erro ao iniciar checkout. Tente novamente.';
+
+            // Se houver corpo de erro no contexto (padrão Supabase functions)
+            if (error.context && typeof error.context.json === 'function') {
+                try {
+                    const errorBody = await error.context.json();
+                    console.error('DETALHES DO ERRO (SERVIDOR):', errorBody);
+
+                    if (errorBody.error) {
+                        errorMessage = errorBody.error;
+                        if (errorBody.details) errorMessage += ` (${errorBody.details})`;
+                    } else if (errorBody.message) {
+                        errorMessage = errorBody.message;
+                    }
+                } catch (e) {
+                    console.warn('Falha ao ler JSON do erro:', e);
+                }
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            throw new Error(errorMessage);
         }
 
-        throw new Error(serverErrorMsg || error.message || 'Erro ao iniciar checkout. Tente novamente.');
-    }
+        if (!data) {
+            console.error('Nenhum dado retornado da função');
+            throw new Error('Erro ao iniciar checkout. Tente novamente.');
+        }
 
-    if (!data) {
-        console.error('Nenhum dado retornado da função');
-        throw new Error('Erro ao iniciar checkout. Tente novamente.');
-    }
+        console.log('Sessão criada com sucesso:', data);
+        return data;
 
-    console.log('Sessão criada com sucesso:', data);
-    return data;
+    } catch (err) {
+        // Garantir que o erro seja repassado para o UI
+        console.error('Falha na função criarSessaoCheckout:', err);
+        throw err;
+    }
 }
 
 // =====================================================
