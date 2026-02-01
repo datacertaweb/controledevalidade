@@ -50,10 +50,6 @@ function getSupabaseInvokeHeaders(token) {
     return Object.keys(headers).length ? headers : undefined;
 }
 
-// =====================================================
-// CRIAR SESSÃO DE CHECKOUT
-// =====================================================
-
 /**
  * Cria uma sessão de checkout no Stripe via Edge Function
  * @param {Object} params - Parâmetros do checkout
@@ -64,10 +60,19 @@ function getSupabaseInvokeHeaders(token) {
  * @returns {Promise<{sessionId: string, url: string}>}
  */
 async function criarSessaoCheckout({ planoId, periodo, empresaId, email }) {
-    const token = await ensureSupabaseAuth();
+    await ensureSupabaseAuth();
     if (!window.supabaseClient) throw new Error('Supabase não inicializado');
 
+    // Verificar se o usuário está logado
+    const { data: sessionData } = await window.supabaseClient.auth.getSession();
+    if (!sessionData?.session) {
+        throw new Error('Usuário não autenticado. Faça login novamente.');
+    }
+
+    console.log('Token JWT disponível:', !!sessionData.session.access_token);
+
     // Chamar Edge Function para criar sessão
+    // O Supabase SDK v2 automaticamente inclui o token JWT quando o usuário está logado
     const { data, error } = await window.supabaseClient.functions.invoke('stripe-checkout', {
         body: {
             plano_id: planoId,
@@ -76,8 +81,7 @@ async function criarSessaoCheckout({ planoId, periodo, empresaId, email }) {
             email: email,
             success_url: `${BASE_URL}/app/checkout-sucesso.html?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${BASE_URL}/app/planos.html?cancelado=1`
-        },
-        headers: getSupabaseInvokeHeaders(token)
+        }
     });
 
     if (error) {
