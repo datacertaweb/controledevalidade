@@ -364,6 +364,39 @@ async function enviarCadastro(dados) {
         throw new Error('Sistema ainda carregando. Aguarde.');
     }
 
+    // PRIMEIRO: Inserir no trials_registro (antifraude)
+    // Isso valida se CPF/CNPJ/telefone já foram usados ANTES de criar o usuário
+    const registro = {
+        nome_empresa: dados.nomeEmpresa,
+        cpf_cnpj: dados.cpfCnpj.replace(/[^\d]/g, ''),
+        email: dados.email.toLowerCase(),
+        telefone: dados.telefone.replace(/[^\d]/g, ''),
+        nome_cliente: dados.nomeCliente,
+        cep: dados.cep.replace(/[^\d]/g, ''),
+        cidade: dados.cidade,
+        rua: dados.rua,
+        bairro: dados.bairro,
+        numero: dados.numero,
+        complemento: dados.complemento || null,
+        uf: dados.uf,
+        device_fingerprint: dados.deviceFingerprint,
+        status: 'pendente'
+    };
+
+    // Inserir no banco ANTES do signup para garantir antifraude
+    const { data: trialData, error: trialError } = await window.supabaseClient
+        .from('trials_registro')
+        .insert([registro])
+        .select();
+
+    if (trialError) {
+        console.error('Erro ao inserir trial:', trialError);
+        if (trialError.code === '23505') {
+            throw new Error('Este CPF/CNPJ ou telefone já foi utilizado para um período de teste.');
+        }
+        throw new Error('Erro ao registrar trial. Tente novamente.');
+    }
+
     // Detectar a base URL corretamente (para GitHub Pages que usa subdiretório)
     const basePath = window.location.pathname.includes('/app/')
         ? window.location.pathname.split('/app/')[0]
@@ -398,46 +431,20 @@ async function enviarCadastro(dados) {
 
     if (signUpError) {
         console.error('Erro ao criar usuário no Auth:', signUpError);
+        // Rollback: remover o registro do trial se o signup falhou
+        if (trialData?.[0]?.id) {
+            await window.supabaseClient
+                .from('trials_registro')
+                .delete()
+                .eq('id', trialData[0].id);
+        }
         if (signUpError.status === 400) {
             throw new Error(signUpError.message || 'Não foi possível criar a conta. Verifique os dados.');
         }
         throw new Error(signUpError.message || 'Erro ao criar conta. Tente novamente.');
     }
 
-    // Preparar dados para inserção
-    const registro = {
-        nome_empresa: dados.nomeEmpresa,
-        cpf_cnpj: dados.cpfCnpj.replace(/[^\d]/g, ''),
-        email: dados.email.toLowerCase(),
-        telefone: dados.telefone.replace(/[^\d]/g, ''),
-        nome_cliente: dados.nomeCliente,
-        cep: dados.cep.replace(/[^\d]/g, ''),
-        cidade: dados.cidade,
-        rua: dados.rua,
-        bairro: dados.bairro,
-        numero: dados.numero,
-        complemento: dados.complemento || null,
-        uf: dados.uf,
-        device_fingerprint: dados.deviceFingerprint,
-        status: 'pendente'
-    };
-
-    // Inserir no banco
-    const { data, error } = await window.supabaseClient
-        .from('trials_registro')
-        .insert([registro])
-        .select();
-
-    if (error) {
-        console.error('Erro ao inserir trial:', error);
-
-        if (error.code === '23505') {
-            throw new Error('Este CPF/CNPJ ou telefone já foi utilizado.');
-        }
-        return { trial: null, signUp: signUpData };
-    }
-
-    return { trial: data?.[0] || null, signUp: signUpData };
+    return { trial: trialData?.[0] || null, signUp: signUpData };
 }
 
 // =====================================================
