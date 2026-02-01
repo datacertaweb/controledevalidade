@@ -84,7 +84,7 @@ async function verificarStatusEmpresa() {
                 status: 'trial_expired',
                 message: ACCESS_CONFIG.MESSAGES.TRIAL_EXPIRED,
                 empresa: empresa,
-                redirectTo: 'planos.html'
+                redirectTo: 'bloqueado.html?reason=trial_expired'
             };
         }
 
@@ -109,7 +109,7 @@ async function verificarStatusEmpresa() {
                 status: 'subscription_expired',
                 message: ACCESS_CONFIG.MESSAGES.SUBSCRIPTION_EXPIRED,
                 empresa: empresa,
-                redirectTo: 'planos.html'
+                redirectTo: 'bloqueado.html?reason=subscription_expired'
             };
         }
 
@@ -150,7 +150,7 @@ async function verificarStatusEmpresa() {
             status: 'payment_failed',
             message: ACCESS_CONFIG.MESSAGES.PAYMENT_FAILED,
             empresa: empresa,
-            redirectTo: 'planos.html'
+            redirectTo: 'bloqueado.html?reason=payment_failed'
         };
     }
 
@@ -161,7 +161,7 @@ async function verificarStatusEmpresa() {
             status: 'inactive',
             message: ACCESS_CONFIG.MESSAGES.SUBSCRIPTION_INACTIVE,
             empresa: empresa,
-            redirectTo: 'planos.html'
+            redirectTo: 'bloqueado.html?reason=inactive'
         };
     }
 

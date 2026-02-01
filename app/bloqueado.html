@@ -196,10 +196,24 @@
         </div>
 
         <div class="blocked-content">
-            <!-- Motivo do bloqueio -->
+            <!-- O que aconteceu -->
             <div class="blocked-reason">
-                <h4>Motivo</h4>
+                <h4>O que aconteceu?</h4>
                 <p id="blockedReason">Seu período de teste expirou.</p>
+            </div>
+
+            <!-- Por que estou bloqueado -->
+            <div class="blocked-reason" id="whyBlockedSection" style="display: none;">
+                <h4>Por que estou bloqueado?</h4>
+                <p id="whyBlockedText"></p>
+            </div>
+
+            <!-- Como resolver -->
+            <div class="blocked-reason"
+                style="background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%); border: 1px solid rgba(20, 184, 166, 0.2);">
+                <h4 style="color: var(--accent-primary);">Como resolver?</h4>
+                <p style="color: var(--text-primary);">Escolha um plano abaixo e assine para recuperar o acesso completo
+                    ao DataCerta. Todos os seus dados serão restaurados imediatamente.</p>
             </div>
 
             <!-- Opções de planos -->
@@ -245,32 +259,42 @@
 
         const BLOCK_REASONS = {
             trial_expired: {
-                title: 'Período de Teste Expirado',
-                subtitle: 'Seus 7 dias de teste chegaram ao fim',
-                reason: 'Para continuar usando o DataCerta, escolha um dos nossos planos abaixo.',
+                title: 'Período de Teste Finalizado',
+                subtitle: 'Seus 7 dias de teste gratuito chegaram ao fim',
+                reason: `O período de teste do DataCerta expirou. Durante esses 7 dias, você teve acesso completo a todas as funcionalidades do sistema para avaliar se ele atende às necessidades do seu negócio.
+
+Para continuar utilizando o DataCerta e manter todos os seus dados salvos, é necessário assinar um dos nossos planos.`,
                 headerClass: 'expired',
-                showPaymentButton: false
+                showPaymentButton: false,
+                showWhyBlocked: true,
+                whyBlocked: 'O acesso está bloqueado porque o período gratuito de avaliação terminou. Seus dados continuam seguros em nossos servidores e serão restaurados assim que você ativar um plano.'
             },
             subscription_expired: {
                 title: 'Assinatura Expirada',
                 subtitle: 'Sua assinatura não foi renovada',
-                reason: 'Sua assinatura expirou. Renove seu plano para recuperar o acesso ao sistema.',
+                reason: 'Sua assinatura expirou e não foi renovada. Para recuperar o acesso ao sistema e todos os seus dados, renove seu plano.',
                 headerClass: 'expired',
-                showPaymentButton: true
+                showPaymentButton: true,
+                showWhyBlocked: true,
+                whyBlocked: 'O acesso está bloqueado porque a renovação da sua assinatura não foi processada. Renove seu plano para continuar usando o DataCerta.'
             },
             payment_failed: {
                 title: 'Problema no Pagamento',
                 subtitle: 'Não conseguimos processar seu pagamento',
-                reason: 'Houve um problema com a cobrança da sua assinatura. Por favor, atualize seus dados de pagamento.',
+                reason: 'Houve um problema com a cobrança da sua assinatura. Por favor, atualize seus dados de pagamento para restaurar seu acesso.',
                 headerClass: 'inadimplente',
-                showPaymentButton: true
+                showPaymentButton: true,
+                showWhyBlocked: true,
+                whyBlocked: 'O acesso está bloqueado porque não foi possível processar o pagamento da sua assinatura. Atualize suas informações de pagamento para resolver.'
             },
             inactive: {
                 title: 'Conta Inativa',
                 subtitle: 'Sua conta foi desativada',
                 reason: 'Sua conta está inativa. Entre em contato com o suporte para mais informações.',
                 headerClass: 'inadimplente',
-                showPaymentButton: false
+                showPaymentButton: false,
+                showWhyBlocked: true,
+                whyBlocked: 'O acesso está bloqueado porque sua conta foi desativada. Entre em contato conosco se acredita que isso é um erro.'
             }
         };
 
@@ -309,6 +333,16 @@
                 blockedTitle.textContent = config.title;
                 blockedSubtitle.textContent = config.subtitle;
                 blockedReason.textContent = config.reason;
+
+                // Mostrar seção "Por que estou bloqueado?"
+                if (config.showWhyBlocked && config.whyBlocked) {
+                    const whyBlockedSection = document.getElementById('whyBlockedSection');
+                    const whyBlockedText = document.getElementById('whyBlockedText');
+                    if (whyBlockedSection && whyBlockedText) {
+                        whyBlockedText.textContent = config.whyBlocked;
+                        whyBlockedSection.style.display = 'block';
+                    }
+                }
 
                 if (config.showPaymentButton) {
                     btnUpdatePayment.style.display = 'block';
