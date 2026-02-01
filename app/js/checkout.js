@@ -9,7 +9,7 @@
 
 // IMPORTANTE: Em produção, estas chaves devem vir de variáveis de ambiente
 // A chave pública pode ser exposta no frontend
-const STRIPE_PUBLIC_KEY = 'pk_test_51SujKiH9OuKzVgCKPbJqd6M7QdvZpRrqNiEU2APsVuc4dQpjXtv9ltmF9jJGlniAoCcLKx9xUipuAzH51tVJuJ7300PYTeIVpo'; // Substituir pela chave real
+const STRIPE_PUBLIC_KEY = 'pk_live_51SujKNHnjcv11Bwf7Wyb2bzytYlQ3TA3Q7bRArUI7UtlHdjgGBzJSHMZdvxqpYXDqo5yZtifuz7wfMYOYojR6SUr00dTifxjHq'; // Produção
 
 // URL base para retorno do Stripe
 const BASE_URL = window.location.origin;
