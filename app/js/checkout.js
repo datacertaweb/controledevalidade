@@ -86,8 +86,26 @@ async function criarSessaoCheckout({ planoId, periodo, empresaId, email }) {
 
     if (error) {
         console.error('Erro ao criar sessão:', error);
-        console.error('Detalhes do erro:', error.message, error.context || '', 'status:', error.status || '');
-        throw new Error(error.message || 'Erro ao iniciar checkout. Tente novamente.');
+
+        let serverErrorMsg = '';
+        if (error instanceof window.supabaseClient.functions.FunctionsHttpError || (error.context && typeof error.context.json === 'function')) {
+            try {
+                // Tenta ler o corpo da resposta de erro
+                const errorBody = await error.context.json();
+                console.error('DETALHES DO ERRO (SERVIDOR):', errorBody);
+                if (errorBody.error) serverErrorMsg = errorBody.error;
+                if (errorBody.details) serverErrorMsg += ` (${errorBody.details})`;
+            } catch (e) {
+                console.warn('Não foi possível ler detalhes do erro do servidor:', e);
+                // Tente ler como texto se JSON falhar
+                try {
+                    const textBody = await error.context.text();
+                    console.error('CORPO DO ERRO (TEXTO):', textBody);
+                } catch (e2) { }
+            }
+        }
+
+        throw new Error(serverErrorMsg || error.message || 'Erro ao iniciar checkout. Tente novamente.');
     }
 
     if (!data) {
