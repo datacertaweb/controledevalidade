@@ -2,8 +2,8 @@
  * DataCerta - Configuração do Supabase
  */
 
-const SUPABASE_URL = 'https://akmlnywrafsasxfzanyx.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrbWxueXdyYWZzYXN4Znphbnl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2NzA4ODQsImV4cCI6MjA4NDI0Njg4NH0.DFYjfdYJGWED32DbVeB6RoTeJ_kj-YxFDwby0BLo6To';
+const SUPABASE_URL = 'https://sngkhvbynxnymmmqdjnz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuZ2todmJ5Ym54bnltbXFkam56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzAwNDQsImV4cCI6MjA4NTY0NjA0NH0.n1jI8Ptul7nddCdt0fZNH_WF1PWt6RaT1GNtE0iwy1o';
 
 // Aguardar a biblioteca carregar e inicializar
 document.addEventListener('DOMContentLoaded', () => {

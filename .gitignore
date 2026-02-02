@@ -76,3 +76,6 @@ chaves-stripe.txt
 LEMBRETES.txt
 stripe_backup_code.txt
 supabase-schema-akmlnywrafsaszfzanyx.pnf
+
+*.txt
+*.md    
