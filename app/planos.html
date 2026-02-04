@@ -320,25 +320,6 @@
                 min-height: auto;
             }
         }
-
-        /* Badge do plano ativo */
-        .current-plan-badge {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, rgba(79, 172, 254, 0.2), rgba(0, 242, 254, 0.2));
-            border: 2px solid #4facfe;
-            color: #4facfe;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .pricing-card:has(.current-plan-badge) {
-            border: 2px solid #4facfe;
-            box-shadow: 0 0 30px rgba(79, 172, 254, 0.3);
-        }
     </style>
 </head>
 
@@ -395,13 +376,10 @@
             try {
                 const user = await auth.getUser();
                 if (!user) {
+                    // Redirecionar para login se não estiver autenticado
                     window.location.href = 'login.html';
                     return false;
                 }
-
-                // Buscar assinatura ativa do usuário
-                await buscarAssinaturaAtiva();
-
                 return true;
             } catch (error) {
                 console.error('Erro ao verificar autenticação:', error);
@@ -410,45 +388,9 @@
             }
         }
 
-        async function buscarAssinaturaAtiva() {
-            try {
-                // Buscar empresa do usuário
-                const { data: empresa } = await window.supabaseClient
-                    .from('empresas')
-                    .select('id, plano_id, status')
-                    .eq('id', empresaId)
-                    .single();
-
-                if (empresa && empresa.status === 'ativo' && empresa.plano_id) {
-                    planoAtivoId = empresa.plano_id;
-
-                    // Buscar detalhes da assinatura
-                    const { data: assinatura } = await window.supabaseClient
-                        .from('assinaturas')
-                        .select('*')
-                        .eq('empresa_id', empresaId)
-                        .eq('status', 'ativa')
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-                        .single();
-
-                    if (assinatura) {
-                        assinaturaAtiva = assinatura;
-                    }
-                }
-
-                console.log('Plano ativo:', planoAtivoId);
-            } catch (error) {
-                console.warn('Sem assinatura ativa:', error.message);
-            }
-        }
-
         // =====================================================
         // VARIÁVEIS GLOBAIS
         // =====================================================
-
-        let planoAtivoId = null; // ID do plano ativo do usuário
-        let assinaturaAtiva = null; // Dados da assinatura ativa
 
         let planos = [
             {
@@ -610,17 +552,6 @@
                             ${isContact ? `
                                 <a href="mailto:datacerta.contato@gmail.com?subject=Interesse no plano ${plano.nome}" class="btn btn-outline">
                                     Falar com Vendas
-                                </a>
-                            ` : planoAtivoId === plano.id ? `
-                                <div class="current-plan-badge">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;margin-right:8px;">
-                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                    </svg>
-                                    Seu Plano Atual
-                                </div>
-                                <a href="assinatura.html" class="btn btn-outline" style="margin-top:10px;font-size:14px;">
-                                    Gerenciar Assinatura
                                 </a>
                             ` : `
                                 <button class="btn ${isFeatured ? 'btn-primary' : 'btn-outline'}" 
