@@ -369,6 +369,13 @@
     <script src="js/checkout.js"></script>
     <script>
         // =====================================================
+        // VARIÁVEIS GLOBAIS (preenchidas após autenticação)
+        // VARIÁVEIS GLOBAIS (preenchidas após autenticação)
+        // =====================================================
+        window.empresaId = null;
+        window.usuarioEmail = null;
+
+        // =====================================================
         // VERIFICAR AUTENTICAÇÃO
         // =====================================================
 
@@ -380,6 +387,33 @@
                     window.location.href = 'login.html';
                     return false;
                 }
+
+                // Salvar email do usuário
+                window.usuarioEmail = user.email;
+
+                // Buscar dados do usuário na tabela usuarios para obter empresa_id
+                const { data: usuarioData, error } = await window.supabaseClient
+                    .from('usuarios')
+                    .select('empresa_id')
+                    .eq('id', user.id)
+                    .single();
+
+                if (usuarioData && usuarioData.empresa_id) {
+                    window.empresaId = usuarioData.empresa_id;
+                } else {
+                    // Tentar buscar pelo trials_registro
+                    const { data: trialData } = await window.supabaseClient
+                        .from('trials_registro')
+                        .select('empresa_id')
+                        .eq('email', user.email)
+                        .single();
+
+                    if (trialData && trialData.empresa_id) {
+                        window.empresaId = trialData.empresa_id;
+                    }
+                }
+
+                console.log('Dados carregados: empresaId =', window.empresaId, ', email =', window.usuarioEmail);
                 return true;
             } catch (error) {
                 console.error('Erro ao verificar autenticação:', error);
@@ -389,7 +423,7 @@
         }
 
         // =====================================================
-        // VARIÁVEIS GLOBAIS
+        // DADOS DOS PLANOS
         // =====================================================
 
         let planos = [
@@ -596,8 +630,8 @@
 
                 // Construir URL com parâmetros de rastreamento
                 const url = new URL(paymentLink);
-                url.searchParams.set('client_reference_id', empresaId);
-                url.searchParams.set('prefilled_email', usuarioEmail);
+                url.searchParams.set('client_reference_id', window.empresaId);
+                url.searchParams.set('prefilled_email', window.usuarioEmail);
 
                 console.log('Redirecionando para Payment Link:', url.toString());
 
