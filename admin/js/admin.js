@@ -47,8 +47,10 @@ async function initAdmin() {
             document.getElementById('userName').textContent = userData.nome;
         }
 
-        // Carregar dashboard
-        loadDashboard();
+        // Carregar dashboard (apenas se estiver na página de dashboard)
+        if (document.getElementById('totalEmpresas')) {
+            loadDashboard();
+        }
     } catch (error) {
         console.error('Erro no init:', error);
     }
