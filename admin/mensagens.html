@@ -4,10 +4,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataCerta Admin - Lojas da Empresa</title>
+    <title>DataCerta Admin - Mensagens</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .mensagem-row.nao-lida {
+            background-color: rgba(20, 184, 166, 0.05);
+            /* Leve destaque verde */
+            font-weight: 500;
+        }
+
+        .mensagem-row.nao-lida td {
+            color: var(--text-primary);
+        }
+
+        .btn-icon-only {
+            padding: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-message-body {
+            background: #F8FAFC;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .info-item label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .info-item span {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+    </style>
 </head>
 
 <body>
@@ -46,7 +95,7 @@
                 </span>
                 <span class="nav-text">Dashboard</span>
             </a>
-            <a href="empresas.html" class="nav-item active">
+            <a href="empresas.html" class="nav-item">
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 21h18" />
@@ -73,7 +122,7 @@
                 </span>
                 <span class="nav-text">Enviar Alertas</span>
             </a>
-            <a href="mensagens.html" class="nav-item">
+            <a href="mensagens.html" class="nav-item active">
                 <span class="nav-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -110,60 +159,52 @@
                     </svg>
                 </button>
                 <div class="page-title">
-                    <a href="empresas.html" style="color: var(--text-muted); text-decoration: none; font-size: 13px;">
-                        ← Voltar para Empresas
-                    </a>
-                    <h1 id="empresaNome">Lojas da Empresa</h1>
-                    <p class="page-subtitle" id="empresaInfo">Gerenciamento de lojas</p>
+                    <h1>Mensagens de Contato</h1>
+                    <p class="page-subtitle">Gerencie as mensagens recebidas pelo site</p>
                 </div>
             </div>
             <div class="header-actions">
-                <button class="btn btn-primary" id="btnNovaLoja">
+                <button class="btn btn-outline" onclick="loadMensagens()">
                     <span class="btn-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="23 4 23 10 17 10" />
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                         </svg>
                     </span>
-                    Nova Loja
+                    Atualizar
                 </button>
             </div>
         </header>
 
-        <!-- Info Card -->
-        <div id="infoCard" class="stat-card"
-            style="margin: 0 20px 20px; padding: 16px 20px; display: flex; align-items: center; gap: 15px;">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #8B5CF6, #A78BFA);">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 21h18" />
-                    <path d="M5 21V7l8-4v18" />
-                    <path d="M19 21V11l-6-4" />
-                </svg>
-            </div>
-            <div>
-                <div style="font-size: 14px; color: var(--text-muted);">Lojas cadastradas</div>
-                <div style="font-size: 24px; font-weight: 700;" id="lojasCount">0 / 0</div>
-            </div>
-        </div>
-
         <!-- Table Section -->
         <div class="admin-table-section">
+            <div class="admin-table-header">
+                <h2>Caixa de Entrada</h2>
+                <div class="admin-table-actions">
+                    <input type="text" class="search-input" placeholder="Buscar por nome ou email..." id="searchInput">
+                    <select class="filter-input" id="filterStatus" style="width: auto;">
+                        <option value="">Todas</option>
+                        <option value="nao-lidas" selected>Não Lidas</option>
+                        <option value="lidas">Lidas</option>
+                    </select>
+                </div>
+            </div>
             <div class="table-wrapper">
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Código</th>
+                            <th>Data</th>
                             <th>Nome</th>
-                            <th>Cidade/UF</th>
+                            <th>Email</th>
                             <th>Telefone</th>
                             <th>Status</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="lojasTable">
+                    <tbody id="mensagensTable">
                         <tr>
                             <td colspan="6" class="empty-state">
-                                <p>Carregando...</p>
+                                <p>Carregando mensagens...</p>
                             </td>
                         </tr>
                     </tbody>
@@ -172,60 +213,53 @@
         </div>
     </main>
 
-    <!-- Modal Nova Loja -->
-    <div class="modal-overlay" id="modalLoja">
-        <div class="modal" style="max-width: 550px;">
+    <!-- Modal Visualizar Mensagem -->
+    <div class="modal-overlay" id="modalMensagem">
+        <div class="modal" style="max-width: 600px;">
             <div class="modal-header">
-                <h2 id="modalTitle">Nova Loja</h2>
+                <h2 id="modalTitle">Detalhes da Mensagem</h2>
                 <button class="modal-close" id="modalClose">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="formLoja">
-                    <input type="hidden" id="lojaId">
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 0 0 100px;">
-                            <label for="lojaCodigo">Código</label>
-                            <input type="text" id="lojaCodigo" placeholder="001">
-                        </div>
-                        <div class="form-group">
-                            <label for="lojaNome">Nome da Loja *</label>
-                            <input type="text" id="lojaNome" required>
-                        </div>
+                <div class="modal-info-grid">
+                    <div class="info-item">
+                        <label>Nome</label>
+                        <span id="msgNome">...</span>
                     </div>
-                    <div class="form-group">
-                        <label for="lojaEndereco">Endereço</label>
-                        <input type="text" id="lojaEndereco">
+                    <div class="info-item">
+                        <label>Data</label>
+                        <span id="msgData">...</span>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="lojaCidade">Cidade</label>
-                            <input type="text" id="lojaCidade">
-                        </div>
-                        <div class="form-group" style="flex: 0 0 80px;">
-                            <label for="lojaUF">UF</label>
-                            <input type="text" id="lojaUF" maxlength="2" style="text-transform: uppercase;">
-                        </div>
-                        <div class="form-group" style="flex: 0 0 120px;">
-                            <label for="lojaCEP">CEP</label>
-                            <input type="text" id="lojaCEP">
-                        </div>
+                    <div class="info-item">
+                        <label>Email</label>
+                        <span id="msgEmail">...</span>
                     </div>
-                    <div class="form-group">
-                        <label for="lojaTelefone">Telefone</label>
-                        <input type="text" id="lojaTelefone">
+                    <div class="info-item">
+                        <label>Telefone</label>
+                        <span id="msgTelefone">...</span>
                     </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-outline" id="btnCancelModal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+
+                <div class="info-item">
+                    <label>Mensagem</label>
+                    <div class="modal-message-body" id="msgConteudo">
+                        ...
                     </div>
-                </form>
+                </div>
+
+                <div class="form-actions" style="margin-top: 24px;">
+                    <button type="button" class="btn btn-outline" id="btnFecharModal">Fechar</button>
+                    <a href="#" class="btn btn-primary" id="btnResponderEmail" target="_blank">
+                        Responder por Email
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
-    <script src="js/lojas_empresa.js"></script>
+    <script src="js/mensagens.js"></script>
 </body>
 
 </html>

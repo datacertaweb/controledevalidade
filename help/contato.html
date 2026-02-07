@@ -219,7 +219,7 @@
                         placeholder="Descreva o que você precisa..." required></textarea>
                 </div>
 
-                <button type="submit" class="btn-submit">Enviar Mensagem</button>
+                <button type="submit" class="btn-submit" id="btnEnviar">Enviar Mensagem</button>
             </form>
         </div>
 
@@ -232,6 +232,50 @@
             </a>
         </div>
     </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('form');
+            const btnEnviar = document.getElementById('btnEnviar');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Desabilitar botão
+                btnEnviar.disabled = true;
+                btnEnviar.textContent = 'Enviando...';
+
+                const formData = {
+                    nome: document.getElementById('nome').value,
+                    email: document.getElementById('email').value,
+                    telefone: document.getElementById('telefone').value,
+                    mensagem: document.getElementById('mensagem').value
+                };
+
+                try {
+                    const { error } = await window.supabaseClient
+                        .from('contato_mensagens')
+                        .insert([formData]);
+
+                    if (error) throw error;
+
+                    // Sucesso
+                    alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
+                    form.reset();
+
+                } catch (error) {
+                    console.error('Erro ao enviar mensagem:', error);
+                    alert('Erro ao enviar mensagem. Por favor, tente novamente ou envie um email para datacerta.contato@gmail.com');
+                } finally {
+                    btnEnviar.disabled = false;
+                    btnEnviar.textContent = 'Enviar Mensagem';
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
