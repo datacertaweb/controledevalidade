@@ -391,8 +391,6 @@ async function loadAllPermissions() {
     const { data } = await supabaseClient
         .from('permissions')
         .select('*')
-        .from('permissions')
-        .select('*')
         .order('modulo')
         .order('nome');
 
