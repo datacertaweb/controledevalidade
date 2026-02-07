@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidade - DataCerta</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --accent-gradient: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
+            --bg-primary: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --border-color: #E2E8F0;
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        /* Header Hero */
+        .hero-header {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-header::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.25) 0%, transparent 60%);
+            top: -200px;
+            right: -100px;
+        }
+
+        .hero-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-header h1 span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-header p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .last-updated {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Table of Contents */
+        .toc-nav {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .toc-container {
+            display: flex;
+            gap: 8px;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-x: auto;
+            padding: 16px 0;
+        }
+
+        .toc-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .toc-link:hover {
+            background: rgba(20, 184, 166, 0.1);
+            color: #0D9488;
+        }
+
+        .toc-link.active {
+            background: var(--accent-gradient);
+            color: white;
+        }
+
+        /* Content */
+        .content-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* Policy Section */
+        .policy-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            scroll-margin-top: 100px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .section-number {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .policy-section p {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+
+        .policy-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        .policy-section ul,
+        .policy-section ol {
+            padding-left: 24px;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .policy-section li {
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .policy-section strong {
+            color: var(--text-primary);
+        }
+
+        /* Highlight Box */
+        .highlight-box {
+            background: linear-gradient(135deg, #E0F2F1 0%, #B2DFDB 100%);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 20px 0;
+            border-left: 4px solid #0D9488;
+        }
+
+        .highlight-box p {
+            color: #115E59;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .info-box svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            color: #1E40AF;
+            margin-top: 2px;
+        }
+
+        .info-box p {
+            font-size: 0.9rem;
+            color: #1E3A8A;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        /* Table */
+        .data-table-wrapper {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            background: #F8FAFC;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .data-table td {
+            color: var(--text-secondary);
+        }
+
+        /* Contact Box */
+        .contact-box {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            border-radius: 16px;
+            padding: 32px;
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .contact-box h3 {
+            color: white;
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .contact-box p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 0.95rem;
+        }
+
+        .contact-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: #14B8A6;
+        }
+
+        /* Back Button */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--accent-gradient);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-top: 32px;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-header {
+                padding: 40px 20px;
+            }
+
+            .hero-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .toc-nav {
+                padding: 0 16px;
+            }
+
+            .content-container {
+                padding: 24px 16px;
+            }
+
+            .policy-section {
+                padding: 24px 20px;
+            }
+
+            .contact-info {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero Header -->
+    <header class="hero-header">
+        <h1>Política de <span>Privacidade</span></h1>
+        <p>Saiba como coletamos, utilizamos e protegemos seus dados pessoais</p>
+        <span class="last-updated">📅 Última atualização: 05 de Fevereiro de 2026</span>
+    </header>
+
+    <!-- Table of Contents -->
+    <nav class="toc-nav">
+        <div class="toc-container">
+            <a href="#introducao" class="toc-link active">Introdução</a>
+            <a href="#dados" class="toc-link">Dados Coletados</a>
+            <a href="#uso" class="toc-link">Uso dos Dados</a>
+            <a href="#compartilhamento" class="toc-link">Compartilhamento</a>
+            <a href="#seguranca" class="toc-link">Segurança</a>
+            <a href="#direitos" class="toc-link">Seus Direitos</a>
+            <a href="#cookies" class="toc-link">Cookies</a>
+            <a href="#retencao" class="toc-link">Retenção</a>
+            <a href="#contato" class="toc-link">Contato</a>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="content-container">
+
+        <!-- 1. Introdução -->
+        <section id="introducao" class="policy-section">
+            <div class="section-header">
+                <div class="section-number">1</div>
+                <h2 class="section-title">Introdução</h2>
+            </div>
+            <p>
+                A <strong>DataCerta</strong> ("nós", "nosso" ou "empresa") está comprometida em proteger a privacidade
+                e os dados pessoais de nossos usuários. Esta Política de Privacidade descreve como coletamos,
+                utilizamos, armazenamos e protegemos suas informações quando você utiliza nossa plataforma de
+                <strong>controle de validade de produtos</strong>.
+            </p>
+            <p>
+                Ao utilizar nossos serviços, você concorda com as práticas descritas nesta política. Recomendamos
+                a leitura completa deste documento para entender seus direitos e nossas responsabilidades.
+            </p>
+            <div class="highlight-box">
+                <p>🔒 Esta política está em conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD) -
+                    Lei nº 13.709/2018 - e demais legislações aplicáveis sobre privacidade e proteção de dados.</p>
+            </div>
+        </section>
+
+        <!-- 2. Dados Coletados -->
+        <section id="dados" class="policy-section">
+            <div class="section-header">
+                <div class="section-number">2</div>
+                <h2 class="section-title">Dados que Coletamos</h2>
+            </div>
+            <p>Coletamos diferentes tipos de informações para fornecer e melhorar nossos serviços:</p>
+
+            <h4 style="font-weight: 600; margin: 20px 0 12px;">2.1 Dados de Cadastro</h4>
+            <ul>
+                <li>Nome completo e e-mail</li>
+                <li>Telefone de contato</li>
+                <li>Nome da empresa e CNPJ</li>
+                <li>Endereço comercial</li>
+                <li>Dados de faturamento (para cobrança)</li>
+            </ul>
+
+            <h4 style="font-weight: 600; margin: 20px 0 12px;">2.2 Dados de Uso do Sistema</h4>
+            <ul>
+                <li>Informações sobre produtos, estoques e validades cadastradas</li>
+                <li>Registros de lojas e locais de armazenamento</li>
+                <li>Histórico de perdas e movimentações</li>
+                <li>Logs de acesso e atividades no sistema</li>
+            </ul>
+
+            <h4 style="font-weight: 600; margin: 20px 0 12px;">2.3 Dados Técnicos</h4>
+            <ul>
+                <li>Endereço IP</li>
+                <li>Tipo de navegador e dispositivo</li>
+                <li>Sistema operacional</li>
+                <li>Dados de localização (quando autorizado)</li>
+            </ul>
+
+            <div class="info-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4M12 8h.01" />
+                </svg>
+                <p>Não coletamos dados pessoais sensíveis, como informações de saúde, origem racial, convicções
+                    religiosas ou dados biométricos.</p>
+            </div>
+        </section>
+
+        <!-- 3. Uso dos Dados -->
+        <section id="uso" class="policy-section">
+            <div class="section-header">
+                <div class="section-number">3</div>
+                <h2 class="section-title">Como Utilizamos Seus Dados</h2>
+            </div>
+            <p>Utilizamos as informações coletadas para as seguintes finalidades:</p>
+
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Finalidade</th>
+                            <th>Base Legal (LGPD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Fornecer e manter o serviço contratado</td>
+                            <td>Execução de contrato</td>
+                        </tr>
+                        <tr>
+                            <td>Processar pagamentos e faturamento</td>
+                            <td>Execução de contrato</td>
+                        </tr>
+                        <tr>
+                            <td>Enviar comunicações sobre o serviço</td>
+                            <td>Interesse legítimo</td>
+                        </tr>
+                        <tr>
+                            <td>Melhorar a experiência do usuário</td>
+                            <td>Interesse legítimo</td>
+                        </tr>
+                        <tr>
+                            <td>Fornecer suporte técnico</td>
+                            <td>Execução de contrato</td>
+                        </tr>
+                        <tr>
+                            <td>Enviar newsletters e promoções</td>
+                            <td>Consentimento</td>
+                        </tr>
+                        <tr>
+                            <td>Cumprir obrigações legais</td>
+                            <td>Obrigação legal</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 4. Compartilhamento -->
+        <section id="compartilhamento" class="policy-section">
+            <div class="section-header">
+                <div class="section-number">4</div>
+                <h2 class="section-title">Compartilhamento de Dados</h2>
+            </div>
+            <p>
+                <strong>Não vendemos, alugamos ou comercializamos seus dados pessoais.</strong> Podemos
+                compartilhar informações apenas nas seguintes situações:
+            </p>
+            <ul>
+                <li><strong>Prestadores de serviço:</strong> Empresas que nos auxiliam na operação do sistema
+                    (hospedagem, processamento de pagamentos, envio de e-mails), sob contratos de confidencialidade.
+                </li>
+                <li><strong>Obrigações legais:</strong> Quando exigido por lei, ordem judicial ou autoridade
+                    competente.</li>
+                <li><strong>Proteção de direitos:</strong> Para proteger nossos direitos, propriedade ou
+                    segurança, e de nossos usuários.</li>
+                <li><strong>Com seu consentimento:</strong> Em outras situações, mediante sua autorização
+                    expressa.</li>
+            </ul>
+        </section>
+
+        <!-- 5. Segurança -->
+        <section id="seguranca" class="policy-section">
+            <div class="section-header">
+                <div class="section-number">5</div>
+                <h2 class="section-title">Segurança dos Dados</h2>
+            </div>
+            <p>
+                Implementamos medidas técnicas e organizacionais para proteger seus dados contra acesso não
+                autorizado, alteração, divulgação ou destruição:
+            </p>
+            <ul>
+                <li><strong>Criptografia SSL/TLS:</strong> Todas as comunicações são criptografadas</li>
+                <li><strong>Senhas com hash:</strong> Armazenamento seguro de credenciais</li>
+                <li><strong>Backups automáticos:</strong> Cópias de segurança diárias</li>
+                <li><strong>Controle de acesso:</strong> Permissões baseadas em perfis de usuário</li>
+                <li><strong>Monitoramento:</strong> Logs de acesso e detecção de ameaças</li>
+                <li><strong>Data centers certificados:</strong> Infraestrutura com certificações de segurança</li>
+            </ul>
+            <div class="highlight-box">
+                <p>⚠️ Nenhum sistema é 100% seguro. Em caso de incidente de segurança que possa causar risco
+                    relevante, notificaremos os afetados e a Autoridade Nacional de Proteção de Dados (ANPD)
+                    conforme exigido pela LGPD.</p>
+            </div>
+        </section>
+
+        <!-- 6. Seus Direitos -->
+        <section id="direitos" class="policy-section">
+            <div class="section-header">
+                <div class="section-number">6</div>
+                <h2 class="section-title">Seus Direitos (LGPD)</h2>
+            </div>
+            <p>
+                Como titular dos dados, você possui os seguintes direitos garantidos pela LGPD, que podem
+                ser exercidos a qualquer momento:
+            </p>
+            <ul>
+                <li><strong>Confirmação:</strong> Saber se tratamos seus dados pessoais</li>
+                <li><strong>Acesso:</strong> Solicitar cópia dos dados que temos sobre você</li>
+                <li><strong>Correção:</strong> Retificar dados incompletos, inexatos ou desatualizados</li>
+                <li><strong>Anonimização:</strong> Solicitar anonimização ou bloqueio de dados desnecessários</li>
+                <li><strong>Portabilidade:</strong> Receber seus dados em formato estruturado</li>
+                <li><strong>Eliminação:</strong> Solicitar exclusão de dados tratados com consentimento</li>
+                <li><strong>Revogação:</strong> Retirar consentimento a qualquer momento</li>
+                <li><strong>Informação:</strong> Saber com quem compartilhamos seus dados</li>
+            </ul>
+            <p>
+                Para exercer esses direitos, entre em contato pelo e-mail
+                <strong>privacidade@datacerta.com.br</strong>. Responderemos em até 15 dias úteis.
+            </p>
+        </section>
+
+        <!-- 7. Cookies -->
+        <section id="cookies" class="policy-section">
+            <div class="section-header">
+                <div class="section-number">7</div>
+                <h2 class="section-title">Cookies e Tecnologias Similares</h2>
+            </div>
+            <p>
+                Utilizamos cookies e tecnologias similares para melhorar sua experiência:
+            </p>
+
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Finalidade</th>
+                            <th>Duração</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Essenciais</td>
+                            <td>Funcionamento básico do sistema (autenticação, segurança)</td>
+                            <td>Sessão</td>
+                        </tr>
+                        <tr>
+                            <td>Funcionais</td>
+                            <td>Lembrar preferências (idioma, tema)</td>
+                            <td>1 ano</td>
+                        </tr>
+                        <tr>
+                            <td>Analíticos</td>
+                            <td>Entender como você usa o sistema</td>
+                            <td>2 anos</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>
+                Você pode gerenciar cookies nas configurações do seu navegador. Note que desabilitar cookies
+                essenciais pode afetar o funcionamento do sistema.
+            </p>
+        </section>
+
+        <!-- 8. Retenção -->
+        <section id="retencao" class="policy-section">
+            <div class="section-header">
+                <div class="section-number">8</div>
+                <h2 class="section-title">Retenção de Dados</h2>
+            </div>
+            <p>
+                Mantemos seus dados pelo tempo necessário para cumprir as finalidades descritas nesta política:
+            </p>
+            <ul>
+                <li><strong>Dados de conta:</strong> Enquanto a conta estiver ativa + 5 anos após encerramento
+                    (obrigação fiscal)</li>
+                <li><strong>Dados de uso:</strong> Enquanto a conta estiver ativa</li>
+                <li><strong>Dados de faturamento:</strong> 5 anos (obrigação fiscal)</li>
+                <li><strong>Logs de acesso:</strong> 6 meses (Marco Civil da Internet)</li>
+            </ul>
+            <p>
+                Após esses períodos, os dados serão anonimizados ou excluídos de forma segura.
+            </p>
+        </section>
+
+        <!-- 9. Alterações -->
+        <section id="alteracoes" class="policy-section">
+            <div class="section-header">
+                <div class="section-number">9</div>
+                <h2 class="section-title">Alterações nesta Política</h2>
+            </div>
+            <p>
+                Podemos atualizar esta Política de Privacidade periodicamente. Quando fizermos alterações
+                significativas, notificaremos você por e-mail ou através de um aviso no sistema.
+            </p>
+            <p>
+                Recomendamos revisar esta página regularmente. A data da última atualização é indicada no
+                topo desta página.
+            </p>
+        </section>
+
+        <!-- Contato -->
+        <section id="contato" class="contact-box">
+            <h3>📧 Encarregado de Proteção de Dados (DPO)</h3>
+            <p>Para dúvidas sobre privacidade e proteção de dados, entre em contato:</p>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                    privacidade@datacerta.com.br
+                </div>
+                <div class="contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+                    </svg>
+                    (11) 99999-9999
+                </div>
+                <div class="contact-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    São Paulo - SP
+                </div>
+            </div>
+        </section>
+
+        <a href="app/dashboard.html" class="back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Voltar ao Sistema
+        </a>
+    </div>
+
+    <script>
+        // Smooth scroll for TOC links
+        document.querySelectorAll('.toc-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+
+                    // Update active link
+                    document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Update active TOC on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.policy-section');
+            let current = '';
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 150) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            document.querySelectorAll('.toc-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
