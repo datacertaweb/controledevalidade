@@ -584,8 +584,8 @@
                         
                         <div class="plan-cta">
                             ${isContact ? `
-                                <a href="mailto:datacerta.contato@gmail.com?subject=Interesse no plano ${plano.nome}" class="btn btn-outline">
-                                    Falar com Vendas
+                                <a href="../help/contato.html" class="btn btn-outline">
+                                    Entre em Contato
                                 </a>
                             ` : `
                                 <button class="btn ${isFeatured ? 'btn-primary' : 'btn-outline'}" 
@@ -624,7 +624,7 @@
                 if (!paymentLink) {
                     // Enterprise - redirecionar para contato
                     alert('Para o plano Enterprise, entre em contato conosco!');
-                    window.location.href = 'mailto:datacerta.contato@gmail.com?subject=Interesse no Plano Enterprise';
+                    window.location.href = '../help/contato.html';
                     return;
                 }
 
