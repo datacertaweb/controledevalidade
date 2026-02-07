@@ -281,6 +281,8 @@ async function saveUsuario(e) {
                 throw new Error('Sessão inválida. Faça login novamente.');
             }
 
+            console.log('Enviando token (primeiros 10 chars):', session.session.access_token.substring(0, 10) + '...');
+
             const response = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
                 method: 'POST',
                 headers: {
@@ -389,7 +391,9 @@ async function loadAllPermissions() {
     const { data } = await supabaseClient
         .from('permissions')
         .select('*')
-        .order('categoria')
+        .from('permissions')
+        .select('*')
+        .order('modulo')
         .order('nome');
 
     permissions = data || [];
@@ -403,11 +407,12 @@ function renderPermissionsCheckboxes(selectedIds = []) {
         return;
     }
 
-    // Agrupar por categoria
+    // Agrupar por categoria (modulo)
     const grouped = {};
     permissions.forEach(p => {
-        if (!grouped[p.categoria]) grouped[p.categoria] = [];
-        grouped[p.categoria].push(p);
+        const cat = p.modulo || 'Geral';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(p);
     });
 
     let html = '';
