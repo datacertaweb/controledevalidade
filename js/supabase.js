@@ -5,6 +5,10 @@
 const SUPABASE_URL = 'https://ffpqkdzpcfrgngldsfdz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmcHFrZHpwY2ZyZ25nbGRzZmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxNTc0ODIsImV4cCI6MjA4NTczMzQ4Mn0.88PcjnHeqQk1TyINHHphikyqi6H-bIXexHJ9-G2Nmag';
 
+// Exportar para uso global (outras scripts precisam acessar)
+window.SUPABASE_URL = SUPABASE_URL;
+window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+
 // Aguardar a biblioteca carregar e inicializar
 document.addEventListener('DOMContentLoaded', () => {
     initSupabase();
