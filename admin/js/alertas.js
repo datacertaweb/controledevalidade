@@ -117,11 +117,15 @@ const alertasPage = {
                 // Mas se quiser forçar, podemos chamar a edge function diretamente
                 if (enviarPush) {
                     try {
-                        await fetch(`${window.supabaseUrl}/functions/v1/send-notification`, {
+                        const SUPABASE_URL = 'https://ffpqkdzpcfrgngldsfdz.supabase.co';
+                        const { data: { session } } = await window.supabaseClient.auth.getSession();
+                        const token = session?.access_token || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmcHFrZHpwY2ZyZ25nbGRzZmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxNTc0ODIsImV4cCI6MjA4NTczMzQ4Mn0.88PcjnHeqQk1TyINHHphikyqi6H-bIXexHJ9-G2Nmag';
+
+                        await fetch(`${SUPABASE_URL}/functions/v1/send-notification`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${window.supabaseAnonKey}`
+                                'Authorization': `Bearer ${token}`
                             },
                             body: JSON.stringify({
                                 empresa_id: emp.id,
