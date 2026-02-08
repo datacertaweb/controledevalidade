@@ -385,6 +385,12 @@ function mostrarAvisoAssinatura(status) {
  * Mostra indicador de dias restantes do trial
  */
 function mostrarIndicadorTrial(daysRemaining) {
+    // Não mostrar nas telas de coleta e depósito
+    const path = window.location.pathname;
+    if (path.includes('coleta.html') || path.includes('coletas.html') || path.includes('deposito.html')) {
+        return;
+    }
+
     const indicator = document.createElement('div');
     indicator.id = 'trial-indicator';
     indicator.innerHTML = `
