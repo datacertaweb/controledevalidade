@@ -413,6 +413,22 @@
                     }
                 }
 
+                // Buscar plano atual da empresa
+                if (window.empresaId) {
+                    const { data: empresaData } = await window.supabaseClient
+                        .from('empresas')
+                        .select('plano_id, status')
+                        .eq('id', window.empresaId)
+                        .single();
+
+                    if (empresaData && empresaData.plano_id && empresaData.status === 'ativo') {
+                        window.planoAtual = empresaData.plano_id;
+                        console.log('Plano atual:', window.planoAtual);
+                    } else {
+                        window.planoAtual = null;
+                    }
+                }
+
                 console.log('Dados carregados: empresaId =', window.empresaId, ', email =', window.usuarioEmail);
                 return true;
             } catch (error) {
@@ -539,18 +555,61 @@
                 return;
             }
 
-            pricingGrid.innerHTML = planos.map(plano => {
+            // Encontrar índice do plano atual para determinar upgrade/downgrade
+            const planoAtualIndex = planos.findIndex(p => p.id === window.planoAtual);
+            const planoAtualNome = planoAtualIndex >= 0 ? planos[planoAtualIndex].nome : null;
+
+            // Banner do plano atual (se existir)
+            let bannerHTML = '';
+            if (window.planoAtual && planoAtualNome) {
+                bannerHTML = `
+                    <div style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%); 
+                         border: 1px solid rgba(20, 184, 166, 0.3); border-radius: 12px; padding: 16px 24px; margin-bottom: 8px;
+                         display: flex; align-items: center; gap: 16px;">
+                        <div style="background: #14B8A6; color: white; padding: 8px 12px; border-radius: 8px; font-weight: 600;">
+                            ✓ Seu Plano Atual
+                        </div>
+                        <div style="color: white;">
+                            <strong>${planoAtualNome}</strong> - Sua assinatura está ativa
+                        </div>
+                    </div>
+                `;
+            }
+
+            const planosHTML = planos.map((plano, index) => {
                 const preco = isAnual ? plano.preco_anual : plano.preco_mensal;
                 const periodo = isAnual ? '/ano' : '/mês';
                 const isFeatured = plano.destaque;
                 const isContact = plano.nome === 'Enterprise';
+                const isPlanoAtual = plano.id === window.planoAtual;
 
                 // Parse features
                 let features = Array.isArray(plano.features) ? plano.features : [];
 
+                // Determinar tipo de ação (upgrade, downgrade, atual)
+                let buttonText = 'Selecionar';
+                let buttonClass = isFeatured ? 'btn-primary' : 'btn-outline';
+                let buttonDisabled = false;
+
+                if (window.planoAtual && planoAtualIndex >= 0) {
+                    if (isPlanoAtual) {
+                        buttonText = 'Plano Atual';
+                        buttonClass = 'btn-outline';
+                        buttonDisabled = true;
+                    } else if (index > planoAtualIndex) {
+                        buttonText = '⬆ Upgrade';
+                        buttonClass = 'btn-primary';
+                    } else if (index < planoAtualIndex) {
+                        buttonText = '⬇ Downgrade';
+                        buttonClass = 'btn-outline';
+                    }
+                }
+
                 return `
-                    <div class="pricing-card ${isFeatured ? 'featured' : ''}">
+                    <div class="pricing-card ${isFeatured ? 'featured' : ''} ${isPlanoAtual ? 'current-plan' : ''}"
+                         style="${isPlanoAtual ? 'border: 2px solid #14B8A6; box-shadow: 0 0 20px rgba(20, 184, 166, 0.2);' : ''}">
                         ${isFeatured ? '<div class="popular-badge">Mais Popular</div>' : ''}
+                        ${isPlanoAtual ? '<div class="popular-badge" style="background: #10B981;">Seu Plano</div>' : ''}
                         <h3 class="plan-name">${plano.nome}</h3>
                         <p class="plan-description">${plano.descricao || ''}</p>
                         
@@ -588,15 +647,18 @@
                                     Entre em Contato
                                 </a>
                             ` : `
-                                <button class="btn ${isFeatured ? 'btn-primary' : 'btn-outline'}" 
-                                        onclick="selecionarPlano('${plano.id}', ${isAnual})">
-                                    Selecionar
+                                <button class="btn ${buttonClass}" 
+                                        onclick="selecionarPlano('${plano.id}', ${isAnual})"
+                                        ${buttonDisabled ? 'disabled style="opacity: 0.6; cursor: not-allowed;"' : ''}>
+                                    ${buttonText}
                                 </button>
                             `}
                         </div>
                     </div>
                 `;
             }).join('');
+
+            pricingGrid.innerHTML = bannerHTML + planosHTML;
         }
 
         // =====================================================

@@ -375,8 +375,72 @@ window.limparFiltros = function () {
     location.reload();
 };
 
-window.exportarRelatorio = function () {
-    window.globalUI?.showAlert('Exportar', 'Funcionalidade de exportação em desenvolvimento.', 'info');
+window.exportarRelatorio = async function () {
+    try {
+        // Mostrar loading
+        window.globalUI?.showToast('info', 'Gerando PDF... Aguarde.');
+
+        // Capturar conteúdo principal do dashboard
+        const mainContent = document.querySelector('.main-content');
+        if (!mainContent) {
+            window.globalUI?.showToast('error', 'Conteúdo não encontrado.');
+            return;
+        }
+
+        // Configurações do html2canvas
+        const canvas = await html2canvas(mainContent, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#F1F5F9',
+            logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+
+        // Criar PDF em landscape para melhor visualização
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('l', 'mm', 'a4');
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        // Calcular dimensões mantendo proporção
+        const imgWidth = pageWidth - 20; // margem de 10mm cada lado
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        // Se a imagem for maior que a página, criar múltiplas páginas
+        if (imgHeight <= pageHeight - 20) {
+            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        } else {
+            let position = 10;
+            let remainingHeight = imgHeight;
+
+            while (remainingHeight > 0) {
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                remainingHeight -= (pageHeight - 20);
+
+                if (remainingHeight > 0) {
+                    pdf.addPage();
+                    position = 10 - (imgHeight - remainingHeight);
+                }
+            }
+        }
+
+        // Adicionar data/hora no rodapé
+        const dataHora = new Date().toLocaleString('pt-BR');
+        pdf.setFontSize(8);
+        pdf.setTextColor(100);
+        pdf.text(`DataCerta - Relatório gerado em ${dataHora}`, 10, pageHeight - 5);
+
+        // Download
+        pdf.save(`dashboard-datacerta-${new Date().toISOString().split('T')[0]}.pdf`);
+
+        window.globalUI?.showToast('success', 'PDF baixado com sucesso!');
+    } catch (error) {
+        console.error('Erro ao exportar PDF:', error);
+        window.globalUI?.showToast('error', 'Erro ao gerar PDF: ' + error.message);
+    }
 };
 
 // Reload quando filtros mudam

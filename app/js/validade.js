@@ -522,7 +522,7 @@ function renderEstoque(lista, hoje) {
                         </button>
                         ` : ''}
                         ${canDelete ? `
-                        <button class="action-btn delete" title="Registrar Perda" onclick="openPerda('${item.id}')">
+                        <button class="action-btn delete" title="Excluir" onclick="excluirEstoque('${item.id}')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="3 6 5 6 21 6"/>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -880,6 +880,26 @@ window.openPerda = function (id) {
     document.getElementById('perdaQtd').max = item.quantidade;
 
     document.getElementById('modalPerda').classList.add('active');
+};
+
+// Excluir produto definitivamente (sem registrar perda)
+window.excluirEstoque = async function (id) {
+    if (!confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) return;
+
+    try {
+        const { error } = await window.supabaseClient
+            .from('coletados')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        window.globalUI?.showToast('success', 'Produto excluído com sucesso!');
+        await loadEstoque();
+    } catch (error) {
+        console.error('Erro ao excluir:', error);
+        window.globalUI?.showToast('error', 'Erro ao excluir: ' + error.message);
+    }
 };
 
 async function savePerda(e) {
