@@ -80,6 +80,15 @@ async function loadDashboardData() {
     const totalPerdas = perdas?.reduce((sum, p) => sum + parseFloat(p.valor_perda || 0), 0) || 0;
     const qtdPerdas = perdas?.reduce((sum, p) => sum + (p.quantidade || 0), 0) || 0;
 
+    // Buscar vendidos da empresa
+    const { data: vendidos } = await supabaseClient
+        .from('vendidos')
+        .select('quantidade, valor_total')
+        .eq('empresa_id', userData.empresa_id);
+
+    const qtdVendidos = vendidos?.reduce((sum, v) => sum + (v.quantidade || 0), 0) || 0;
+    const valorVendidos = vendidos?.reduce((sum, v) => sum + parseFloat(v.valor_total || 0), 0) || 0;
+
     // Calcular valores
     const valorTotal = estoqueEmpresa.reduce((sum, e) => sum + (e.quantidade * (e.base?.valor_unitario || 0)), 0);
     const valorVence7d = vence7d.reduce((sum, e) => sum + (e.quantidade * (e.base?.valor_unitario || 0)), 0);
@@ -87,21 +96,19 @@ async function loadDashboardData() {
     const valorEstoque = ok.reduce((sum, e) => sum + (e.quantidade * (e.base?.valor_unitario || 0)), 0);
 
     // Atualizar KPIs - Quantidades
-    updateElement('kpiTotalProdutos', formatNumber(estoqueEmpresa.length));
     updateElement('kpiVence7d', formatNumber(vence7d.length));
     updateElement('kpiColetados', formatNumber(estoqueEmpresa.length));
     updateElement('kpiColetadosPct', `${Math.round((estoqueEmpresa.length / (estoqueEmpresa.length + qtdPerdas)) * 100) || 0}% da base`);
     updateElement('kpiPerdidos', formatNumber(qtdPerdas));
     updateElement('kpiVencidos', formatNumber(vencidos.length));
-    updateElement('kpiEmEstoque', formatNumber(ok.length));
+    updateElement('kpiVendidosQtd', formatNumber(qtdVendidos));
 
     // Atualizar KPIs - Valores
-    updateElement('kpiValorTotal', formatCurrency(valorTotal));
     updateElement('kpiValorVence7d', formatCurrency(valorVence7d));
     updateElement('kpiValorColetados', formatCurrency(valorColetados));
     updateElement('kpiValorPerdidos', formatCurrency(totalPerdas));
     updateElement('kpiPrejuizo', formatCurrency(totalPerdas));
-    updateElement('kpiValorEstoque', formatCurrency(valorEstoque));
+    updateElement('kpiVendidosValor', formatCurrency(valorVendidos));
 
     // Atualizar Stats
     updateElement('statPrejuizoTotal', formatCurrency(totalPerdas));
