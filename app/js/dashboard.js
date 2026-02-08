@@ -3,18 +3,18 @@
  * Popula os novos KPIs e gráficos do dashboard redesenhado
  */
 
-// Paleta de cores do projeto
+// Paleta de cores do projeto (cores atualizadas)
 const dashboardColors = {
-    teal: '#14B8A6',
-    blue: '#3B82F6',
-    yellow: '#F59E0B',
+    yellow: '#FBBF24',
+    dark: '#1F2937',
+    indigo: '#6366F1',
     red: '#EF4444',
-    purple: '#8B5CF6',
-    orange: '#F97316',
+    pink: '#EC4899',
+    cyan: '#0EA5E9',
+    // cores secundárias usando a paleta principal
+    teal: '#0EA5E9',
     green: '#10B981',
-    slate: '#64748B',
-    cyan: '#06B6D4',
-    indigo: '#6366F1'
+    slate: '#64748B'
 };
 
 // Instâncias de gráficos
@@ -219,14 +219,23 @@ async function renderAllCharts(estoque, perdas, hoje) {
                     align: 'top',
                     color: dashboardColors.slate,
                     formatter: v => 'R$' + Math.round(v),
-                    font: { weight: '600', size: 9 }
+                    font: { weight: '600', size: 9 },
+                    clamp: true,
+                    clip: false
                 }
             },
             scales: {
-                x: { grid: { display: false } },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 9 },
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                },
                 y: { display: false }
             },
-            layout: { padding: { top: 16 } }
+            layout: { padding: { top: 25, left: 5, right: 5 } }
         }
     });
 
@@ -264,12 +273,20 @@ async function renderAllCharts(estoque, perdas, hoje) {
         }
     });
 
-    // Variação
+    // Variação - só calcula se houver dados no mês anterior
     if (mesesData.length >= 2) {
         const atual = mesesData[mesesData.length - 1];
-        const anterior = mesesData[mesesData.length - 2] || 1;
-        const variacao = Math.round(((atual - anterior) / anterior) * 100);
-        updateElement('statVariacao', (variacao >= 0 ? '+' : '') + variacao + '%');
+        const anterior = mesesData[mesesData.length - 2];
+
+        // Só mostrar variação se o mês anterior tiver dados
+        if (anterior > 0) {
+            const variacao = Math.round(((atual - anterior) / anterior) * 100);
+            updateElement('statVariacao', (variacao >= 0 ? '+' : '') + variacao + '%');
+        } else {
+            updateElement('statVariacao', '--');
+        }
+    } else {
+        updateElement('statVariacao', '--');
     }
 
     // 6. Ranking de Perdas
@@ -566,3 +583,140 @@ window.exportarExcel = async function () {
 document.getElementById('lojaFilter')?.addEventListener('change', () => loadDashboardData());
 document.getElementById('dataInicioFilter')?.addEventListener('change', () => loadDashboardData());
 document.getElementById('dataFimFilter')?.addEventListener('change', () => loadDashboardData());
+
+// Carregar desempenho de usuários
+async function loadUserPerformance() {
+    const userData = window.appData?.userData;
+    if (!userData) return;
+
+    try {
+        // Buscar todos os usuários da empresa
+        const { data: usuarios } = await supabaseClient
+            .from('usuarios')
+            .select('id, nome')
+            .eq('empresa_id', userData.empresa_id)
+            .eq('ativo', true);
+
+        if (!usuarios || usuarios.length === 0) {
+            renderEmptyState();
+            return;
+        }
+
+        // Buscar coletas por usuário
+        const { data: coletados } = await supabaseClient
+            .from('coletados')
+            .select('usuario_id, quantidade, base!inner(empresa_id)')
+            .eq('base.empresa_id', userData.empresa_id);
+
+        // Buscar perdas por usuário (registrado_por)
+        const { data: perdas } = await supabaseClient
+            .from('perdas')
+            .select('registrado_por, quantidade, base!inner(empresa_id)')
+            .eq('base.empresa_id', userData.empresa_id);
+
+        // Contagem de coletas por usuário
+        const coletasPorUsuario = {};
+        (coletados || []).forEach(c => {
+            if (c.usuario_id) {
+                coletasPorUsuario[c.usuario_id] = (coletasPorUsuario[c.usuario_id] || 0) + (c.quantidade || 1);
+            }
+        });
+
+        // Contagem de perdas por usuário
+        const perdasPorUsuario = {};
+        (perdas || []).forEach(p => {
+            if (p.registrado_por) {
+                perdasPorUsuario[p.registrado_por] = (perdasPorUsuario[p.registrado_por] || 0) + (p.quantidade || 1);
+            }
+        });
+
+        // Mapear usuários com suas estatísticas
+        const usuariosStats = usuarios.map(u => ({
+            id: u.id,
+            nome: u.nome,
+            coletas: coletasPorUsuario[u.id] || 0,
+            perdas: perdasPorUsuario[u.id] || 0,
+            total: (coletasPorUsuario[u.id] || 0) + (perdasPorUsuario[u.id] || 0)
+        }));
+
+        // Top 3 Coletas
+        const topColetas = [...usuariosStats]
+            .sort((a, b) => b.coletas - a.coletas)
+            .slice(0, 3);
+
+        // Top 3 Perdas
+        const topPerdas = [...usuariosStats]
+            .sort((a, b) => b.perdas - a.perdas)
+            .slice(0, 3);
+
+        // Menos Ativos (usuários com menor total de ações)
+        const menosAtivos = [...usuariosStats]
+            .sort((a, b) => a.total - b.total)
+            .slice(0, 3);
+
+        // Renderizar cards
+        renderUserList('usuariosColetas', topColetas, 'coletas', '#10B981');
+        renderUserList('usuariosPerdas', topPerdas, 'perdas', '#EF4444');
+        renderUserList('usuariosMenosAtivos', menosAtivos, 'total', '#F59E0B');
+
+    } catch (error) {
+        console.error('Erro ao carregar desempenho de usuários:', error);
+        renderEmptyState();
+    }
+}
+
+function renderUserList(containerId, users, field, color) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (users.length === 0 || users.every(u => u[field] === 0)) {
+        container.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 13px;">
+                Sem dados disponíveis
+            </div>
+        `;
+        return;
+    }
+
+    const medalColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
+
+    container.innerHTML = users.map((user, index) => `
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; ${index < users.length - 1 ? 'border-bottom: 1px solid var(--border-secondary);' : ''}">
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: ${medalColors[index] || '#E5E7EB'}; 
+                 display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: ${index === 0 ? '#1F2937' : '#FFF'};">
+                ${index + 1}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${user.nome}
+                </div>
+            </div>
+            <div style="font-weight: 700; font-size: 14px; color: ${color};">
+                ${user[field]}
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderEmptyState() {
+    ['usuariosColetas', 'usuariosPerdas', 'usuariosMenosAtivos'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 13px;">Sem dados disponíveis</div>`;
+        }
+    });
+}
+
+// Chamar após carregar dados do dashboard
+const originalLoadDashboardData = loadDashboardData;
+window.loadDashboardDataWithUsers = async function () {
+    await originalLoadDashboardData();
+    await loadUserPerformance();
+};
+
+// Substituir chamada inicial
+setTimeout(() => {
+    if (window.appData?.userData) {
+        loadUserPerformance();
+    }
+}, 2500);

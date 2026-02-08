@@ -312,7 +312,7 @@ async function loadEstoque() {
     // Buscar todos os coletados com relações (sem filtro de empresa no Supabase)
     const { data, error } = await supabaseClient
         .from('coletados')
-        .select('*, base(descricao, valor_unitario, codigo, ean, empresa_id, categoria), lojas(nome), locais(nome)')
+        .select('*, base(descricao, valor_unitario, codigo, ean, empresa_id, categoria), lojas(nome), locais(nome), usuarios(id, nome)')
         .order('validade');
 
     if (error) {
@@ -476,7 +476,7 @@ function renderEstoque(lista, hoje) {
     if (lista.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align: center; padding: 60px; color: var(--text-muted);">
+                <td colspan="9" style="text-align: center; padding: 60px; color: var(--text-muted);">
                     Nenhum item encontrado
                 </td>
             </tr>
@@ -511,6 +511,7 @@ function renderEstoque(lista, hoje) {
                         ${diff < 0 ? 'VENCIDO' : diff === 0 ? 'VENCE HOJE' : diff === 1 ? 'VENCE EM 1 DIA' : `VENCE EM ${diff} DIAS`}
                     </span>
                 </td>
+                <td>${item.usuarios?.nome || '-'}</td>
                 <td>
                     <div class="action-buttons">
                         ${canEditValidity ? `
@@ -858,7 +859,7 @@ window.editEstoque = async function (id) {
     document.getElementById('modalTitle').textContent = 'Editar Estoque';
     document.getElementById('estoqueId').value = item.id;
     document.getElementById('estoqueLoja').value = item.loja_id;
-    await loadLocais(item.loja_id);
+    await loadLocaisModal(item.loja_id);
     document.getElementById('estoqueLocal').value = item.local_id || '';
     document.getElementById('estoqueProduto').value = item.produto_id;
     document.getElementById('estoqueQtd').value = item.quantidade;

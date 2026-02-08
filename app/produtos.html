@@ -213,16 +213,18 @@
                 <span class="summary-label">Produtos Cadastrados</span>
             </div>
             <div id="batchActions"
-                style="display: none; margin-left: auto; display: flex; gap: 10px; align-items: center;">
-                <span id="selectedCount" style="color: var(--primary); font-weight: 500;">0 selecionados</span>
-                <button class="btn btn-outline" id="btnDeselectAll" style="border-color: var(--text-muted);">
+                style="display: none; margin-left: auto; background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%); border: 2px solid #EF4444; border-radius: 12px; padding: 12px 20px; gap: 12px; align-items: center;">
+                <span id="selectedCount" style="color: #DC2626; font-weight: 700; font-size: 15px;">0
+                    selecionados</span>
+                <button class="btn btn-outline" id="btnDeselectAll" style="border-color: #9CA3AF; background: white;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                         <line x1="18" y1="6" x2="6" y2="18" />
                         <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                     Limpar Seleção
                 </button>
-                <button class="btn" id="btnDeleteSelected" style="background: var(--danger); color: white;">
+                <button class="btn" id="btnDeleteSelected"
+                    style="background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%); color: white; font-weight: 600; padding: 10px 20px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                         <polyline points="3 6 5 6 21 6" />
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
