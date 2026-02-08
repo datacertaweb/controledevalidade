@@ -639,20 +639,30 @@ async function loadUserPerformance() {
             total: (coletasPorUsuario[u.id] || 0) + (perdasPorUsuario[u.id] || 0)
         }));
 
-        // Top 3 Coletas
-        const topColetas = [...usuariosStats]
-            .sort((a, b) => b.coletas - a.coletas)
-            .slice(0, 3);
+        // Verificar se há dados reais
+        const temDadosColetas = (coletados || []).length > 0;
+        const temDadosPerdas = (perdas || []).length > 0;
 
-        // Top 3 Perdas
-        const topPerdas = [...usuariosStats]
-            .sort((a, b) => b.perdas - a.perdas)
-            .slice(0, 3);
+        // Se não há nenhum dado, mostrar estado vazio
+        if (!temDadosColetas && !temDadosPerdas) {
+            renderEmptyState();
+            return;
+        }
 
-        // Menos Ativos (usuários com menor total de ações)
-        const menosAtivos = [...usuariosStats]
-            .sort((a, b) => a.total - b.total)
-            .slice(0, 3);
+        // Top 3 Coletas - só mostrar se houver coletas
+        const topColetas = temDadosColetas
+            ? [...usuariosStats].filter(u => u.coletas > 0).sort((a, b) => b.coletas - a.coletas).slice(0, 3)
+            : [];
+
+        // Top 3 Perdas - só mostrar se houver perdas
+        const topPerdas = temDadosPerdas
+            ? [...usuariosStats].filter(u => u.perdas > 0).sort((a, b) => b.perdas - a.perdas).slice(0, 3)
+            : [];
+
+        // Menos Ativos - só mostrar se houver algum dado
+        const menosAtivos = (temDadosColetas || temDadosPerdas)
+            ? [...usuariosStats].sort((a, b) => a.total - b.total).slice(0, 3)
+            : [];
 
         // Renderizar cards
         renderUserList('usuariosColetas', topColetas, 'coletas', '#10B981');

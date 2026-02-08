@@ -309,28 +309,35 @@ async function loadEmpresaNome() {
 }
 
 async function loadEstoque() {
-    // Buscar todos os coletados com relações (sem filtro de empresa no Supabase)
-    const { data, error } = await supabaseClient
-        .from('coletados')
-        .select('*, base(descricao, valor_unitario, codigo, ean, empresa_id, categoria), lojas(nome), locais(nome), usuarios(id, nome)')
-        .order('validade');
+    try {
+        // Buscar coletados filtrando pela empresa (base!inner força o join e permite filtrar)
+        let query = supabaseClient
+            .from('coletados')
+            .select('*, base!inner(descricao, valor_unitario, codigo, ean, empresa_id, categoria), lojas(nome), locais(nome), usuarios(id, nome)')
+            .eq('base.empresa_id', userData.empresa_id)
+            .order('validade');
 
-    if (error) {
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        // Filtrar localmente por lojas se o usuário tiver restrição
+        if (userLojaIds && userLojaIds.length > 0) {
+            estoque = (data || []).filter(e => userLojaIds.includes(e.loja_id));
+        } else {
+            estoque = data || [];
+        }
+
+        console.log('Coletados carregados:', estoque.length);
+        filterAndRender();
+
+    } catch (error) {
         console.error('Erro ao carregar coletados:', error);
-        return;
+        window.globalUI?.showToast('error', 'Erro ao carregar estoque: ' + error.message);
     }
-
-    // Filtrar apenas os itens da empresa do usuário
-    estoque = (data || []).filter(e => e.base?.empresa_id === userData.empresa_id);
-
-    // Se usuário tem lojas específicas, filtrar apenas elas
-    if (userLojaIds && userLojaIds.length > 0) {
-        estoque = estoque.filter(e => userLojaIds.includes(e.loja_id));
-    }
-
-    console.log('Coletados carregados:', estoque.length); // Debug
-    filterAndRender();
 }
+
+
 
 function filterAndRender() {
     const search = document.getElementById('filterSearch')?.value.toLowerCase() || '';
@@ -888,12 +895,18 @@ window.excluirEstoque = async function (id) {
     if (!confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) return;
 
     try {
-        const { error } = await window.supabaseClient
+        const { data, error } = await window.supabaseClient
             .from('coletados')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .select();
 
         if (error) throw error;
+
+        if (!data || data.length === 0) {
+            // Se chegou aqui sem erro mas sem dados, provável problema de RLS ou item não existe
+            throw new Error('Item não encontrado ou sem permissão para excluir.');
+        }
 
         window.globalUI?.showToast('success', 'Produto excluído com sucesso!');
         await loadEstoque();
