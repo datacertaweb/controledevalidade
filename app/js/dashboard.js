@@ -438,100 +438,60 @@ window.exportarPDF = async function () {
         document.getElementById('exportMenu').style.display = 'none';
         window.globalUI?.showToast('info', 'Gerando PDF... Aguarde.');
 
-        const dados = await getDadosExportacao();
-        if (!dados) {
-            window.globalUI?.showToast('error', 'Erro ao buscar dados.');
+        const mainContent = document.querySelector('.main-content');
+        if (!mainContent) {
+            window.globalUI?.showToast('error', 'Conteúdo não encontrado.');
             return;
         }
 
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('l', 'mm', 'a4');
-        const pageWidth = pdf.internal.pageSize.getWidth();
-
-        // Título
-        pdf.setFontSize(18);
-        pdf.setTextColor(20, 184, 166);
-        pdf.text('DataCerta - Relatório do Dashboard', 14, 20);
-
-        pdf.setFontSize(10);
-        pdf.setTextColor(100);
-        pdf.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
-
-        let yPos = 38;
-
-        // Resumo
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
-        const vencidos = dados.estoque.filter(e => new Date(e.validade) < hoje).length;
-        const em7dias = dados.estoque.filter(e => {
-            const val = new Date(e.validade);
-            const diff = Math.ceil((val - hoje) / (1000 * 60 * 60 * 24));
-            return diff >= 0 && diff <= 7;
-        }).length;
-        const totalPerdas = dados.perdas.reduce((sum, p) => sum + parseFloat(p.valor_perda || 0), 0);
-
-        pdf.setFontSize(12);
-        pdf.setTextColor(0);
-        pdf.text('Resumo:', 14, yPos);
-        yPos += 6;
-        pdf.setFontSize(10);
-        pdf.text(`• Total de itens em estoque: ${dados.estoque.length}`, 14, yPos);
-        yPos += 5;
-        pdf.text(`• Itens vencidos: ${vencidos}`, 14, yPos);
-        yPos += 5;
-        pdf.text(`• Vencem em 7 dias: ${em7dias}`, 14, yPos);
-        yPos += 5;
-        pdf.text(`• Total de perdas: R$ ${totalPerdas.toFixed(2)}`, 14, yPos);
-        yPos += 10;
-
-        // Tabela de Estoque
-        pdf.setFontSize(12);
-        pdf.text('Controle de Validade', 14, yPos);
-        yPos += 4;
-
-        const estoqueData = dados.estoque.slice(0, 50).map(e => [
-            e.base?.codigo || '-',
-            (e.base?.descricao || '-').substring(0, 30),
-            e.lojas?.nome || '-',
-            e.base?.categoria || '-',
-            e.quantidade || 0,
-            new Date(e.validade).toLocaleDateString('pt-BR'),
-            calcularStatus(e.validade)
-        ]);
-
-        pdf.autoTable({
-            startY: yPos,
-            head: [['Código', 'Produto', 'Loja', 'Categoria', 'Qtd', 'Validade', 'Status']],
-            body: estoqueData,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [20, 184, 166] }
+        // Capturar com html2canvas
+        const canvas = await html2canvas(mainContent, {
+            scale: 1.5,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#F1F5F9',
+            logging: false,
+            windowWidth: mainContent.scrollWidth,
+            windowHeight: mainContent.scrollHeight
         });
 
-        // Nova página para Perdas
-        if (dados.perdas.length > 0) {
-            pdf.addPage();
-            pdf.setFontSize(12);
-            pdf.text('Registro de Perdas', 14, 20);
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-            const perdasData = dados.perdas.slice(0, 50).map(p => [
-                (p.base?.descricao || '-').substring(0, 30),
-                p.base?.categoria || '-',
-                p.quantidade || 0,
-                `R$ ${parseFloat(p.valor_perda || 0).toFixed(2)}`,
-                p.motivo || '-',
-                new Date(p.created_at).toLocaleDateString('pt-BR')
-            ]);
+        // Criar PDF em landscape A4
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('l', 'mm', 'a4');
 
-            pdf.autoTable({
-                startY: 26,
-                head: [['Produto', 'Categoria', 'Qtd', 'Valor Perda', 'Motivo', 'Data']],
-                body: perdasData,
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [239, 68, 68] }
-            });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        // Calcular dimensões para caber em uma página
+        const imgRatio = canvas.width / canvas.height;
+        const pageRatio = pageWidth / pageHeight;
+
+        let imgWidth, imgHeight;
+
+        if (imgRatio > pageRatio) {
+            // Imagem mais larga - ajustar pela largura
+            imgWidth = pageWidth - 10;
+            imgHeight = imgWidth / imgRatio;
+        } else {
+            // Imagem mais alta - ajustar pela altura
+            imgHeight = pageHeight - 15;
+            imgWidth = imgHeight * imgRatio;
         }
 
-        pdf.save(`relatorio-datacerta-${new Date().toISOString().split('T')[0]}.pdf`);
+        // Centralizar na página
+        const xOffset = (pageWidth - imgWidth) / 2;
+        const yOffset = 5;
+
+        pdf.addImage(imgData, 'JPEG', xOffset, yOffset, imgWidth, imgHeight);
+
+        // Rodapé
+        pdf.setFontSize(8);
+        pdf.setTextColor(100);
+        pdf.text(`DataCerta - Gerado em ${new Date().toLocaleString('pt-BR')}`, 10, pageHeight - 3);
+
+        pdf.save(`dashboard-datacerta-${new Date().toISOString().split('T')[0]}.pdf`);
         window.globalUI?.showToast('success', 'PDF exportado com sucesso!');
     } catch (error) {
         console.error('Erro ao exportar PDF:', error);
