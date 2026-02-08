@@ -375,71 +375,230 @@ window.limparFiltros = function () {
     location.reload();
 };
 
-window.exportarRelatorio = async function () {
+// Toggle menu de exportação
+window.toggleExportMenu = function () {
+    const menu = document.getElementById('exportMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+};
+
+// Fechar menu ao clicar fora
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('exportMenu');
+    const dropdown = document.querySelector('.export-dropdown');
+    if (menu && dropdown && !dropdown.contains(e.target)) {
+        menu.style.display = 'none';
+    }
+});
+
+// Buscar dados para exportação
+async function getDadosExportacao() {
+    const userData = window.appData?.userData;
+    if (!userData) return null;
+
+    // Buscar estoque
+    const { data: estoque } = await supabaseClient
+        .from('coletados')
+        .select('*, base(id, descricao, categoria, valor_unitario, codigo, empresa_id), lojas(id, nome)')
+        .order('validade', { ascending: true });
+
+    const estoqueEmpresa = (estoque || []).filter(e => e.base?.empresa_id === userData.empresa_id);
+
+    // Buscar perdas
+    const { data: perdas } = await supabaseClient
+        .from('perdas')
+        .select('*, base!inner(descricao, categoria, valor_unitario, empresa_id)')
+        .eq('base.empresa_id', userData.empresa_id)
+        .order('created_at', { ascending: false });
+
+    // Buscar vendidos
+    const { data: vendidos } = await supabaseClient
+        .from('vendidos')
+        .select('*')
+        .eq('empresa_id', userData.empresa_id);
+
+    return { estoque: estoqueEmpresa, perdas: perdas || [], vendidos: vendidos || [] };
+}
+
+// Calcular status de validade
+function calcularStatus(validade) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const val = new Date(validade);
+    const diff = Math.ceil((val - hoje) / (1000 * 60 * 60 * 24));
+
+    if (diff < 0) return 'Vencido';
+    if (diff <= 3) return 'Crítico';
+    if (diff <= 7) return 'Alerta';
+    return 'OK';
+}
+
+// Exportar PDF
+window.exportarPDF = async function () {
     try {
-        // Mostrar loading
+        document.getElementById('exportMenu').style.display = 'none';
         window.globalUI?.showToast('info', 'Gerando PDF... Aguarde.');
 
-        // Capturar conteúdo principal do dashboard
-        const mainContent = document.querySelector('.main-content');
-        if (!mainContent) {
-            window.globalUI?.showToast('error', 'Conteúdo não encontrado.');
+        const dados = await getDadosExportacao();
+        if (!dados) {
+            window.globalUI?.showToast('error', 'Erro ao buscar dados.');
             return;
         }
 
-        // Configurações do html2canvas
-        const canvas = await html2canvas(mainContent, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#F1F5F9',
-            logging: false
-        });
-
-        const imgData = canvas.toDataURL('image/png');
-
-        // Criar PDF em landscape para melhor visualização
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('l', 'mm', 'a4');
-
         const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
 
-        // Calcular dimensões mantendo proporção
-        const imgWidth = pageWidth - 20; // margem de 10mm cada lado
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        // Título
+        pdf.setFontSize(18);
+        pdf.setTextColor(20, 184, 166);
+        pdf.text('DataCerta - Relatório do Dashboard', 14, 20);
 
-        // Se a imagem for maior que a página, criar múltiplas páginas
-        if (imgHeight <= pageHeight - 20) {
-            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-        } else {
-            let position = 10;
-            let remainingHeight = imgHeight;
+        pdf.setFontSize(10);
+        pdf.setTextColor(100);
+        pdf.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
 
-            while (remainingHeight > 0) {
-                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-                remainingHeight -= (pageHeight - 20);
+        let yPos = 38;
 
-                if (remainingHeight > 0) {
-                    pdf.addPage();
-                    position = 10 - (imgHeight - remainingHeight);
-                }
-            }
+        // Resumo
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const vencidos = dados.estoque.filter(e => new Date(e.validade) < hoje).length;
+        const em7dias = dados.estoque.filter(e => {
+            const val = new Date(e.validade);
+            const diff = Math.ceil((val - hoje) / (1000 * 60 * 60 * 24));
+            return diff >= 0 && diff <= 7;
+        }).length;
+        const totalPerdas = dados.perdas.reduce((sum, p) => sum + parseFloat(p.valor_perda || 0), 0);
+
+        pdf.setFontSize(12);
+        pdf.setTextColor(0);
+        pdf.text('Resumo:', 14, yPos);
+        yPos += 6;
+        pdf.setFontSize(10);
+        pdf.text(`• Total de itens em estoque: ${dados.estoque.length}`, 14, yPos);
+        yPos += 5;
+        pdf.text(`• Itens vencidos: ${vencidos}`, 14, yPos);
+        yPos += 5;
+        pdf.text(`• Vencem em 7 dias: ${em7dias}`, 14, yPos);
+        yPos += 5;
+        pdf.text(`• Total de perdas: R$ ${totalPerdas.toFixed(2)}`, 14, yPos);
+        yPos += 10;
+
+        // Tabela de Estoque
+        pdf.setFontSize(12);
+        pdf.text('Controle de Validade', 14, yPos);
+        yPos += 4;
+
+        const estoqueData = dados.estoque.slice(0, 50).map(e => [
+            e.base?.codigo || '-',
+            (e.base?.descricao || '-').substring(0, 30),
+            e.lojas?.nome || '-',
+            e.base?.categoria || '-',
+            e.quantidade || 0,
+            new Date(e.validade).toLocaleDateString('pt-BR'),
+            calcularStatus(e.validade)
+        ]);
+
+        pdf.autoTable({
+            startY: yPos,
+            head: [['Código', 'Produto', 'Loja', 'Categoria', 'Qtd', 'Validade', 'Status']],
+            body: estoqueData,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [20, 184, 166] }
+        });
+
+        // Nova página para Perdas
+        if (dados.perdas.length > 0) {
+            pdf.addPage();
+            pdf.setFontSize(12);
+            pdf.text('Registro de Perdas', 14, 20);
+
+            const perdasData = dados.perdas.slice(0, 50).map(p => [
+                (p.base?.descricao || '-').substring(0, 30),
+                p.base?.categoria || '-',
+                p.quantidade || 0,
+                `R$ ${parseFloat(p.valor_perda || 0).toFixed(2)}`,
+                p.motivo || '-',
+                new Date(p.created_at).toLocaleDateString('pt-BR')
+            ]);
+
+            pdf.autoTable({
+                startY: 26,
+                head: [['Produto', 'Categoria', 'Qtd', 'Valor Perda', 'Motivo', 'Data']],
+                body: perdasData,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [239, 68, 68] }
+            });
         }
 
-        // Adicionar data/hora no rodapé
-        const dataHora = new Date().toLocaleString('pt-BR');
-        pdf.setFontSize(8);
-        pdf.setTextColor(100);
-        pdf.text(`DataCerta - Relatório gerado em ${dataHora}`, 10, pageHeight - 5);
-
-        // Download
-        pdf.save(`dashboard-datacerta-${new Date().toISOString().split('T')[0]}.pdf`);
-
-        window.globalUI?.showToast('success', 'PDF baixado com sucesso!');
+        pdf.save(`relatorio-datacerta-${new Date().toISOString().split('T')[0]}.pdf`);
+        window.globalUI?.showToast('success', 'PDF exportado com sucesso!');
     } catch (error) {
         console.error('Erro ao exportar PDF:', error);
         window.globalUI?.showToast('error', 'Erro ao gerar PDF: ' + error.message);
+    }
+};
+
+// Exportar Excel
+window.exportarExcel = async function () {
+    try {
+        document.getElementById('exportMenu').style.display = 'none';
+        window.globalUI?.showToast('info', 'Gerando Excel... Aguarde.');
+
+        const dados = await getDadosExportacao();
+        if (!dados) {
+            window.globalUI?.showToast('error', 'Erro ao buscar dados.');
+            return;
+        }
+
+        const wb = XLSX.utils.book_new();
+
+        // Aba Estoque
+        const estoqueRows = dados.estoque.map(e => ({
+            'Código': e.base?.codigo || '-',
+            'Produto': e.base?.descricao || '-',
+            'Loja': e.lojas?.nome || '-',
+            'Categoria': e.base?.categoria || '-',
+            'Quantidade': e.quantidade || 0,
+            'Valor Unitário': e.base?.valor_unitario || 0,
+            'Valor Total': (e.quantidade || 0) * (e.base?.valor_unitario || 0),
+            'Validade': new Date(e.validade).toLocaleDateString('pt-BR'),
+            'Status': calcularStatus(e.validade),
+            'Lote': e.lote || '-'
+        }));
+        const wsEstoque = XLSX.utils.json_to_sheet(estoqueRows);
+        XLSX.utils.book_append_sheet(wb, wsEstoque, 'Estoque');
+
+        // Aba Perdas
+        const perdasRows = dados.perdas.map(p => ({
+            'Produto': p.base?.descricao || '-',
+            'Categoria': p.base?.categoria || '-',
+            'Quantidade': p.quantidade || 0,
+            'Valor Perda': parseFloat(p.valor_perda || 0),
+            'Motivo': p.motivo || '-',
+            'Observação': p.observacao || '-',
+            'Data': new Date(p.created_at).toLocaleDateString('pt-BR')
+        }));
+        const wsPerdas = XLSX.utils.json_to_sheet(perdasRows);
+        XLSX.utils.book_append_sheet(wb, wsPerdas, 'Perdas');
+
+        // Aba Vendidos
+        if (dados.vendidos.length > 0) {
+            const vendidosRows = dados.vendidos.map(v => ({
+                'Produto': v.produto_nome || '-',
+                'Quantidade': v.quantidade || 0,
+                'Valor Total': parseFloat(v.valor_total || 0),
+                'Data': new Date(v.created_at).toLocaleDateString('pt-BR')
+            }));
+            const wsVendidos = XLSX.utils.json_to_sheet(vendidosRows);
+            XLSX.utils.book_append_sheet(wb, wsVendidos, 'Vendidos');
+        }
+
+        XLSX.writeFile(wb, `relatorio-datacerta-${new Date().toISOString().split('T')[0]}.xlsx`);
+        window.globalUI?.showToast('success', 'Excel exportado com sucesso!');
+    } catch (error) {
+        console.error('Erro ao exportar Excel:', error);
+        window.globalUI?.showToast('error', 'Erro ao gerar Excel: ' + error.message);
     }
 };
 

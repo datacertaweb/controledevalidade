@@ -83,3 +83,5 @@ supabase-schema-akmlnywrafsaszfzanyx.pnf
 test-push.js
 
 mobile/
+
+*.pdf
