@@ -982,6 +982,7 @@ async function calcularERegistrarVendas() {
                     loja_id: coletado.loja_id,
                     local_id: coletado.local_id,
                     empresa_id: coletado.base?.empresa_id || userData.empresa_id,
+                    coletado_id: coletado.id,  // Adicionar referência ao coletado original
                     quantidade: quantidadeVendida,
                     valor_unitario: valorUnitario,
                     lote: coletado.lote,
