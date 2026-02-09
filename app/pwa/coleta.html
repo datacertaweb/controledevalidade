@@ -418,6 +418,84 @@
             color: #9CA3AF;
             font-size: 0.9rem;
         }
+
+        /* Dialog Pós-Perdas */
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dialog-overlay.active {
+            display: flex;
+        }
+
+        .dialog-box {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .dialog-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 12px;
+        }
+
+        .dialog-message {
+            color: #6B7280;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .dialog-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dialog-btn {
+            padding: 14px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .dialog-btn:active {
+            opacity: 0.8;
+        }
+
+        .dialog-btn-primary {
+            background: linear-gradient(135deg, #DC2626 0%, #F87171 100%);
+            color: white;
+        }
+
+        .dialog-btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+            color: white;
+        }
+
+        .dialog-btn-secondary {
+            background: #F3F4F6;
+            color: #374151;
+        }
     </style>
 </head>
 
@@ -607,6 +685,28 @@
             </div>
 
         </div> <!-- End contentPerda -->
+
+        <!-- Dialog Pós-Perdas -->
+        <div class="dialog-overlay" id="dialogPosPerda">
+            <div class="dialog-box">
+                <div class="dialog-title">Perdas Registradas!</div>
+                <div class="dialog-message" id="dialogMessage">
+                    <span id="perdasCount">0</span> perda(s) registrada(s) com sucesso.
+                    <br><br>O que deseja fazer agora?
+                </div>
+                <div class="dialog-buttons">
+                    <button class="dialog-btn dialog-btn-primary" onclick="continuarColetandoPerdas()">
+                        Continuar Coletando Perdas
+                    </button>
+                    <button class="dialog-btn dialog-btn-success" onclick="registrarRestanteComoVendidos()">
+                        Registrar Restante como Vendidos
+                    </button>
+                    <button class="dialog-btn dialog-btn-secondary" onclick="voltarDashboard()">
+                        Voltar ao Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Fixed Action Bar -->
         <div class="action-bar">

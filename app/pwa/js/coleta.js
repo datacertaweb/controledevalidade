@@ -889,7 +889,7 @@ async function enviarTodosPerda() {
         listaPerdas = [];
         renderizarListaPerda();
 
-        window.globalUI.showAlert('Sucesso!', `${qtd} perda(s) registrada(s) com sucesso!`, 'success');
+        mostrarDialogPosPerda(qtd);
 
     } catch (err) {
         console.error(err);
@@ -897,5 +897,131 @@ async function enviarTodosPerda() {
     } finally {
         btn.disabled = false;
         btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Enviar Tudo`;
+    }
+}
+
+// ====== DIALOG PÓS-PERDAS ======
+
+function mostrarDialogPosPerda(qtdPerdas) {
+    document.getElementById('perdasCount').textContent = qtdPerdas;
+    document.getElementById('dialogPosPerda').classList.add('active');
+}
+
+function fecharDialogPosPerda() {
+    document.getElementById('dialogPosPerda').classList.remove('active');
+}
+
+function continuarColetandoPerdas() {
+    fecharDialogPosPerda();
+    limparFormularioPerda();
+    window.globalUI.showToast('info', 'Pronto para registrar mais perdas');
+}
+
+async function registrarRestanteComoVendidos() {
+    fecharDialogPosPerda();
+
+    // Mostrar loading
+    window.globalUI.showToast('info', 'Calculando vendas...', 5000);
+
+    try {
+        await calcularERegistrarVendas();
+        window.globalUI.showAlert('Sucesso!', 'Vendas calculadas e registradas com sucesso!', 'success', () => {
+            window.location.href = '../dashboard.html';
+        });
+    } catch (err) {
+        console.error('Erro ao registrar vendas:', err);
+        window.globalUI.showAlert('Erro', 'Falha ao registrar vendas: ' + err.message, 'error');
+    }
+}
+
+function voltarDashboard() {
+    fecharDialogPosPerda();
+    window.location.href = '../dashboard.html';
+}
+
+// ====== CÁLCULO AUTOMÁTICO DE VENDAS ======
+
+async function calcularERegistrarVendas() {
+    try {
+        // Buscar todos os coletados da loja atual
+        let query = supabaseClient
+            .from('coletados')
+            .select('*, base(valor_unitario, descricao, codigo, categoria)');
+
+        if (currentLojaId) {
+            query = query.eq('loja_id', currentLojaId);
+        } else {
+            query = query.is('loja_id', null);
+        }
+
+        const { data: coletados, error: coletadosError } = await query;
+
+        if (coletadosError) throw coletadosError;
+        if (!coletados || coletados.length === 0) {
+            console.log('ℹ️ Nenhum item em coletados para finalizar');
+            return;
+        }
+
+        const registrosVendas = [];
+        const coletadosParaRemover = [];
+
+        for (const coletado of coletados) {
+            // Buscar total de perdas para este coletado
+            const { data: perdas, error: perdasError } = await supabaseClient
+                .from('perdas')
+                .select('quantidade')
+                .eq('estoque_id', coletado.id);
+
+            if (perdasError) throw perdasError;
+
+            const totalPerdas = (perdas || []).reduce((sum, p) => sum + p.quantidade, 0);
+            const quantidadeVendida = coletado.quantidade - totalPerdas;
+
+            // Se ainda há unidades (vendidas), registrar
+            if (quantidadeVendida > 0) {
+                const valorUnitario = coletado.valor_unitario || coletado.base?.valor_unitario || 0;
+
+                registrosVendas.push({
+                    produto_id: coletado.produto_id,
+                    loja_id: coletado.loja_id,
+                    local_id: coletado.local_id,
+                    quantidade: quantidadeVendida,
+                    valor_unitario: valorUnitario,
+                    valor_total: valorUnitario * quantidadeVendida,
+                    lote: coletado.lote,
+                    data_vencimento: coletado.validade,
+                    data_venda: new Date().toISOString().split('T')[0], // Data atual
+                    usuario_id: userData.id
+                });
+            }
+
+            // Marcar coletado para remoção (ciclo finalizado)
+            coletadosParaRemover.push(coletado.id);
+        }
+
+        // Inserir vendas
+        if (registrosVendas.length > 0) {
+            const { error: vendasError } = await supabaseClient
+                .from('vendidos')
+                .insert(registrosVendas);
+
+            if (vendasError) throw vendasError;
+        }
+
+        // Remover coletados finalizados
+        if (coletadosParaRemover.length > 0) {
+            const { error: removeError } = await supabaseClient
+                .from('coletados')
+                .delete()
+                .in('id', coletadosParaRemover);
+
+            if (removeError) throw removeError;
+        }
+
+        console.log(`✅ ${registrosVendas.length} venda(s) registrada(s)`);
+        console.log(`✅ ${coletadosParaRemover.length} item(s) removido(s) de coletados`);
+
+    } catch (err) {
+        throw new Error('Falha ao calcular vendas: ' + err.message);
     }
 }
