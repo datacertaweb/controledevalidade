@@ -676,11 +676,40 @@ function initEvents() {
 
     // Modal Estoque
     const modal = document.getElementById('modalEstoque');
+
+    // Helper: Gerenciar exibição do campo Loja
+    function gerenciarCampoLoja() {
+        const temLojas = lojas && lojas.length > 0;
+        const lojaGroup = document.getElementById('formGroupLoja');
+        const lojaSelect = document.getElementById('estoqueLoja');
+        const lojaLabel = document.getElementById('labelEstoqueLoja');
+        const localSelect = document.getElementById('estoqueLocal');
+
+        if (temLojas) {
+            // Empresa com lojas: mostrar campo normalmente
+            lojaGroup.style.display = '';
+            lojaSelect.required = true;
+            lojaLabel.textContent = 'Loja *';
+        } else {
+            // Empresa única: ocultar campo loja
+            lojaGroup.style.display = 'none';
+            lojaSelect.required = false;
+            lojaSelect.value = ''; // Vai salvar como NULL
+            // Atualizar locais para não depender de loja
+            localSelect.innerHTML = '<option value="">Nenhum</option>';
+            if (locais && locais.length > 0) {
+                locais.forEach(local => {
+                    localSelect.innerHTML += `<option value="${local.id}">${local.nome}</option>`;
+                });
+            }
+        }
+    }
+
     document.getElementById('btnNovoEstoque')?.addEventListener('click', () => {
         document.getElementById('modalTitle').textContent = 'Adicionar Estoque';
         document.getElementById('formEstoque').reset();
         document.getElementById('estoqueId').value = '';
-        document.getElementById('estoqueLocal').innerHTML = '<option value="">Selecione a loja primeiro</option>';
+        gerenciarCampoLoja();
         modal.classList.add('active');
     });
 
@@ -833,7 +862,7 @@ async function saveEstoque(e) {
     const id = document.getElementById('estoqueId').value;
     const data = {
         produto_id: document.getElementById('estoqueProduto').value,
-        loja_id: document.getElementById('estoqueLoja').value,
+        loja_id: document.getElementById('estoqueLoja').value || null,  // NULL para empresas únicas
         local_id: document.getElementById('estoqueLocal').value || null,
         quantidade: parseInt(document.getElementById('estoqueQtd').value),
         valor_unitario: parseFloat(document.getElementById('estoqueValor').value) || 0,
@@ -865,9 +894,36 @@ window.editEstoque = async function (id) {
 
     document.getElementById('modalTitle').textContent = 'Editar Estoque';
     document.getElementById('estoqueId').value = item.id;
-    document.getElementById('estoqueLoja').value = item.loja_id;
-    await loadLocaisModal(item.loja_id);
-    document.getElementById('estoqueLocal').value = item.local_id || '';
+
+    const temLojas = lojas && lojas.length > 0;
+    const lojaGroup = document.getElementById('formGroupLoja');
+    const lojaSelect = document.getElementById('estoqueLoja');
+    const lojaLabel = document.getElementById('labelEstoqueLoja');
+    const localSelect = document.getElementById('estoqueLocal');
+
+    if (temLojas) {
+        // Empresa com lojas: mostrar e preencher normalmente
+        lojaGroup.style.display = '';
+        lojaSelect.required = true;
+        lojaLabel.textContent = 'Loja *';
+        lojaSelect.value = item.loja_id || '';
+        await loadLocaisModal(item.loja_id);
+        localSelect.value = item.local_id || '';
+    } else {
+        // Empresa única: ocultar campo loja
+        lojaGroup.style.display = 'none';
+        lojaSelect.required = false;
+        lojaSelect.value = '';
+        // Carregar todos os locais da empresa (não filtrado por loja)
+        localSelect.innerHTML = '<option value="">Nenhum</option>';
+        if (locais && locais.length > 0) {
+            locais.forEach(local => {
+                localSelect.innerHTML += `<option value="${local.id}">${local.nome}</option>`;
+            });
+        }
+        localSelect.value = item.local_id || '';
+    }
+
     document.getElementById('estoqueProduto').value = item.produto_id;
     document.getElementById('estoqueQtd').value = item.quantidade;
     document.getElementById('estoqueValor').value = item.valor_unitario !== undefined ? item.valor_unitario : (item.base?.valor_unitario || 0);
@@ -895,17 +951,42 @@ window.excluirEstoque = async function (id) {
     if (!confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) return;
 
     try {
+        // Verificar permissão explicitamente
+        if (!auth.hasPermission(userData, 'coletado.delete') && !auth.hasPermission(userData, 'coletado.edit')) {
+            throw new Error('Você não tem permissão para excluir produtos.');
+        }
+
         const { data, error } = await window.supabaseClient
             .from('coletados')
             .delete()
             .eq('id', id)
             .select();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Erro do Supabase:', error);
+            // Erro comum de RLS
+            if (error.code === 'PGRST301' || error.message.includes('violates row-level security')) {
+                throw new Error('Sem permissão para excluir este item. Verifique as políticas RLS no Supabase.');
+            }
+            throw error;
+        }
 
+        // Se não retornou dados, pode ser que o item não existe ou RLS bloqueou silenciosamente
         if (!data || data.length === 0) {
-            // Se chegou aqui sem erro mas sem dados, provável problema de RLS ou item não existe
-            throw new Error('Item não encontrado ou sem permissão para excluir.');
+            console.warn('Delete não retornou dados. Verificando se item ainda existe...');
+
+            // Tentar buscar o item para ver se ainda existe
+            const { data: checkData } = await window.supabaseClient
+                .from('coletados')
+                .select('id')
+                .eq('id', id)
+                .single();
+
+            if (checkData) {
+                throw new Error('Sem permissão para excluir este item (RLS bloqueou a operação).');
+            }
+            // Se não achou o item, pode ter sido excluído por outro processo ou não existia
+            console.log('Item não encontrado, pode já ter sido excluído.');
         }
 
         window.globalUI?.showToast('success', 'Produto excluído com sucesso!');
