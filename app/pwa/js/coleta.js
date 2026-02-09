@@ -490,16 +490,10 @@ async function enviarTodos() {
                 local_id: localId,
                 quantidade: item.quantidade,
                 validade: item.validade,
+                lote: item.lote || null,  // Adicionar lote se informado
+                valor_unitario: item.valor || 0,  // Salvar valor_unitario em coletados, não em base
                 usuario_id: userData.id
             });
-
-            // Atualizar preço do produto se informado
-            if (item.valor && item.valor > 0) {
-                await supabaseClient
-                    .from('base')
-                    .update({ valor_unitario: item.valor })
-                    .eq('id', item.produto_id);
-            }
         }
 
         // Inserir todos os registros de coletados
@@ -988,7 +982,6 @@ async function calcularERegistrarVendas() {
                     empresa_id: coletado.base?.empresa_id || userData.empresa_id,
                     quantidade: quantidadeVendida,
                     valor_unitario: valorUnitario,
-                    valor_total: valorUnitario * quantidadeVendida,
                     lote: coletado.lote,
                     validade: coletado.validade,  // Corrigido: era data_vencimento
                     data_venda: new Date().toISOString().split('T')[0],
