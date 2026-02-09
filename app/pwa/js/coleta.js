@@ -846,13 +846,14 @@ async function enviarTodosPerda() {
             // Buscar dados do coletado
             const { data: coletado } = await supabaseClient
                 .from('coletados')
-                .select('*, base(valor_unitario)')
+                .select('*')
                 .eq('id', item.coletado_id)
                 .single();
 
             if (!coletado) continue;
 
-            const valorPerda = (coletado.base?.valor_unitario || 0) * item.quantidade;
+            // Usar valor_unitario da tabela coletados, não da base
+            const valorPerda = (coletado.valor_unitario || 0) * item.quantidade;
 
             // Inserir na tabela perdas
             const { error: perdaError } = await supabaseClient.from('perdas').insert({
@@ -973,7 +974,8 @@ async function calcularERegistrarVendas() {
 
             // Se ainda há unidades (vendidas), registrar
             if (quantidadeVendida > 0) {
-                const valorUnitario = coletado.valor_unitario || coletado.base?.valor_unitario || 0;
+                // Usar valor_unitario da tabela coletados, não da base
+                const valorUnitario = coletado.valor_unitario || 0;
 
                 registrosVendas.push({
                     produto_id: coletado.produto_id,
