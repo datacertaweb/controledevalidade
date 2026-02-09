@@ -985,13 +985,14 @@ async function calcularERegistrarVendas() {
                     produto_id: coletado.produto_id,
                     loja_id: coletado.loja_id,
                     local_id: coletado.local_id,
+                    empresa_id: coletado.base?.empresa_id || userData.empresa_id,
                     quantidade: quantidadeVendida,
                     valor_unitario: valorUnitario,
                     valor_total: valorUnitario * quantidadeVendida,
                     lote: coletado.lote,
-                    data_vencimento: coletado.validade,
-                    data_venda: new Date().toISOString().split('T')[0], // Data atual
-                    usuario_id: userData.id
+                    validade: coletado.validade,  // Corrigido: era data_vencimento
+                    data_venda: new Date().toISOString().split('T')[0],
+                    registrado_por: userData.id
                 });
             }
 
