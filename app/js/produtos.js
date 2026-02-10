@@ -60,12 +60,22 @@ function updateUserUI() {
 }
 
 async function loadProdutos() {
+    // 1. Buscar contagem real usando RPC (mostra 100 mil, não apenas 1000)
+    const { data: countData, error: countError } = await supabaseClient
+        .rpc('count_produtos');
+
+    if (!countError && countData !== null) {
+        document.getElementById('totalProdutos').textContent = countData.toLocaleString('pt-BR');
+    }
+
+    // 2. Buscar produtos para exibição (limite de 1000 para performance da UI)
     const { data, error } = await supabaseClient
         .from('base')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
         .eq('ativo', true)
-        .order('descricao');
+        .order('descricao')
+        .limit(1000);
 
     if (error) {
         console.error('Erro:', error);
@@ -73,7 +83,6 @@ async function loadProdutos() {
     }
 
     produtos = data || [];
-    document.getElementById('totalProdutos').textContent = produtos.length;
 
     // Carregar categorias para o dropdown
     loadCategorias();
@@ -1080,8 +1089,8 @@ async function exportarProdutos() {
     window.globalUI.showToast('info', 'Preparando exportação... Aguarde.');
 
     try {
-        // Função RPC já filtra por empresa_id do usuário (nunca cruza dados entre empresas)
-        const { data, error } = await supabaseClient.rpc('export_produtos');
+        // Usar função CSV que retorna TODOS os produtos (sem limite de 1000)
+        const { data, error } = await supabaseClient.rpc('export_produtos_csv');
 
         if (error) {
             // Se erro de permissão, mostra mensagem específica
@@ -1092,20 +1101,13 @@ async function exportarProdutos() {
             throw error;
         }
 
-        if (!data || data.length === 0) {
+        if (!data || data.trim() === '') {
             window.globalUI.showToast('warning', 'Nenhum produto para exportar.');
             return;
         }
 
-        window.globalUI.showToast('info', `Exportando ${data.length} produtos...`);
-
-        // Header
-        let csv = 'CODIGO;DESCRICAO;EAN;CATEGORIA\n';
-
-        // Dados
-        data.forEach(p => {
-            csv += `${p.codigo || ''};${p.descricao || ''};${p.ean || ''};${p.categoria || ''}\n`;
-        });
+        // Adicionar header ao CSV
+        const csv = 'CODIGO;DESCRICAO;EAN;CATEGORIA\n' + data;
 
         // Download
         const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -1114,7 +1116,9 @@ async function exportarProdutos() {
         link.download = `produtos_datacerta_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
 
-        window.globalUI.showToast('success', `${data.length} produtos exportados com sucesso!`);
+        // Contar linhas exportadas
+        const linhas = data.split('\n').filter(l => l.trim()).length;
+        window.globalUI.showToast('success', `${linhas.toLocaleString('pt-BR')} produtos exportados com sucesso!`);
     } catch (error) {
         console.error('Erro ao exportar:', error);
         window.globalUI.showToast('error', 'Erro ao exportar: ' + error.message);
