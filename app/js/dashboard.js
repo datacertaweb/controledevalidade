@@ -80,6 +80,11 @@ async function loadDashboardData() {
     const totalPerdas = perdas?.reduce((sum, p) => sum + parseFloat(p.valor_perda || 0), 0) || 0;
     const qtdPerdas = perdas?.reduce((sum, p) => sum + (p.quantidade || 0), 0) || 0;
 
+    // Calcular vencidos (perdas com motivo='vencido')
+    const perdasVencidas = perdas?.filter(p => p.motivo === 'vencido') || [];
+    const qtdVencidos = perdasVencidas.reduce((sum, p) => sum + (p.quantidade || 0), 0);
+    const valorVencidos = perdasVencidas.reduce((sum, p) => sum + parseFloat(p.valor_perda || 0), 0);
+
     // Buscar vendidos da empresa
     const { data: vendidos } = await supabaseClient
         .from('vendidos')
@@ -96,18 +101,13 @@ async function loadDashboardData() {
     const valorEstoque = ok.reduce((sum, e) => sum + (e.quantidade * (e.base?.valor_unitario || 0)), 0);
 
     // Atualizar KPIs - Quantidades
-    updateElement('kpiVence7d', formatNumber(vence7d.length));
-    updateElement('kpiColetados', formatNumber(estoqueEmpresa.length));
-    updateElement('kpiColetadosPct', `${Math.round((estoqueEmpresa.length / (estoqueEmpresa.length + qtdPerdas)) * 100) || 0}% da base`);
     updateElement('kpiPerdidos', formatNumber(qtdPerdas));
-    updateElement('kpiVencidos', formatNumber(vencidos.length));
+    updateElement('kpiVencidos', formatNumber(qtdVencidos));
     updateElement('kpiVendidosQtd', formatNumber(qtdVendidos));
 
     // Atualizar KPIs - Valores
-    updateElement('kpiValorVence7d', formatCurrency(valorVence7d));
-    updateElement('kpiValorColetados', formatCurrency(valorColetados));
     updateElement('kpiValorPerdidos', formatCurrency(totalPerdas));
-    updateElement('kpiPrejuizo', formatCurrency(totalPerdas));
+    updateElement('kpiValorVencidos', formatCurrency(valorVencidos));
     updateElement('kpiVendidosValor', formatCurrency(valorVendidos));
 
     // Atualizar Stats
@@ -584,7 +584,7 @@ document.getElementById('lojaFilter')?.addEventListener('change', () => loadDash
 document.getElementById('dataInicioFilter')?.addEventListener('change', () => loadDashboardData());
 document.getElementById('dataFimFilter')?.addEventListener('change', () => loadDashboardData());
 
-// Carregar desempenho de usuários
+
 async function loadUserPerformance() {
     const userData = window.appData?.userData;
     if (!userData) return;

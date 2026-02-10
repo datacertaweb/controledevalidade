@@ -856,35 +856,7 @@
         <!-- KPI Cards - Quantidades -->
         <div class="kpi-section">
             <div class="kpi-section-title">Quantidades (unidades)</div>
-            <div class="kpi-strip qty">
-
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-label">Vence em 7 dias</div>
-                        <div class="kpi-icon-wrapper yellow">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10" />
-                                <polyline points="12 6 12 12 16 14" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="kpi-value" id="kpiVence7d">-</div>
-                    <div class="kpi-sublabel"><span>Ação necessária</span></div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-label">Coletados</div>
-                        <div class="kpi-icon-wrapper blue">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 11l3 3L22 4" />
-                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="kpi-value" id="kpiColetados">-</div>
-                    <div class="kpi-sublabel"><span id="kpiColetadosPct">-</span></div>
-                </div>
+            <div class="kpi-strip qty" style="grid-template-columns: repeat(3, 1fr);">
 
                 <div class="kpi-card">
                     <div class="kpi-header">
@@ -904,7 +876,7 @@
                 <div class="kpi-card">
                     <div class="kpi-header">
                         <div class="kpi-label">Vencidos</div>
-                        <div class="kpi-icon-wrapper red">
+                        <div class="kpi-icon-wrapper yellow">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M3 3l18 18" />
                                 <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9 9 9 0 0 1 9-9" />
@@ -912,7 +884,7 @@
                         </div>
                     </div>
                     <div class="kpi-value" id="kpiVencidos">-</div>
-                    <div class="kpi-sublabel"><span>Itens vencidos</span></div>
+                    <div class="kpi-sublabel"><span>Perdas por vencimento</span></div>
                 </div>
 
                 <div class="kpi-card">
@@ -934,35 +906,7 @@
         <!-- KPI Cards - Valores -->
         <div class="kpi-section">
             <div class="kpi-section-title">Valores (R$)</div>
-            <div class="kpi-strip val">
-
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-label">Vence em 7 dias</div>
-                        <div class="kpi-icon-wrapper yellow">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="1" x2="12" y2="23" />
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="kpi-value" id="kpiValorVence7d">-</div>
-                    <div class="kpi-sublabel"><span>Em risco</span></div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-label">Coletados</div>
-                        <div class="kpi-icon-wrapper blue">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="1" x2="12" y2="23" />
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="kpi-value" id="kpiValorColetados">-</div>
-                    <div class="kpi-sublabel"><span>Valorizado</span></div>
-                </div>
+            <div class="kpi-strip val" style="grid-template-columns: repeat(3, 1fr);">
 
                 <div class="kpi-card">
                     <div class="kpi-header">
@@ -980,16 +924,16 @@
 
                 <div class="kpi-card">
                     <div class="kpi-header">
-                        <div class="kpi-label">Prejuízo</div>
-                        <div class="kpi-icon-wrapper purple">
+                        <div class="kpi-label">Vencidos</div>
+                        <div class="kpi-icon-wrapper yellow">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="12" y1="1" x2="12" y2="23" />
                                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                             </svg>
                         </div>
                     </div>
-                    <div class="kpi-value" id="kpiPrejuizo">-</div>
-                    <div class="kpi-sublabel"><span>Acumulado</span></div>
+                    <div class="kpi-value" id="kpiValorVencidos">-</div>
+                    <div class="kpi-sublabel"><span>Perdas por vencimento</span></div>
                 </div>
 
                 <div class="kpi-card">
@@ -1007,6 +951,8 @@
                 </div>
             </div>
         </div>
+
+
 
         <!-- Charts Grid - 3 colunas -->
         <div class="dashboard-grid">
