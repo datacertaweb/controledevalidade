@@ -931,18 +931,47 @@ function voltarDashboard() {
 
 async function calcularERegistrarVendas() {
     try {
-        // Buscar todos os coletados da loja atual
-        let query = supabaseClient
-            .from('coletados')
-            .select('*, base(valor_unitario, descricao, codigo, categoria)');
+        // Buscar todas as perdas da loja atual para descobrir quais coletados processar
+        let perdasQuery = supabaseClient
+            .from('perdas')
+            .select('estoque_id, quantidade');
 
         if (currentLojaId) {
-            query = query.eq('loja_id', currentLojaId);
+            perdasQuery = perdasQuery.eq('loja_id', currentLojaId);
         } else {
-            query = query.is('loja_id', null);
+            perdasQuery = perdasQuery.is('loja_id', null);
         }
 
-        const { data: coletados, error: coletadosError } = await query;
+        const { data: todasPerdas, error: perdasError } = await perdasQuery;
+        if (perdasError) throw perdasError;
+
+        if (!todasPerdas || todasPerdas.length === 0) {
+            console.log('ℹ️ Nenhuma perda registrada para processar');
+            return;
+        }
+
+        // Agrupar perdas por coletado_id
+        const perdasPorColetado = {};
+        for (const perda of todasPerdas) {
+            if (!perdasPorColetado[perda.estoque_id]) {
+                perdasPorColetado[perda.estoque_id] = 0;
+            }
+            perdasPorColetado[perda.estoque_id] += perda.quantidade;
+        }
+
+        const coletadosIds = Object.keys(perdasPorColetado);
+        console.log('🔍 Coletados com perdas:', coletadosIds.length, coletadosIds);
+
+        if (coletadosIds.length === 0) {
+            console.log('ℹ️ Nenhum coletado com perdas para processar');
+            return;
+        }
+
+        // Buscar apenas os coletados que têm perdas
+        const { data: coletados, error: coletadosError } = await supabaseClient
+            .from('coletados')
+            .select('*, base(valor_unitario, descricao, codigo, categoria, empresa_id)')
+            .in('id', coletadosIds);
 
         console.log('🔍 Coletados encontrados:', coletados?.length || 0, coletados);
         if (coletadosError) throw coletadosError;
@@ -955,15 +984,7 @@ async function calcularERegistrarVendas() {
         const coletadosParaRemover = [];
 
         for (const coletado of coletados) {
-            // Buscar total de perdas para este coletado
-            const { data: perdas, error: perdasError } = await supabaseClient
-                .from('perdas')
-                .select('quantidade')
-                .eq('estoque_id', coletado.id);
-
-            if (perdasError) throw perdasError;
-
-            const totalPerdas = (perdas || []).reduce((sum, p) => sum + p.quantidade, 0);
+            const totalPerdas = perdasPorColetado[coletado.id] || 0;
             const quantidadeVendida = coletado.quantidade - totalPerdas;
             console.log(`📊 Produto ${coletado.id}: coletado=${coletado.quantidade}, perdas=${totalPerdas}, vendido=${quantidadeVendida}`);
 
