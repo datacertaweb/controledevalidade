@@ -951,6 +951,7 @@ async function calcularERegistrarVendas() {
 
         const { data: coletados, error: coletadosError } = await query;
 
+        console.log('🔍 Coletados encontrados:', coletados?.length || 0, coletados);
         if (coletadosError) throw coletadosError;
         if (!coletados || coletados.length === 0) {
             console.log('ℹ️ Nenhum item em coletados para finalizar');
@@ -971,6 +972,7 @@ async function calcularERegistrarVendas() {
 
             const totalPerdas = (perdas || []).reduce((sum, p) => sum + p.quantidade, 0);
             const quantidadeVendida = coletado.quantidade - totalPerdas;
+            console.log(`📊 Produto ${coletado.id}: coletado=${coletado.quantidade}, perdas=${totalPerdas}, vendido=${quantidadeVendida}`);
 
             // Se ainda há unidades (vendidas), registrar
             if (quantidadeVendida > 0) {
@@ -997,12 +999,17 @@ async function calcularERegistrarVendas() {
         }
 
         // Inserir vendas
+        console.log('💰 Tentando inserir vendas:', registrosVendas.length, registrosVendas);
         if (registrosVendas.length > 0) {
             const { error: vendasError } = await supabaseClient
                 .from('vendidos')
                 .insert(registrosVendas);
 
-            if (vendasError) throw vendasError;
+            if (vendasError) {
+                console.error('❌ Erro ao inserir vendas:', vendasError);
+                throw vendasError;
+            }
+            console.log('✅ Vendas inseridas com sucesso');
         }
 
         // Remover coletados finalizados
