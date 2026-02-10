@@ -870,14 +870,7 @@ async function enviarTodosPerda() {
 
             if (perdaError) throw perdaError;
 
-            // Atualizar ou remover do coletados
-            if (item.quantidade >= coletado.quantidade) {
-                await supabaseClient.from('coletados').delete().eq('id', item.coletado_id);
-            } else {
-                await supabaseClient.from('coletados').update({
-                    quantidade: coletado.quantidade - item.quantidade
-                }).eq('id', item.coletado_id);
-            }
+            // NÃO alterar coletados aqui! Isso será feito ao registrar vendas
         }
 
         const qtd = listaPerdas.length;
