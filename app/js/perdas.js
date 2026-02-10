@@ -141,7 +141,7 @@ async function loadAllLocais() {
 async function loadPerdas() {
     let query = supabaseClient
         .from('perdas')
-        .select('*, base!inner(descricao, codigo, ean, categoria, empresa_id), lojas(nome), locais(nome)')
+        .select('*, base!inner(descricao, codigo, ean, categoria, empresa_id), lojas(nome), locais(nome), usuarios(nome)')
         .eq('base.empresa_id', userData.empresa_id)
         .order('created_at', { ascending: false });
 
@@ -250,7 +250,7 @@ function renderPerdas(lista) {
                 <td>R$ ${parseFloat(item.valor_perda || 0).toFixed(2)}</td>
                 <td>${item.motivo || '-'}</td>
                 <td>${dataRegistro}</td>
-                <td>${item.observacao || '-'}</td>
+                <td>${item.usuarios?.nome || 'Sistema'}</td>
             </tr>
         `;
     }).join('');

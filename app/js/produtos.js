@@ -468,7 +468,7 @@ function initEvents() {
 
     document.getElementById('formProduto')?.addEventListener('submit', saveProduto);
 
-    // Botão Exportar (apenas admin vê)
+    // Botão Exportar (apenas admin)
     const btnExportar = document.getElementById('btnExportar');
     if (btnExportar) {
         if (!auth.isAdmin(userData)) {
@@ -478,7 +478,7 @@ function initEvents() {
         }
     }
 
-    // Botão Importar (apenas admin vê)
+    // Botão Importar (apenas admin)
     const btnImportar = document.getElementById('btnImportar');
     if (btnImportar && !auth.isAdmin(userData)) {
         btnImportar.style.display = 'none';
@@ -1071,7 +1071,7 @@ async function fetchAllProductsInBatches(batchSize = 1000) {
 }
 
 async function exportarProdutos() {
-    // Verificação frontend (backup - segurança real está no backend)
+    // Verificação: apenas admin pode exportar
     if (!auth.isAdmin(userData)) {
         window.globalUI.showToast('error', 'Apenas administradores podem exportar dados.');
         return;
@@ -1080,7 +1080,7 @@ async function exportarProdutos() {
     window.globalUI.showToast('info', 'Preparando exportação... Aguarde.');
 
     try {
-        // Usar função RPC segura (verificação de admin no servidor)
+        // Função RPC já filtra por empresa_id do usuário (nunca cruza dados entre empresas)
         const { data, error } = await supabaseClient.rpc('export_produtos');
 
         if (error) {
