@@ -232,6 +232,12 @@
 
         <div class="blocked-footer">
             <p>Dúvidas? <a href="../help/contato.html">Entre em contato</a></p>
+            <p style="margin-top: var(--spacing-md);">
+                <a href="#" onclick="fazerLogout(); return false;"
+                    style="color: var(--text-muted); text-decoration: underline;">
+                    Sair da sessão
+                </a>
+            </p>
         </div>
     </div>
 
@@ -354,6 +360,25 @@ Para continuar utilizando o DataCerta e manter todos os seus dados salvos, é ne
             } catch (error) {
                 console.error('Erro ao abrir portal:', error);
                 alert('Erro ao abrir página de pagamento. Tente novamente.');
+            }
+        }
+
+        async function fazerLogout() {
+            try {
+                // Fazer logout via Supabase
+                if (window.supabaseClient) {
+                    await window.supabaseClient.auth.signOut();
+                }
+
+                // Limpar localStorage
+                localStorage.clear();
+
+                // Redirecionar para login
+                window.location.href = '../index.html';
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+                // Mesmo com erro, redirecionar
+                window.location.href = '../index.html';
             }
         }
 
