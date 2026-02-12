@@ -948,7 +948,12 @@ window.openPerda = function (id) {
 
 // Excluir produto definitivamente (sem registrar perda)
 window.excluirEstoque = async function (id) {
-    if (!confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) return;
+    const confirmed = await window.globalUI.showConfirm(
+        'Excluir Produto',
+        'Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.',
+        'warning'
+    );
+    if (!confirmed) return;
 
     try {
         // Verificar permissão explicitamente

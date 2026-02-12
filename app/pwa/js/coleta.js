@@ -46,6 +46,32 @@ async function initColeta() {
             return;
         }
 
+        // Verificar permissão de coleta (aba Entrada)
+        const canCreate = auth.isAdmin(userData) || auth.hasPermission(userData, 'coletado.create');
+        const canDelete = auth.isAdmin(userData) || auth.hasPermission(userData, 'coletado.delete');
+
+        if (!canCreate && !canDelete) {
+            window.globalUI.showToast('error', 'Você não tem permissão para acessar a coleta.');
+            setTimeout(() => {
+                window.location.href = '../dashboard.html';
+            }, 2000);
+            return;
+        }
+
+        // Ocultar aba de perdas se não tem permissão
+        if (!canDelete) {
+            const tabPerda = document.getElementById('tabPerda');
+            if (tabPerda) tabPerda.style.display = 'none';
+        }
+
+        // Ocultar aba de entrada se não tem permissão (caso raro: só tem coletado.delete)
+        if (!canCreate) {
+            const tabEntrada = document.getElementById('tabEntrada');
+            if (tabEntrada) tabEntrada.style.display = 'none';
+            // Mostrar aba de perda por padrão
+            switchTab('perda');
+        }
+
         // Carregar loja do usuário
         await carregarLoja();
 
@@ -429,6 +455,12 @@ function excluirSelecionados() {
 async function enviarTodos() {
     if (listaItens.length === 0) {
         window.globalUI.showAlert('Lista Vazia', 'Adicione itens antes de enviar.', 'warning');
+        return;
+    }
+
+    // Verificar permissão
+    if (!auth.isAdmin(userData) && !auth.hasPermission(userData, 'coletado.create')) {
+        window.globalUI.showAlert('Acesso Negado', 'Você não tem permissão para coletar validades.', 'error');
         return;
     }
 
@@ -832,6 +864,12 @@ function excluirSelecionadosPerda() {
 async function enviarTodosPerda() {
     if (listaPerdas.length === 0) {
         window.globalUI.showAlert('Lista Vazia', 'Adicione itens antes de enviar.', 'warning');
+        return;
+    }
+
+    // Verificar permissão
+    if (!auth.isAdmin(userData) && !auth.hasPermission(userData, 'coletado.delete')) {
+        window.globalUI.showAlert('Acesso Negado', 'Você não tem permissão para registrar perdas.', 'error');
         return;
     }
 

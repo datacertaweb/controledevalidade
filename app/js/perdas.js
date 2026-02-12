@@ -253,22 +253,16 @@ function renderPerdas(lista) {
                 <td>${dataRegistro}</td>
                 <td>${item.usuarios?.nome || 'Sistema'}</td>
                 <td>
+                    ${canDelete ? `
                     <div style="display: flex; gap: 4px; justify-content: center;">
-                        <button class="action-btn" title="Editar" onclick="editarPerda('${item.id}')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                        </button>
-                        ${canDelete ? `
                         <button class="action-btn delete" title="Excluir" onclick="excluirPerda('${item.id}')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                             </svg>
                         </button>
-                        ` : ''}
                     </div>
+                    ` : ''}
                 </td>
             </tr>
         `;
@@ -454,19 +448,6 @@ function initEvents() {
     });
 }
 
-// Função para editar perda
-async function editarPerda(id) {
-    const perda = perdas.find(p => p.id === id);
-    if (!perda) {
-        mensagem('Perda não encontrada', 'error');
-        return;
-    }
-
-    // Por enquanto, apenas mostra um alerta
-    // Em uma implementação completa, abriria um modal de edição
-    mensagem('Função de edição em desenvolvimento', 'info');
-}
-
 // Função para excluir perda
 async function excluirPerda(id) {
     // Verificar permissão
@@ -481,9 +462,13 @@ async function excluirPerda(id) {
         return;
     }
 
-    const confirmar = confirm(`Deseja realmente excluir esta perda?\n\nProduto: ${perda.base?.descricao}\nQuantidade: ${perda.quantidade}\nMotivo: ${perda.motivo}`);
+    const confirmed = await window.globalUI.showConfirm(
+        'Excluir Perda',
+        `Deseja realmente excluir esta perda?\n\nProduto: ${perda.base?.descricao || '-'}\nQuantidade: ${perda.quantidade}\nMotivo: ${perda.motivo}`,
+        'warning'
+    );
 
-    if (!confirmar) return;
+    if (!confirmed) return;
 
     try {
         const { error } = await supabaseClient
