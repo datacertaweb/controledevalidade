@@ -8,6 +8,9 @@ let html5QrCode = null;
 let selectedProdutoId = null;
 let selectedProdutoDescricao = null;
 let selectedProdutoCategoria = null;
+let lojasEmpresa = [];
+let selectedLojaId = null;
+let coletasSessao = []; // Lista de coletas da sessão atual
 
 function montarCodigosBusca(codigo) {
     const original = codigo.trim();
@@ -36,8 +39,20 @@ async function initDeposito() {
             return;
         }
 
+        // Verificar permissão de coleta
+        if (!auth.isAdmin(userData) && !auth.hasPermission(userData, 'coletado.create')) {
+            window.globalUI?.showToast('error', 'Você não tem permissão para coletar no depósito.');
+            setTimeout(() => {
+                window.location.href = '../dashboard.html';
+            }, 2000);
+            return;
+        }
+
         // Exibir empresa e usuário
         await carregarInfoHeader();
+
+        // Carregar lojas da empresa
+        await carregarLojas();
 
         // Event Listeners
         document.getElementById('startScanBtn').addEventListener('click', startScanner);
@@ -80,6 +95,63 @@ async function carregarInfoHeader() {
         console.error('Erro carregarInfoHeader:', err);
         document.getElementById('empresaNome').textContent = 'Empresa';
         document.getElementById('usuarioNome').textContent = 'Usuário';
+    }
+}
+
+// ------ CARREGAR LOJAS ------
+
+async function carregarLojas() {
+    try {
+        // Buscar lojas ativas da empresa
+        let query = supabaseClient
+            .from('lojas')
+            .select('id, nome')
+            .eq('empresa_id', userData.empresa_id)
+            .eq('ativo', true)
+            .order('nome');
+
+        // Se não é admin, filtrar pelas lojas do usuário
+        if (!auth.isAdmin(userData)) {
+            const userLojaIds = await auth.getUserLojas(userData.id);
+            if (userLojaIds && userLojaIds.length > 0) {
+                query = query.in('id', userLojaIds);
+            }
+        }
+
+        const { data: lojas, error } = await query;
+
+        if (error) {
+            console.error('Erro ao carregar lojas:', error);
+            return;
+        }
+
+        lojasEmpresa = lojas || [];
+
+        // Se tem mais de 1 loja, mostrar o seletor
+        if (lojasEmpresa.length > 1) {
+            const selectCard = document.getElementById('lojaSelectCard');
+            const select = document.getElementById('lojaSelect');
+
+            selectCard.style.display = 'block';
+
+            // Popular o select
+            select.innerHTML = '<option value="">Selecione a loja...</option>';
+            lojasEmpresa.forEach(loja => {
+                const option = document.createElement('option');
+                option.value = loja.id;
+                option.textContent = loja.nome;
+                select.appendChild(option);
+            });
+
+            select.addEventListener('change', (e) => {
+                selectedLojaId = e.target.value || null;
+            });
+        } else if (lojasEmpresa.length === 1) {
+            // Se tem exatamente 1 loja, seleciona automaticamente
+            selectedLojaId = lojasEmpresa[0].id;
+        }
+    } catch (err) {
+        console.error('Erro ao carregar lojas:', err);
     }
 }
 
@@ -230,6 +302,43 @@ function limparFormulario() {
     document.getElementById('codigo').focus();
 }
 
+// ------ LISTA DE COLETA ------
+
+function adicionarNaLista(descricao, categoria, validade, lojaNome) {
+    coletasSessao.push({
+        descricao,
+        categoria,
+        validade,
+        lojaNome,
+        hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    });
+    renderizarListaColeta();
+}
+
+function renderizarListaColeta() {
+    const container = document.getElementById('coletaListItems');
+    const countEl = document.getElementById('coletaCount');
+
+    countEl.textContent = `${coletasSessao.length} ${coletasSessao.length === 1 ? 'item' : 'itens'}`;
+
+    if (coletasSessao.length === 0) {
+        container.innerHTML = '<div class="coleta-list-empty">Nenhum item coletado nesta sessão</div>';
+        return;
+    }
+
+    container.innerHTML = coletasSessao.map((item, index) => `
+        <div class="coleta-list-item">
+            <div class="coleta-item-info">
+                <div class="coleta-item-name">${item.descricao}</div>
+                <div class="coleta-item-detail">
+                    ${item.categoria ? item.categoria + ' • ' : ''}Val: ${new Date(item.validade + 'T00:00:00').toLocaleDateString('pt-BR')}${item.lojaNome ? ' • ' + item.lojaNome : ''}
+                </div>
+            </div>
+            <div class="coleta-item-status">✓ ${item.hora}</div>
+        </div>
+    `).reverse().join('');
+}
+
 // ------ ENVIAR COLETA ------
 
 async function enviarColeta() {
@@ -245,6 +354,14 @@ async function enviarColeta() {
     if (!codigo || !validade) {
         mensagemEl.textContent = 'Preencha o código e a data de validade!';
         mensagemEl.className = 'status-msg error';
+        return;
+    }
+
+    // Verificar seleção de loja se necessário
+    if (lojasEmpresa.length > 1 && !selectedLojaId) {
+        mensagemEl.textContent = 'Selecione uma loja antes de enviar!';
+        mensagemEl.className = 'status-msg error';
+        window.globalUI?.showToast('warning', 'Selecione uma loja');
         return;
     }
 
@@ -270,6 +387,11 @@ async function enviarColeta() {
             data_coleta: new Date().toISOString()
         };
 
+        // Adicionar loja_id se selecionada
+        if (selectedLojaId) {
+            registro.loja_id = selectedLojaId;
+        }
+
         // Inserir na tabela coletas_deposito
         const { error } = await supabaseClient
             .from('coletas_deposito')
@@ -283,9 +405,22 @@ async function enviarColeta() {
 
         window.globalUI?.showToast('success', 'Coleta enviada com sucesso!');
 
-        // Limpar formulário para próxima coleta
+        // Adicionar à lista da sessão
+        const lojaNome = selectedLojaId
+            ? lojasEmpresa.find(l => l.id === selectedLojaId)?.nome || ''
+            : '';
+        adicionarNaLista(
+            selectedProdutoDescricao || descricao || 'Produto não cadastrado',
+            selectedProdutoCategoria || categoria || '',
+            validade,
+            lojaNome
+        );
+
+        // Limpar formulário para próxima coleta (mantém loja selecionada)
         setTimeout(() => {
+            const lojaAtual = selectedLojaId;
             limparFormulario();
+            selectedLojaId = lojaAtual;
         }, 1500);
 
     } catch (err) {

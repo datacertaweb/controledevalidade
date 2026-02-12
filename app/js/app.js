@@ -58,6 +58,15 @@ async function initApp() {
         // Atualizar UI
         updateUserUI();
 
+        // Ocultar exportação se não tiver permissão
+        if (!auth.isAdmin(userData) && !auth.hasPermission(userData, 'dashboard.export')) {
+            const exportDropdown = document.querySelector('.export-dropdown');
+            if (exportDropdown) exportDropdown.style.display = 'none';
+        }
+
+        // Exportar dados via appData para uso no dashboard.js
+        window.appData = { userData, empresaData };
+
         // Carregar lojas
         await loadLojas();
 

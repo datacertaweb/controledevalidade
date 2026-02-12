@@ -272,6 +272,94 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Lista de Coleta */
+        .coleta-list-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+        }
+
+        .coleta-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .coleta-list-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1F2937;
+            margin: 0;
+        }
+
+        .coleta-list-count {
+            background: #E0F2FE;
+            color: #0369A1;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .coleta-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .coleta-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .coleta-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .coleta-item-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1F2937;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .coleta-item-detail {
+            font-size: 0.75rem;
+            color: #6B7280;
+        }
+
+        .coleta-item-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #059669;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
+
+        .coleta-list-empty {
+            text-align: center;
+            color: #9CA3AF;
+            font-size: 0.85rem;
+            padding: 20px 0;
+        }
+
+        /* Seletor de loja */
+        .loja-select-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+            display: none;
+        }
     </style>
 </head>
 
@@ -310,6 +398,16 @@
                     <div class="store-label">Usuário</div>
                     <div class="store-name" id="usuarioNome">Carregando...</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Seletor de Loja (para empresas com filiais) -->
+        <div class="loja-select-card" id="lojaSelectCard">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="lojaSelect">Selecionar Loja</label>
+                <select id="lojaSelect" class="form-input" style="cursor: pointer;">
+                    <option value="">Selecione a loja...</option>
+                </select>
             </div>
         </div>
 
@@ -357,6 +455,17 @@
             </div>
 
             <p id="mensagem" class="status-msg"></p>
+        </div>
+
+        <!-- Lista de Coleta -->
+        <div class="coleta-list-card" id="coletaListCard">
+            <div class="coleta-list-header">
+                <h3>Coletas da Sessão</h3>
+                <span class="coleta-list-count" id="coletaCount">0 itens</span>
+            </div>
+            <div id="coletaListItems">
+                <div class="coleta-list-empty">Nenhum item coletado nesta sessão</div>
+            </div>
         </div>
 
     </div>

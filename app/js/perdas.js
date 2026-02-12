@@ -241,6 +241,7 @@ function renderPerdas(lista) {
 
     tbody.innerHTML = lista.map(item => {
         const dataRegistro = item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-';
+        const canDelete = auth.isAdmin(userData) || auth.hasPermission(userData, 'coletado.delete');
         return `
             <tr>
                 <td><strong>${item.base?.descricao || '-'}</strong></td>
@@ -259,12 +260,14 @@ function renderPerdas(lista) {
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                             </svg>
                         </button>
+                        ${canDelete ? `
                         <button class="action-btn delete" title="Excluir" onclick="excluirPerda('${item.id}')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                             </svg>
                         </button>
+                        ` : ''}
                     </div>
                 </td>
             </tr>
@@ -466,6 +469,12 @@ async function editarPerda(id) {
 
 // Função para excluir perda
 async function excluirPerda(id) {
+    // Verificar permissão
+    if (!auth.isAdmin(userData) && !auth.hasPermission(userData, 'coletado.delete')) {
+        mensagem('Você não tem permissão para excluir perdas.', 'error');
+        return;
+    }
+
     const perda = perdas.find(p => p.id === id);
     if (!perda) {
         mensagem('Perda não encontrada', 'error');

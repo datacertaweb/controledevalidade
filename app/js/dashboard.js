@@ -452,6 +452,11 @@ function calcularStatus(validade) {
 // Exportar PDF
 window.exportarPDF = async function () {
     try {
+        const userData = window.appData?.userData;
+        if (userData && !auth.isAdmin(userData) && !auth.hasPermission(userData, 'dashboard.export')) {
+            window.globalUI?.showToast('error', 'Você não tem permissão para exportar dados.');
+            return;
+        }
         document.getElementById('exportMenu').style.display = 'none';
         window.globalUI?.showToast('info', 'Gerando PDF... Aguarde.');
 
@@ -519,6 +524,11 @@ window.exportarPDF = async function () {
 // Exportar Excel
 window.exportarExcel = async function () {
     try {
+        const userData = window.appData?.userData;
+        if (userData && !auth.isAdmin(userData) && !auth.hasPermission(userData, 'dashboard.export')) {
+            window.globalUI?.showToast('error', 'Você não tem permissão para exportar dados.');
+            return;
+        }
         document.getElementById('exportMenu').style.display = 'none';
         window.globalUI?.showToast('info', 'Gerando Excel... Aguarde.');
 
