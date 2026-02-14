@@ -1367,198 +1367,388 @@ window.salvarEdicaoDeposito = async function (e) {
     }
 };
 
-// Imprimir etiquetas selecionadas
-window.imprimirSelecionadosDeposito = async function () {
+// ====== SISTEMA DE IMPRESSÃO DE ETIQUETAS ======
+
+// Abrir modal de seleção de formato
+window.imprimirSelecionadosDeposito = function () {
     if (selectedDepositos.length === 0) return;
+    document.getElementById('modalFormatoEtiqueta').classList.add('active');
+};
 
-    const itensSelecionados = depositoData.filter(d => selectedDepositos.includes(d.id));
+window.fecharModalFormato = function () {
+    document.getElementById('modalFormatoEtiqueta').classList.remove('active');
+};
 
-    const itensComCodigos = await Promise.all(itensSelecionados.map(async (item) => {
-        const codigoInformado = item.codigo_produto ? String(item.codigo_produto) : '';
-        let codigoBase = '';
-        let eanBase = '';
-        if (codigoInformado) {
-            const { data: eanMatch } = await supabaseClient
-                .from('base')
-                .select('codigo, ean')
-                .eq('empresa_id', userData.empresa_id)
-                .eq('ean', codigoInformado)
-                .maybeSingle();
-            if (eanMatch) {
-                codigoBase = eanMatch.codigo || '';
-                eanBase = eanMatch.ean || '';
-            } else {
-                const { data: codeMatch } = await supabaseClient
-                    .from('base')
-                    .select('codigo, ean')
-                    .eq('empresa_id', userData.empresa_id)
-                    .eq('codigo', codigoInformado)
-                    .maybeSingle();
-                if (codeMatch) {
-                    codigoBase = codeMatch.codigo || '';
-                    eanBase = codeMatch.ean || '';
-                } else {
-                    codigoBase = codigoInformado;
-                }
-            }
-        }
-        return { ...item, codigo_base: codigoBase, ean_base: eanBase };
-    }));
+// Dispatcher: imprime no formato escolhido
+window.imprimirComFormato = function (formato) {
+    fecharModalFormato();
+    const itens = depositoData.filter(d => selectedDepositos.includes(d.id));
+    if (itens.length === 0) return;
 
-    let etiquetasHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Etiquetas de Depósito</title>
-            <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
-            <style>
-                @page { size: A4; margin: 0; }
-                body {
-                    background-color: white;
-                    margin: 0;
-                    padding: 0;
-                }
-                .container {
-                    width: 19cm;
-                    height: 26cm;
-                    border: 1px solid #000;
-                    margin: 6mm auto 0;
-                    border-radius: 5px;
-                    user-select: none;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .container:not(:last-of-type) { page-break-after: always; }
-                .label {
-                    font-size: 15px;
-                    color: black;
-                    padding: 5px;
-                    font-family: 'Comfortaa', sans-serif;
-                    font-weight: bold;
-                }
-                .operator {
-                    border-bottom: 1px solid;
-                    text-align: center;
-                    font-weight: 800;
-                    font-size: 25px;
-                    padding: 0.25rem 0.5rem;
-                    user-select: text;
-                    font-family: Verdana, Geneva, Tahoma, sans-serif;
-                    align-items: center;
-                }
-                .description {
-                    font-weight: 800;
-                    font-size: 40px;
-                    padding: 10px;
-                    border-bottom: 1px solid black;
-                    line-height: 1.25;
-                    text-align: center;
-                    font-family: Verdana, Geneva, Tahoma, sans-serif;
-                }
-                .product-code {
-                    font-weight: 800;
-                    font-size: 40px;
-                    text-align: center;
-                    border-bottom: 1px solid black;
-                    padding: 0.25rem 0.5rem;
-                    user-select: text;
-                    font-family: Verdana, Geneva, Tahoma, sans-serif;
-                }
-                .grid-labels {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    font-size: 13px;
-                    color: #000000;
-                    font-family: 'Comfortaa', sans-serif;
-                    font-weight: bold;
-                }
-                .grid-labels div { padding: 15px; }
-                .grid-labels div:first-child { border-right: 1px solid black; }
-                .grid-values {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    text-align: center;
-                    font-family: monospace;
-                    font-weight: 800;
-                    font-size: 1.5rem;
-                    border-right: none;
-                    border-top: none;
-                    border-bottom: 1px solid black;
-                }
-                .grid-values div {
-                    padding: 10px;
-                    user-select: text;
-                    font-family: Arial, Helvetica, sans-serif;
-                    font-size: 32px;
-                }
-                .grid-values div:first-child { border-right: 1px solid black; }
-                .big-date {
-                    text-align: center;
-                    font-family: Arial;
-                    font-weight: 600;
-                    line-height: 1;
-                    user-select: text;
-                    margin-bottom: 0;
-                }
-                .mes, .ano { font-family: Arial, Helvetica, sans-serif; }
-                .mes { font-size: 250px; }
-                .ano { font-size: 250px; }
-            </style>
-        </head>
-        <body>
-    `;
-
-    itensComCodigos.forEach(item => {
-        const validadeDate = new Date(item.data_vencimento);
-        let mes = '--';
-        let ano = '----';
-        let dataValidade = '-';
+    // Preparar dados dos itens (sem lookup na base - usa codigo_produto coletado)
+    const itensPreparados = itens.map(item => {
+        const validadeDate = new Date(item.data_vencimento + 'T00:00:00');
+        let mes = '--', ano = '----', dataValidade = '-', dia = '--';
         if (!isNaN(validadeDate)) {
+            dia = String(validadeDate.getDate()).padStart(2, '0');
             mes = String(validadeDate.getMonth() + 1).padStart(2, '0');
             ano = validadeDate.getFullYear();
             dataValidade = validadeDate.toLocaleDateString('pt-BR');
         }
         const dataColeta = item.data_coleta ? new Date(item.data_coleta).toLocaleDateString('pt-BR') : '-';
-        const codigosProduto = [item.codigo_base, item.ean_base].filter(Boolean).join(' | ');
+        return { ...item, dia, mes, ano, dataValidade, dataColeta };
+    });
 
-        etiquetasHtml += `
-            <div class="container">
-                <div class="label">OPERADOR:</div>
-                <div class="operator">${item.usuario_nome || '-'}</div>
+    let html = '';
+    switch (formato) {
+        case 'grande': html = gerarEtiquetaGrande(itensPreparados); break;
+        case 'media': html = gerarEtiquetaMedia(itensPreparados); break;
+        case 'compacta': html = gerarEtiquetaCompacta(itensPreparados); break;
+        case 'gondola': html = gerarEtiquetaGondola(itensPreparados); break;
+        default: html = gerarEtiquetaGrande(itensPreparados);
+    }
 
-                <div class="label">DESCRIÇÃO DO PRODUTO:</div>
-                <div class="description">${item.descricao_produto || '-'}</div>
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(html);
+    printWindow.document.close();
+    setTimeout(() => printWindow.print(), 600);
+};
 
-                <div class="label">CÓDIGOS DO PRODUTO:</div>
-                <div class="product-code">${codigosProduto || '-'}</div>
+// ====== FORMATO GRANDE (1 por página A4) ======
+function gerarEtiquetaGrande(itens) {
+    let body = '';
+    itens.forEach(item => {
+        body += `
+            <div class="container-grande">
+                <div class="header-bar">ETIQUETA DE DEPÓSITO</div>
+                <div class="field-label">OPERADOR:</div>
+                <div class="field-value operator">${item.usuario_nome || '-'}</div>
 
-                <div class="grid-labels">
-                    <div>DATA DE VENCIMENTO:</div>
-                    <div>DATA DA COLETA:</div>
-                </div>
+                <div class="field-label">DESCRIÇÃO DO PRODUTO:</div>
+                <div class="field-value description">${item.descricao_produto || '-'}</div>
 
-                <div class="grid-values">
-                    <div>${dataValidade}</div>
-                    <div>${dataColeta}</div>
+                <div class="field-label">CÓDIGO PRODUTO:</div>
+                <div class="field-value product-code">${item.codigo_produto || '-'}</div>
+
+                <div class="grid-2">
+                    <div>
+                        <div class="field-label">DATA DE VENCIMENTO:</div>
+                        <div class="field-value date-val">${item.dataValidade}</div>
+                    </div>
+                    <div>
+                        <div class="field-label">DATA DA COLETA:</div>
+                        <div class="field-value date-val">${item.dataColeta}</div>
+                    </div>
                 </div>
 
                 <div class="big-date">
-                    <div class="mes">${mes}</div>
-                    <div class="ano">${ano}</div>
+                    <div class="big-month">${item.mes}</div>
+                    <div class="big-year">${item.ano}</div>
                 </div>
-            </div>
-        `;
+            </div>`;
     });
 
-    etiquetasHtml += '</body></html>';
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiquetas - Grande</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        @page { size: A4; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: white; font-family: 'Inter', Arial, sans-serif; }
+        .container-grande {
+            width: 190mm; height: 270mm; margin: 10mm auto;
+            border: 2px solid #1a1a1a; border-radius: 8px;
+            display: flex; flex-direction: column; overflow: hidden;
+            page-break-after: always;
+        }
+        .container-grande:last-child { page-break-after: auto; }
+        .header-bar {
+            background: #1a1a1a; color: white; text-align: center;
+            padding: 10px; font-size: 16px; font-weight: 700;
+            letter-spacing: 3px; text-transform: uppercase;
+        }
+        .field-label {
+            font-size: 12px; font-weight: 700; color: #666;
+            padding: 8px 16px 2px; letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .field-value {
+            padding: 4px 16px 12px; border-bottom: 1px solid #e0e0e0;
+        }
+        .operator { font-size: 26px; font-weight: 800; text-align: center; }
+        .description {
+            font-size: 36px; font-weight: 900; text-align: center;
+            line-height: 1.2; padding: 12px 16px 16px;
+        }
+        .product-code {
+            font-size: 38px; font-weight: 800; text-align: center;
+            font-family: 'Courier New', monospace; letter-spacing: 3px;
+        }
+        .grid-2 {
+            display: grid; grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .grid-2 > div:first-child { border-right: 1px solid #e0e0e0; }
+        .grid-2 .field-value { border-bottom: none; }
+        .date-val { font-size: 28px; font-weight: 700; text-align: center; }
+        .big-date {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .big-month {
+            font-size: 220px; font-weight: 900; line-height: 1;
+            color: #1a1a1a;
+        }
+        .big-year {
+            font-size: 180px; font-weight: 900; line-height: 1;
+            color: #444;
+        }
+    </style></head><body>${body}</body></html>`;
+}
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(etiquetasHtml);
-    printWindow.document.close();
+// ====== FORMATO MÉDIA (2 por página A4) ======
+function gerarEtiquetaMedia(itens) {
+    let pages = '';
+    for (let i = 0; i < itens.length; i += 2) {
+        const pair = itens.slice(i, i + 2);
+        let pageContent = '';
+        pair.forEach(item => {
+            pageContent += `
+            <div class="container-media">
+                <div class="media-header">
+                    <div class="media-operator">
+                        <span class="label-sm">OPERADOR</span>
+                        <span class="value-sm">${item.usuario_nome || '-'}</span>
+                    </div>
+                    <div class="media-date-box">
+                        <span class="label-sm">COLETA</span>
+                        <span class="value-sm">${item.dataColeta}</span>
+                    </div>
+                </div>
 
-    setTimeout(() => {
-        printWindow.print();
-    }, 500);
-};
+                <div class="media-product">
+                    <div class="media-desc">${item.descricao_produto || '-'}</div>
+                    <div class="media-code">${item.codigo_produto || '-'}</div>
+                </div>
+
+                <div class="media-expiry">
+                    <div class="media-expiry-label">VENCIMENTO</div>
+                    <div class="media-expiry-date">${item.dataValidade}</div>
+                    <div class="media-big-date">
+                        <span class="media-month">${item.mes}</span>
+                        <span class="media-sep">/</span>
+                        <span class="media-year">${item.ano}</span>
+                    </div>
+                </div>
+            </div>`;
+        });
+        pages += `<div class="page">${pageContent}</div>`;
+    }
+
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiquetas - Média</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        @page { size: A4; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: white; font-family: 'Inter', Arial, sans-serif; }
+        .page {
+            width: 210mm; height: 297mm; padding: 8mm 10mm;
+            display: flex; flex-direction: column; gap: 8mm;
+            page-break-after: always;
+        }
+        .page:last-child { page-break-after: auto; }
+        .container-media {
+            flex: 1; border: 2px solid #1a1a1a; border-radius: 8px;
+            display: flex; flex-direction: column; overflow: hidden;
+            max-height: 135mm;
+        }
+        .media-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 16px; background: #1a1a1a; color: white;
+        }
+        .media-operator, .media-date-box {
+            display: flex; flex-direction: column; gap: 2px;
+        }
+        .label-sm { font-size: 9px; font-weight: 600; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+        .value-sm { font-size: 15px; font-weight: 700; }
+        .media-product {
+            padding: 14px 16px; border-bottom: 1px solid #e0e0e0;
+            text-align: center;
+        }
+        .media-desc {
+            font-size: 22px; font-weight: 800; line-height: 1.2;
+            margin-bottom: 6px;
+        }
+        .media-code {
+            font-size: 18px; font-weight: 700; color: #555;
+            font-family: 'Courier New', monospace; letter-spacing: 2px;
+        }
+        .media-expiry {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 10px;
+        }
+        .media-expiry-label {
+            font-size: 11px; font-weight: 700; color: #888;
+            letter-spacing: 2px; text-transform: uppercase;
+        }
+        .media-expiry-date { font-size: 22px; font-weight: 700; margin: 4px 0; }
+        .media-big-date { display: flex; align-items: baseline; }
+        .media-month { font-size: 90px; font-weight: 900; line-height: 1; }
+        .media-sep { font-size: 60px; font-weight: 300; color: #ccc; margin: 0 4px; }
+        .media-year { font-size: 70px; font-weight: 900; color: #444; line-height: 1; }
+    </style></head><body>${pages}</body></html>`;
+}
+
+// ====== FORMATO COMPACTA (6 por página A4, grid 2x3) ======
+function gerarEtiquetaCompacta(itens) {
+    let pages = '';
+    for (let i = 0; i < itens.length; i += 6) {
+        const group = itens.slice(i, i + 6);
+        let cards = '';
+        group.forEach(item => {
+            cards += `
+            <div class="card-compact">
+                <div class="cc-top">
+                    <div class="cc-month-year">
+                        <span class="cc-month">${item.mes}</span>
+                        <span class="cc-slash">/</span>
+                        <span class="cc-year">${item.ano}</span>
+                    </div>
+                </div>
+                <div class="cc-body">
+                    <div class="cc-desc">${item.descricao_produto || '-'}</div>
+                    <div class="cc-code">${item.codigo_produto || '-'}</div>
+                </div>
+                <div class="cc-footer">
+                    <div class="cc-info">
+                        <span class="cc-label">Venc:</span>
+                        <span class="cc-val">${item.dataValidade}</span>
+                    </div>
+                    <div class="cc-info">
+                        <span class="cc-label">Op:</span>
+                        <span class="cc-val">${item.usuario_nome || '-'}</span>
+                    </div>
+                </div>
+            </div>`;
+        });
+        // Preencher slots vazios para manter o grid
+        for (let j = group.length; j < 6; j++) {
+            cards += `<div class="card-compact empty"></div>`;
+        }
+        pages += `<div class="page-compact">${cards}</div>`;
+    }
+
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiquetas - Compacta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        @page { size: A4; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: white; font-family: 'Inter', Arial, sans-serif; }
+        .page-compact {
+            width: 210mm; height: 297mm; padding: 8mm 8mm;
+            display: grid; grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr; gap: 6mm;
+            page-break-after: always;
+        }
+        .page-compact:last-child { page-break-after: auto; }
+        .card-compact {
+            border: 2px solid #1a1a1a; border-radius: 6px;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .card-compact.empty { border: 1px dashed #ddd; }
+        .cc-top {
+            background: #1a1a1a; color: white; padding: 8px 12px;
+            text-align: center;
+        }
+        .cc-month-year { display: flex; align-items: baseline; justify-content: center; gap: 2px; }
+        .cc-month { font-size: 48px; font-weight: 900; line-height: 1; }
+        .cc-slash { font-size: 32px; font-weight: 300; opacity: 0.5; }
+        .cc-year { font-size: 36px; font-weight: 800; opacity: 0.8; }
+        .cc-body {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 10px 12px; text-align: center;
+        }
+        .cc-desc { font-size: 16px; font-weight: 800; line-height: 1.2; margin-bottom: 6px; }
+        .cc-code {
+            font-size: 15px; font-weight: 700; color: #555;
+            font-family: 'Courier New', monospace; letter-spacing: 1px;
+        }
+        .cc-footer {
+            border-top: 1px solid #e0e0e0; padding: 6px 12px;
+            display: flex; justify-content: space-between;
+            font-size: 11px;
+        }
+        .cc-info { display: flex; gap: 4px; }
+        .cc-label { font-weight: 600; color: #888; }
+        .cc-val { font-weight: 700; }
+    </style></head><body>${pages}</body></html>`;
+}
+
+// ====== FORMATO GÔNDOLA (tira horizontal para prateleira) ======
+function gerarEtiquetaGondola(itens) {
+    let strips = '';
+    itens.forEach(item => {
+        strips += `
+        <div class="gondola-strip">
+            <div class="gd-date-block">
+                <div class="gd-month">${item.mes}</div>
+                <div class="gd-year">${item.ano}</div>
+            </div>
+            <div class="gd-info">
+                <div class="gd-desc">${item.descricao_produto || '-'}</div>
+                <div class="gd-meta">
+                    <span class="gd-code">${item.codigo_produto || '-'}</span>
+                    <span class="gd-sep">•</span>
+                    <span>Venc: ${item.dataValidade}</span>
+                </div>
+            </div>
+            <div class="gd-operator">
+                <div class="gd-op-label">OPERADOR</div>
+                <div class="gd-op-name">${item.usuario_nome || '-'}</div>
+                <div class="gd-op-date">${item.dataColeta}</div>
+            </div>
+        </div>`;
+    });
+
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiquetas - Gôndola</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        @page { size: A4; margin: 8mm; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: white; font-family: 'Inter', Arial, sans-serif; }
+        .gondola-strip {
+            width: 100%; height: 30mm; border: 2px solid #1a1a1a;
+            border-radius: 6px; display: flex; align-items: stretch;
+            margin-bottom: 4mm; overflow: hidden;
+            page-break-inside: avoid;
+        }
+        .gd-date-block {
+            width: 28mm; background: #1a1a1a; color: white;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .gd-month { font-size: 36px; font-weight: 900; line-height: 1; }
+        .gd-year { font-size: 18px; font-weight: 700; opacity: 0.7; }
+        .gd-info {
+            flex: 1; padding: 8px 14px;
+            display: flex; flex-direction: column; justify-content: center;
+            border-right: 1px solid #e0e0e0;
+        }
+        .gd-desc { font-size: 16px; font-weight: 800; line-height: 1.2; margin-bottom: 4px; }
+        .gd-meta { font-size: 12px; color: #666; display: flex; gap: 6px; align-items: center; }
+        .gd-code { font-family: 'Courier New', monospace; font-weight: 700; letter-spacing: 1px; }
+        .gd-sep { color: #ccc; }
+        .gd-operator {
+            width: 32mm; padding: 6px 10px; flex-shrink: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center;
+        }
+        .gd-op-label { font-size: 8px; font-weight: 700; color: #999; letter-spacing: 1px; text-transform: uppercase; }
+        .gd-op-name { font-size: 12px; font-weight: 700; margin: 2px 0; }
+        .gd-op-date { font-size: 10px; color: #888; }
+    </style></head><body>${strips}</body></html>`;
+}
+
 

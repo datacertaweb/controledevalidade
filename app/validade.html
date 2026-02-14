@@ -417,6 +417,81 @@
 
     </main>
 
+    <!-- Modal Escolher Formato Etiqueta -->
+    <div class="modal-overlay" id="modalFormatoEtiqueta">
+        <div class="modal" style="max-width: 560px;">
+            <div class="modal-header">
+                <h2>Formato da Etiqueta</h2>
+                <button class="modal-close" onclick="fecharModalFormato()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
+                    Escolha o formato ideal para impressão:
+                </p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <!-- Grande A4 -->
+                    <button class="formato-option" onclick="imprimirComFormato('grande')"
+                        style="display: flex; flex-direction: column; align-items: center; padding: 20px 16px; border: 2px solid var(--border-secondary); border-radius: 12px; background: var(--bg-primary); cursor: pointer; transition: all 0.2s; gap: 10px;"
+                        onmouseover="this.style.borderColor='#0F766E'; this.style.background='rgba(15,118,110,0.05)'"
+                        onmouseout="this.style.borderColor='var(--border-secondary)'; this.style.background='var(--bg-primary)'">
+                        <div
+                            style="width: 48px; height: 64px; border: 2px solid #0F766E; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: #0F766E;">
+                            A4
+                        </div>
+                        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">Grande</span>
+                        <span style="font-size: 11px; color: var(--text-muted); text-align: center;">1 etiqueta por
+                            página<br>Ideal para depósito</span>
+                    </button>
+                    <!-- Média -->
+                    <button class="formato-option" onclick="imprimirComFormato('media')"
+                        style="display: flex; flex-direction: column; align-items: center; padding: 20px 16px; border: 2px solid var(--border-secondary); border-radius: 12px; background: var(--bg-primary); cursor: pointer; transition: all 0.2s; gap: 10px;"
+                        onmouseover="this.style.borderColor='#0F766E'; this.style.background='rgba(15,118,110,0.05)'"
+                        onmouseout="this.style.borderColor='var(--border-secondary)'; this.style.background='var(--bg-primary)'">
+                        <div
+                            style="width: 48px; height: 64px; border: 2px solid #0F766E; border-radius: 4px; display: flex; flex-direction: column; gap: 2px; padding: 4px;">
+                            <div style="flex: 1; border: 1px solid #0F766E; border-radius: 2px;"></div>
+                            <div style="flex: 1; border: 1px solid #0F766E; border-radius: 2px;"></div>
+                        </div>
+                        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">Média</span>
+                        <span style="font-size: 11px; color: var(--text-muted); text-align: center;">2 etiquetas por
+                            página<br>Tamanho intermediário</span>
+                    </button>
+                    <!-- Compacta -->
+                    <button class="formato-option" onclick="imprimirComFormato('compacta')"
+                        style="display: flex; flex-direction: column; align-items: center; padding: 20px 16px; border: 2px solid var(--border-secondary); border-radius: 12px; background: var(--bg-primary); cursor: pointer; transition: all 0.2s; gap: 10px;"
+                        onmouseover="this.style.borderColor='#0F766E'; this.style.background='rgba(15,118,110,0.05)'"
+                        onmouseout="this.style.borderColor='var(--border-secondary)'; this.style.background='var(--bg-primary)'">
+                        <div
+                            style="width: 48px; height: 64px; border: 2px solid #0F766E; border-radius: 4px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 2px; padding: 3px;">
+                            <div style="border: 1px solid #0F766E; border-radius: 1px;"></div>
+                            <div style="border: 1px solid #0F766E; border-radius: 1px;"></div>
+                            <div style="border: 1px solid #0F766E; border-radius: 1px;"></div>
+                            <div style="border: 1px solid #0F766E; border-radius: 1px;"></div>
+                            <div style="border: 1px solid #0F766E; border-radius: 1px;"></div>
+                            <div style="border: 1px solid #0F766E; border-radius: 1px;"></div>
+                        </div>
+                        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">Compacta</span>
+                        <span style="font-size: 11px; color: var(--text-muted); text-align: center;">6 etiquetas por
+                            página<br>Economia de papel</span>
+                    </button>
+                    <!-- Gôndola -->
+                    <button class="formato-option" onclick="imprimirComFormato('gondola')"
+                        style="display: flex; flex-direction: column; align-items: center; padding: 20px 16px; border: 2px solid var(--border-secondary); border-radius: 12px; background: var(--bg-primary); cursor: pointer; transition: all 0.2s; gap: 10px;"
+                        onmouseover="this.style.borderColor='#0F766E'; this.style.background='rgba(15,118,110,0.05)'"
+                        onmouseout="this.style.borderColor='var(--border-secondary)'; this.style.background='var(--bg-primary)'">
+                        <div
+                            style="width: 58px; height: 28px; border: 2px solid #0F766E; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-top: 18px; margin-bottom: 18px;">
+                            <span style="font-size: 8px; font-weight: 700; color: #0F766E;">GÔNDOLA</span>
+                        </div>
+                        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">Gôndola</span>
+                        <span style="font-size: 11px; color: var(--text-muted); text-align: center;">Tira
+                            horizontal<br>Ideal para prateleira</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Editar Coleta Depósito -->
     <div class="modal-overlay" id="modalEditarDeposito">
         <div class="modal">
