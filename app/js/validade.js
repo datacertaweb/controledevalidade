@@ -1278,7 +1278,8 @@ window.excluirDeposito = async function (id) {
         const { error } = await supabaseClient
             .from('coletas_deposito')
             .update({ excluido: true })
-            .eq('id', id);
+            .eq('id', id)
+            .eq('empresa_id', userData.empresa_id);
 
         if (error) throw error;
 
@@ -1306,7 +1307,8 @@ window.excluirSelecionadosDeposito = async function () {
         const { error } = await supabaseClient
             .from('coletas_deposito')
             .update({ excluido: true })
-            .in('id', selectedDepositos);
+            .in('id', selectedDepositos)
+            .eq('empresa_id', userData.empresa_id);
 
         if (error) throw error;
 
@@ -1351,7 +1353,8 @@ window.salvarEdicaoDeposito = async function (e) {
         const { error } = await supabaseClient
             .from('coletas_deposito')
             .update(data)
-            .eq('id', id);
+            .eq('id', id)
+            .eq('empresa_id', userData.empresa_id);
 
         if (error) throw error;
 
