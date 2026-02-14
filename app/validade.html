@@ -492,7 +492,36 @@
         </div>
     </div>
 
-    <!-- Modal Editar Coleta Depósito -->
+    <!-- Modal Quantidade de Cópias -->
+    <div class="modal-overlay" id="modalQuantidadeEtiqueta">
+        <div class="modal" style="max-width: 520px;">
+            <div class="modal-header">
+                <h2 id="modalQtdTitulo">Quantidade de Cópias</h2>
+                <button class="modal-close" onclick="fecharModalQuantidade()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 13px;">
+                    Defina quantas cópias deseja de cada produto na folha:
+                </p>
+                <div id="listaQuantidadeProdutos"
+                    style="display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto; padding-right: 4px;">
+                </div>
+                <div class="form-actions"
+                    style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" onclick="fecharModalQuantidade()">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmarImpressaoComQuantidade()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16">
+                            <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+                            <rect x="6" y="14" width="12" height="8" />
+                        </svg>
+                        Imprimir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="modalEditarDeposito">
         <div class="modal">
             <div class="modal-header">

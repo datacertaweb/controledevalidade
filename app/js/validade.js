@@ -1379,14 +1379,100 @@ window.fecharModalFormato = function () {
     document.getElementById('modalFormatoEtiqueta').classList.remove('active');
 };
 
+window.fecharModalQuantidade = function () {
+    document.getElementById('modalQuantidadeEtiqueta').classList.remove('active');
+};
+
+// Variável para guardar o formato escolhido enquanto o modal de quantidade está aberto
+let formatoEscolhido = '';
+
 // Dispatcher: imprime no formato escolhido
 window.imprimirComFormato = function (formato) {
     fecharModalFormato();
     const itens = depositoData.filter(d => selectedDepositos.includes(d.id));
     if (itens.length === 0) return;
 
-    // Preparar dados dos itens (sem lookup na base - usa codigo_produto coletado)
-    const itensPreparados = itens.map(item => {
+    // Para média e compacta, abrir modal de quantidade
+    if (formato === 'media' || formato === 'compacta') {
+        formatoEscolhido = formato;
+        const maxPorPagina = formato === 'media' ? 2 : 6;
+        const tituloModal = document.getElementById('modalQtdTitulo');
+        tituloModal.textContent = `Quantidade de Cópias (${formato === 'media' ? 'Média - até ' + maxPorPagina + '/pág' : 'Compacta - até ' + maxPorPagina + '/pág'})`;
+
+        const lista = document.getElementById('listaQuantidadeProdutos');
+        lista.innerHTML = itens.map((item, index) => `
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-primary); border: 1px solid var(--border-secondary); border-radius: 8px;">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${item.descricao_produto || item.codigo_produto || '-'}
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); font-family: monospace;">
+                        ${item.codigo_produto || '-'} • Venc: ${new Date(item.data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0; flex-shrink: 0;">
+                    <button type="button" onclick="alterarQuantidade(${index}, -1)"
+                        style="width: 32px; height: 32px; border: 1px solid var(--border-secondary); border-radius: 6px 0 0 6px; background: var(--bg-card); cursor: pointer; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; justify-content: center;">−</button>
+                    <input type="number" id="qtdItem${index}" value="1" min="1" max="20"
+                        style="width: 44px; height: 32px; border: 1px solid var(--border-secondary); border-left: none; border-right: none; text-align: center; font-size: 15px; font-weight: 700; background: var(--bg-primary); color: var(--text-primary);">
+                    <button type="button" onclick="alterarQuantidade(${index}, 1)"
+                        style="width: 32px; height: 32px; border: 1px solid var(--border-secondary); border-radius: 0 6px 6px 0; background: var(--bg-card); cursor: pointer; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; justify-content: center;">+</button>
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('modalQuantidadeEtiqueta').classList.add('active');
+        return;
+    }
+
+    // Para grande e gôndola, imprimir direto
+    const itensPreparados = prepararItensParaImpressao(itens);
+    let html = '';
+    switch (formato) {
+        case 'grande': html = gerarEtiquetaGrande(itensPreparados); break;
+        case 'gondola': html = gerarEtiquetaGondola(itensPreparados); break;
+        default: html = gerarEtiquetaGrande(itensPreparados);
+    }
+    abrirJanelaImpressao(html);
+};
+
+window.alterarQuantidade = function (index, delta) {
+    const input = document.getElementById('qtdItem' + index);
+    if (!input) return;
+    let val = parseInt(input.value) || 1;
+    val = Math.max(1, Math.min(20, val + delta));
+    input.value = val;
+};
+
+window.confirmarImpressaoComQuantidade = function () {
+    const itens = depositoData.filter(d => selectedDepositos.includes(d.id));
+    if (itens.length === 0) return;
+
+    // Repetir cada item conforme a quantidade
+    const itensRepetidos = [];
+    itens.forEach((item, index) => {
+        const input = document.getElementById('qtdItem' + index);
+        const qtd = input ? Math.max(1, Math.min(20, parseInt(input.value) || 1)) : 1;
+        for (let i = 0; i < qtd; i++) {
+            itensRepetidos.push(item);
+        }
+    });
+
+    fecharModalQuantidade();
+
+    const itensPreparados = prepararItensParaImpressao(itensRepetidos);
+    let html = '';
+    switch (formatoEscolhido) {
+        case 'media': html = gerarEtiquetaMedia(itensPreparados); break;
+        case 'compacta': html = gerarEtiquetaCompacta(itensPreparados); break;
+        default: html = gerarEtiquetaMedia(itensPreparados);
+    }
+    abrirJanelaImpressao(html);
+};
+
+// Funções auxiliares
+function prepararItensParaImpressao(itens) {
+    return itens.map(item => {
         const validadeDate = new Date(item.data_vencimento + 'T00:00:00');
         let mes = '--', ano = '----', dataValidade = '-', dia = '--';
         if (!isNaN(validadeDate)) {
@@ -1398,21 +1484,14 @@ window.imprimirComFormato = function (formato) {
         const dataColeta = item.data_coleta ? new Date(item.data_coleta).toLocaleDateString('pt-BR') : '-';
         return { ...item, dia, mes, ano, dataValidade, dataColeta };
     });
+}
 
-    let html = '';
-    switch (formato) {
-        case 'grande': html = gerarEtiquetaGrande(itensPreparados); break;
-        case 'media': html = gerarEtiquetaMedia(itensPreparados); break;
-        case 'compacta': html = gerarEtiquetaCompacta(itensPreparados); break;
-        case 'gondola': html = gerarEtiquetaGondola(itensPreparados); break;
-        default: html = gerarEtiquetaGrande(itensPreparados);
-    }
-
+function abrirJanelaImpressao(html) {
     const printWindow = window.open('', '_blank');
     printWindow.document.write(html);
     printWindow.document.close();
     setTimeout(() => printWindow.print(), 600);
-};
+}
 
 // ====== FORMATO GRANDE (1 por página A4) ======
 function gerarEtiquetaGrande(itens) {
