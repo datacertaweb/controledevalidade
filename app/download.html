@@ -6,27 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DataCerta - Baixar App</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/validade.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: var(--font-family, 'Inter', sans-serif);
-            background: var(--bg-primary, #F1F5F9);
-            min-height: 100vh;
+        .download-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            min-height: calc(100vh - 140px);
+            padding: 40px 20px;
         }
 
         .download-wrapper {
             width: 100%;
-            max-width: 480px;
+            max-width: 520px;
         }
 
         .download-card {
@@ -189,28 +182,11 @@
             color: var(--text-muted, #64748B);
         }
 
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 24px;
-            color: var(--accent-primary, #14B8A6);
-            text-decoration: none;
-            font-size: var(--font-size-sm, 0.875rem);
-            font-weight: 500;
-            transition: color var(--transition-fast, 150ms ease);
-        }
-
-        .back-link:hover {
-            color: var(--accent-primary-dark, #0D9488);
-        }
-
-        .back-link svg {
-            width: 16px;
-            height: 16px;
-        }
-
         @media (max-width: 480px) {
+            .download-container {
+                padding: 20px 16px;
+            }
+
             .download-card {
                 padding: 32px 24px;
             }
@@ -223,150 +199,347 @@
 </head>
 
 <body>
-    <div class="download-wrapper">
-        <div class="download-card">
-            <div class="logo-section">
-                <div class="logo">
-                    <div class="logo-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                </div>
+                <span class="logo-text">Data<span>Certa</span></span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg></span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+            <a href="validade.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg></span>
+                <span class="nav-text">Validades</span>
+            </a>
+            <a href="perdas.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                        <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" />
+                    </svg></span>
+                <span class="nav-text">Perdas</span>
+            </a>
+            <a href="produtos.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    </svg></span>
+                <span class="nav-text">Produtos</span>
+            </a>
+            <a href="pwa/coleta.html" class="nav-item">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 4h2v16H3zM8 4h1v16H8zM12 4h2v16h-2zM17 4h1v16h-1zM21 4h2v16h-2z" />
+                    </svg>
+                </span>
+                <span class="nav-text">Nova Coleta</span>
+            </a>
+            <a href="lojas.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 21h18" />
+                        <path d="M5 21V7l8-4v18" />
+                        <path d="M19 21V11l-6-4" />
+                    </svg></span>
+                <span class="nav-text">Lojas</span>
+            </a>
+            <a href="locais.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                    </svg></span>
+                <span class="nav-text">Locais</span>
+            </a>
+            <a href="usuarios.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                    </svg></span>
+                <span class="nav-text">Usuários</span>
+            </a>
+            <a href="roles.html" class="nav-item">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg></span>
+                <span class="nav-text">Permissões</span>
+            </a>
+            <a href="download.html" class="nav-item active">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg></span>
+                <span class="nav-text">Download</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">US</div>
+                <div class="user-details">
+                    <span class="user-name" id="userName">Usuário</span>
+                    <span class="user-role" id="userRole">Carregando...</span>
+                </div>
+            </div>
+            <a href="planos.html" class="btn btn-primary btn-sm"
+                style="margin-top: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                    </polygon>
+                </svg>
+                Meu Plano
+            </a>
+            <button class="btn btn-ghost btn-sm" onclick="auth.signOut()"
+                style="margin-top: 8px; width: 100%;">Sair</button>
+        </div>
+    </aside>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+                <div class="page-title">
+                    <h1>Baixar App</h1>
+                    <p class="page-subtitle">Baixe o aplicativo mobile do DataCerta</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="download-container">
+            <div class="download-wrapper">
+                <div class="download-card">
+                    <div class="logo-section">
+                        <div class="logo">
+                            <div class="logo-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                    <line x1="16" y1="2" x2="16" y2="6" />
+                                    <line x1="8" y1="2" x2="8" y2="6" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                            </div>
+                            <span class="logo-text">Data<span>Certa</span></span>
+                        </div>
+                    </div>
+
+                    <h2 class="page-title">Baixar App Mobile</h2>
+                    <p class="page-subtitle">Gerencie suas validades na palma da sua mão</p>
+
+                    <div class="phone-illustration">
+                        <svg viewBox="0 0 200 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Phone Frame -->
+                            <rect x="20" y="10" width="160" height="340" rx="24" fill="#1E293B" stroke="#334155"
+                                stroke-width="2" />
+
+                            <!-- Screen -->
+                            <rect x="28" y="30" width="144" height="300" rx="16" fill="#FFFFFF" />
+
+                            <!-- Notch -->
+                            <rect x="70" y="10" width="60" height="20" rx="10" fill="#1E293B" />
+
+                            <!-- App Interface - Header -->
+                            <rect x="36" y="46" width="128" height="36" rx="8" fill="url(#headerGradient)" />
+
+                            <!-- Calendar Icon on Header -->
+                            <rect x="48" y="54" width="20" height="20" rx="4" fill="white" fill-opacity="0.9" />
+                            <line x1="52" y1="60" x2="64" y2="60" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" />
+                            <line x1="52" y1="66" x2="60" y2="66" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" />
+
+                            <!-- App Title -->
+                            <rect x="76" y="58" width="60" height="6" rx="3" fill="white" fill-opacity="0.9" />
+
+                            <!-- Content Cards -->
+                            <!-- Card 1 -->
+                            <rect x="36" y="90" width="128" height="50" rx="8" fill="#F8FAFC" stroke="#E2E8F0"
+                                stroke-width="1" />
+                            <circle cx="56" cy="115" r="12" fill="#FEE2E2" />
+                            <rect x="76" y="104" width="60" height="6" rx="3" fill="#1E293B" />
+                            <rect x="76" y="116" width="40" height="4" rx="2" fill="#64748B" />
+                            <rect x="140" y="108" width="16" height="16" rx="8" fill="#EF4444" />
+
+                            <!-- Card 2 -->
+                            <rect x="36" y="148" width="128" height="50" rx="8" fill="#F8FAFC" stroke="#E2E8F0"
+                                stroke-width="1" />
+                            <circle cx="56" cy="173" r="12" fill="#FEF3C7" />
+                            <rect x="76" y="162" width="50" height="6" rx="3" fill="#1E293B" />
+                            <rect x="76" y="174" width="35" height="4" rx="2" fill="#64748B" />
+                            <rect x="140" y="166" width="16" height="16" rx="8" fill="#F59E0B" />
+
+                            <!-- Card 3 -->
+                            <rect x="36" y="206" width="128" height="50" rx="8" fill="#F8FAFC" stroke="#E2E8F0"
+                                stroke-width="1" />
+                            <circle cx="56" cy="231" r="12" fill="#D1FAE5" />
+                            <rect x="76" y="220" width="55" height="6" rx="3" fill="#1E293B" />
+                            <rect x="76" y="232" width="45" height="4" rx="2" fill="#64748B" />
+                            <rect x="140" y="224" width="16" height="16" rx="8" fill="#10B981" />
+
+                            <!-- Bottom Navigation -->
+                            <rect x="36" y="288" width="128" height="34" rx="8" fill="#F1F5F9" />
+                            <circle cx="60" cy="305" r="6" fill="#14B8A6" />
+                            <circle cx="100" cy="305" r="6" fill="#94A3B8" />
+                            <circle cx="140" cy="305" r="6" fill="#94A3B8" />
+
+                            <!-- Floating Download Button -->
+                            <circle cx="160" cy="280" r="20" fill="url(#fabGradient)" filter="url(#shadow)" />
+                            <path d="M152 280L160 288L168 280" stroke="white" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <line x1="160" y1="272" x2="160" y2="288" stroke="white" stroke-width="2.5"
+                                stroke-linecap="round" />
+
+                            <!-- Gradients -->
+                            <defs>
+                                <linearGradient id="headerGradient" x1="36" y1="46" x2="164" y2="82"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#14B8A6" />
+                                    <stop offset="1" stop-color="#2DD4BF" />
+                                </linearGradient>
+                                <linearGradient id="fabGradient" x1="140" y1="260" x2="180" y2="300"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop stop-color="#14B8A6" />
+                                    <stop offset="1" stop-color="#2DD4BF" />
+                                </linearGradient>
+                                <filter id="shadow" x="130" y="250" width="60" height="60" filterUnits="userSpaceOnUse"
+                                    color-interpolation-filters="sRGB">
+                                    <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#14B8A6"
+                                        flood-opacity="0.3" />
+                                </filter>
+                            </defs>
                         </svg>
                     </div>
-                    <span class="logo-text">Data<span>Certa</span></span>
-                </div>
-            </div>
 
-            <h1 class="page-title">Baixar App Mobile</h1>
-            <p class="page-subtitle">Gerencie suas validades na palma da sua mão</p>
+                    <a href="https://ffpqkdzpcfrgngldsfdz.supabase.co/storage/v1/object/public/app-releases/DataCerta.apk"
+                        class="download-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Baixar para Android
+                    </a>
 
-            <div class="phone-illustration">
-                <svg viewBox="0 0 200 360" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Phone Frame -->
-                    <rect x="20" y="10" width="160" height="340" rx="24" fill="#1E293B" stroke="#334155"
-                        stroke-width="2" />
-
-                    <!-- Screen -->
-                    <rect x="28" y="30" width="144" height="300" rx="16" fill="#FFFFFF" />
-
-                    <!-- Notch -->
-                    <rect x="70" y="10" width="60" height="20" rx="10" fill="#1E293B" />
-
-                    <!-- App Interface - Header -->
-                    <rect x="36" y="46" width="128" height="36" rx="8" fill="url(#headerGradient)" />
-
-                    <!-- Calendar Icon on Header -->
-                    <rect x="48" y="54" width="20" height="20" rx="4" fill="white" fill-opacity="0.9" />
-                    <line x1="52" y1="60" x2="64" y2="60" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" />
-                    <line x1="52" y1="66" x2="60" y2="66" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" />
-
-                    <!-- App Title -->
-                    <rect x="76" y="58" width="60" height="6" rx="3" fill="white" fill-opacity="0.9" />
-
-                    <!-- Content Cards -->
-                    <!-- Card 1 -->
-                    <rect x="36" y="90" width="128" height="50" rx="8" fill="#F8FAFC" stroke="#E2E8F0"
-                        stroke-width="1" />
-                    <circle cx="56" cy="115" r="12" fill="#FEE2E2" />
-                    <rect x="76" y="104" width="60" height="6" rx="3" fill="#1E293B" />
-                    <rect x="76" y="116" width="40" height="4" rx="2" fill="#64748B" />
-                    <rect x="140" y="108" width="16" height="16" rx="8" fill="#EF4444" />
-
-                    <!-- Card 2 -->
-                    <rect x="36" y="148" width="128" height="50" rx="8" fill="#F8FAFC" stroke="#E2E8F0"
-                        stroke-width="1" />
-                    <circle cx="56" cy="173" r="12" fill="#FEF3C7" />
-                    <rect x="76" y="162" width="50" height="6" rx="3" fill="#1E293B" />
-                    <rect x="76" y="174" width="35" height="4" rx="2" fill="#64748B" />
-                    <rect x="140" y="166" width="16" height="16" rx="8" fill="#F59E0B" />
-
-                    <!-- Card 3 -->
-                    <rect x="36" y="206" width="128" height="50" rx="8" fill="#F8FAFC" stroke="#E2E8F0"
-                        stroke-width="1" />
-                    <circle cx="56" cy="231" r="12" fill="#D1FAE5" />
-                    <rect x="76" y="220" width="55" height="6" rx="3" fill="#1E293B" />
-                    <rect x="76" y="232" width="45" height="4" rx="2" fill="#64748B" />
-                    <rect x="140" y="224" width="16" height="16" rx="8" fill="#10B981" />
-
-                    <!-- Bottom Navigation -->
-                    <rect x="36" y="288" width="128" height="34" rx="8" fill="#F1F5F9" />
-                    <circle cx="60" cy="305" r="6" fill="#14B8A6" />
-                    <circle cx="100" cy="305" r="6" fill="#94A3B8" />
-                    <circle cx="140" cy="305" r="6" fill="#94A3B8" />
-
-                    <!-- Floating Download Button -->
-                    <circle cx="160" cy="280" r="20" fill="url(#fabGradient)" filter="url(#shadow)" />
-                    <path d="M152 280L160 288L168 280" stroke="white" stroke-width="2.5" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <line x1="160" y1="272" x2="160" y2="288" stroke="white" stroke-width="2.5"
-                        stroke-linecap="round" />
-
-                    <!-- Gradients -->
-                    <defs>
-                        <linearGradient id="headerGradient" x1="36" y1="46" x2="164" y2="82"
-                            gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#14B8A6" />
-                            <stop offset="1" stop-color="#2DD4BF" />
-                        </linearGradient>
-                        <linearGradient id="fabGradient" x1="140" y1="260" x2="180" y2="300"
-                            gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#14B8A6" />
-                            <stop offset="1" stop-color="#2DD4BF" />
-                        </linearGradient>
-                        <filter id="shadow" x="130" y="250" width="60" height="60" filterUnits="userSpaceOnUse"
-                            color-interpolation-filters="sRGB">
-                            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#14B8A6"
-                                flood-opacity="0.3" />
-                        </filter>
-                    </defs>
-                </svg>
-            </div>
-
-            <a href="https://ffpqkdzpcfrgngldsfdz.supabase.co/storage/v1/object/public/app-releases/DataCerta.apk"
-                class="download-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Baixar para Android
-            </a>
-
-            <div class="instructions">
-                <h3 class="instructions-title">Como instalar</h3>
-                <div class="instruction-steps">
-                    <div class="instruction-step">
-                        <span class="step-number">1</span>
-                        <span>Clique no botão acima para fazer o download do arquivo APK</span>
+                    <div class="instructions">
+                        <h3 class="instructions-title">Como instalar</h3>
+                        <div class="instruction-steps">
+                            <div class="instruction-step">
+                                <span class="step-number">1</span>
+                                <span>Clique no botão acima para fazer o download do arquivo APK</span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="step-number">2</span>
+                                <span>Abra o arquivo <strong>DataCerta.apk</strong> no seu dispositivo</span>
+                            </div>
+                            <div class="instruction-step">
+                                <span class="step-number">3</span>
+                                <span>Se solicitado, autorize a instalação de apps de fontes desconhecidas</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="instruction-step">
-                        <span class="step-number">2</span>
-                        <span>Abra o arquivo <strong>DataCerta.apk</strong> no seu dispositivo</span>
-                    </div>
-                    <div class="instruction-step">
-                        <span class="step-number">3</span>
-                        <span>Se solicitado, autorize a instalação de apps de fontes desconhecidas</span>
+
+                    <div class="version-info">
+                        Versão mais recente sempre disponível aqui
                     </div>
                 </div>
             </div>
-
-            <div class="version-info">
-                Versão mais recente sempre disponível aqui
-            </div>
-
-            <a href="dashboard.html" class="back-link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                Voltar para o Dashboard
-            </a>
         </div>
-    </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script>
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function openSidebar() {
+            sidebar.classList.remove('collapsed');
+        }
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', openSidebar);
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.add('collapsed');
+            });
+        }
+
+        // Load user info
+        async function loadUserInfo() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile } = await supabase
+                        .from('perfis')
+                        .select('nome, role')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (profile) {
+                        document.getElementById('userName').textContent = profile.nome || user.email;
+                        document.getElementById('userRole').textContent = profile.role || 'Usuário';
+                        document.getElementById('userAvatar').textContent = (profile.nome || user.email || 'US')
+                            .substring(0, 2).toUpperCase();
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar informações do usuário:', error);
+            }
+        }
+
+        loadUserInfo();
+    </script>
 </body>
 
 </html>
