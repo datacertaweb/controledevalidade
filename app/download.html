@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCerta - Baixar App</title>
+    <style>
+        :root {
+            --primary: #0F766E;
+            --primary-dark: #0D655E;
+            --background: #F3F4F6;
+            --text: #1F2937;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 24px;
+            font-size: 24px;
+        }
+
+        img.app-preview {
+            width: 100%;
+            max-width: 250px;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 32px;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            transition: all 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.2);
+        }
+
+        .download-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px -1px rgba(15, 118, 110, 0.3);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .instructions {
+            margin-top: 24px;
+            font-size: 14px;
+            color: #6B7280;
+            line-height: 1.5;
+        }
+
+        .version-info {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Baixar DataCerta Mobile</h1>
+
+        <img src="../img/appmobile.png" alt="Preview App DataCerta" class="app-preview">
+
+        <a href="https://ffpqkdzpcfrgngldsfdz.supabase.co/storage/v1/object/public/app-releases/DataCerta.apk"
+            class="download-btn">
+            <svg style="margin-right: 12px;" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Baixar para Android
+        </a>
+
+        <div class="instructions">
+            <p>1. Clique no botão acima para baixar</p>
+            <p>2. Abra o arquivo <strong>DataCerta.apk</strong></p>
+            <p>3. Se necessário, autorize "Instalar apps desconhecidos"</p>
+        </div>
+
+        <div class="version-info">
+            Versão mais recente sempre disponível aqui.
+        </div>
+    </div>
+</body>
+
+</html>
