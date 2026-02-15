@@ -5,120 +5,366 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DataCerta - Baixar App</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #0F766E;
-            --primary-dark: #0D655E;
-            --background: #F3F4F6;
-            --text: #1F2937;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--background);
-            color: var(--text);
+            font-family: var(--font-family, 'Inter', sans-serif);
+            background: var(--bg-primary, #F1F5F9);
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            margin: 0;
             padding: 20px;
+        }
+
+        .download-wrapper {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .download-card {
+            background: var(--bg-card, #FFFFFF);
+            border-radius: var(--radius-xl, 16px);
+            box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1));
+            padding: 48px 40px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            max-width: 400px;
-            width: 100%;
+        .download-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient, linear-gradient(135deg, #14B8A6 0%, #2DD4BF 100%));
         }
 
-        h1 {
-            color: var(--primary);
-            margin-bottom: 24px;
-            font-size: 24px;
-        }
-
-        img.app-preview {
-            width: 100%;
-            max-width: 250px;
-            border-radius: 16px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        .logo-section {
             margin-bottom: 32px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-gradient, linear-gradient(135deg, #14B8A6 0%, #2DD4BF 100%));
+            border-radius: var(--radius-md, 8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .logo-text {
+            font-size: var(--font-size-2xl, 1.5rem);
+            font-weight: 700;
+            color: var(--text-primary, #1E293B);
+        }
+
+        .logo-text span {
+            color: var(--accent-primary, #14B8A6);
+        }
+
+        .page-title {
+            font-size: var(--font-size-xl, 1.25rem);
+            font-weight: 600;
+            color: var(--text-primary, #1E293B);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: var(--font-size-sm, 0.875rem);
+            color: var(--text-muted, #64748B);
+        }
+
+        .phone-illustration {
+            margin: 32px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .phone-illustration svg {
+            width: 180px;
+            height: auto;
+            filter: drop-shadow(0 10px 30px rgba(20, 184, 166, 0.2));
         }
 
         .download-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background-color: var(--primary);
+            gap: 12px;
+            background: var(--accent-gradient, linear-gradient(135deg, #14B8A6 0%, #2DD4BF 100%));
             color: white;
             padding: 16px 32px;
-            border-radius: 12px;
+            border-radius: var(--radius-lg, 12px);
             text-decoration: none;
             font-weight: 600;
-            font-size: 18px;
-            transition: all 0.2s;
-            width: 100%;
-            box-sizing: border-box;
+            font-size: var(--font-size-md, 1rem);
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.2);
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+            transition: all var(--transition-normal, 250ms ease);
+            width: 100%;
         }
 
         .download-btn:hover {
-            background-color: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 6px 8px -1px rgba(15, 118, 110, 0.3);
+            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
         }
 
-        .download-btn:active {
-            transform: translateY(0);
+        .download-btn svg {
+            width: 20px;
+            height: 20px;
         }
 
         .instructions {
-            margin-top: 24px;
-            font-size: 14px;
-            color: #6B7280;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-secondary, #E2E8F0);
+        }
+
+        .instructions-title {
+            font-size: var(--font-size-sm, 0.875rem);
+            font-weight: 600;
+            color: var(--text-primary, #1E293B);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .instruction-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .instruction-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            text-align: left;
+            font-size: var(--font-size-sm, 0.875rem);
+            color: var(--text-secondary, #475569);
             line-height: 1.5;
         }
 
-        .version-info {
-            margin-top: 16px;
+        .step-number {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-primary, #14B8A6);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
             font-size: 12px;
-            color: #9CA3AF;
+            flex-shrink: 0;
+        }
+
+        .version-info {
+            margin-top: 24px;
+            font-size: var(--font-size-xs, 0.75rem);
+            color: var(--text-muted, #64748B);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            color: var(--accent-primary, #14B8A6);
+            text-decoration: none;
+            font-size: var(--font-size-sm, 0.875rem);
+            font-weight: 500;
+            transition: color var(--transition-fast, 150ms ease);
+        }
+
+        .back-link:hover {
+            color: var(--accent-primary-dark, #0D9488);
+        }
+
+        .back-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        @media (max-width: 480px) {
+            .download-card {
+                padding: 32px 24px;
+            }
+
+            .phone-illustration svg {
+                width: 150px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Baixar DataCerta Mobile</h1>
+    <div class="download-wrapper">
+        <div class="download-card">
+            <div class="logo-section">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </div>
+                    <span class="logo-text">Data<span>Certa</span></span>
+                </div>
+            </div>
 
-        <img src="../img/appmobile.png" alt="Preview App DataCerta" class="app-preview">
+            <h1 class="page-title">Baixar App Mobile</h1>
+            <p class="page-subtitle">Gerencie suas validades na palma da sua mão</p>
 
-        <a href="https://ffpqkdzpcfrgngldsfdz.supabase.co/storage/v1/object/public/app-releases/DataCerta.apk"
-            class="download-btn">
-            <svg style="margin-right: 12px;" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Baixar para Android
-        </a>
+            <div class="phone-illustration">
+                <svg viewBox="0 0 200 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Phone Frame -->
+                    <rect x="20" y="10" width="160" height="340" rx="24" fill="#1E293B" stroke="#334155"
+                        stroke-width="2" />
 
-        <div class="instructions">
-            <p>1. Clique no botão acima para baixar</p>
-            <p>2. Abra o arquivo <strong>DataCerta.apk</strong></p>
-            <p>3. Se necessário, autorize "Instalar apps desconhecidos"</p>
-        </div>
+                    <!-- Screen -->
+                    <rect x="28" y="30" width="144" height="300" rx="16" fill="#FFFFFF" />
 
-        <div class="version-info">
-            Versão mais recente sempre disponível aqui.
+                    <!-- Notch -->
+                    <rect x="70" y="10" width="60" height="20" rx="10" fill="#1E293B" />
+
+                    <!-- App Interface - Header -->
+                    <rect x="36" y="46" width="128" height="36" rx="8" fill="url(#headerGradient)" />
+
+                    <!-- Calendar Icon on Header -->
+                    <rect x="48" y="54" width="20" height="20" rx="4" fill="white" fill-opacity="0.9" />
+                    <line x1="52" y1="60" x2="64" y2="60" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" />
+                    <line x1="52" y1="66" x2="60" y2="66" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" />
+
+                    <!-- App Title -->
+                    <rect x="76" y="58" width="60" height="6" rx="3" fill="white" fill-opacity="0.9" />
+
+                    <!-- Content Cards -->
+                    <!-- Card 1 -->
+                    <rect x="36" y="90" width="128" height="50" rx="8" fill="#F8FAFC" stroke="#E2E8F0"
+                        stroke-width="1" />
+                    <circle cx="56" cy="115" r="12" fill="#FEE2E2" />
+                    <rect x="76" y="104" width="60" height="6" rx="3" fill="#1E293B" />
+                    <rect x="76" y="116" width="40" height="4" rx="2" fill="#64748B" />
+                    <rect x="140" y="108" width="16" height="16" rx="8" fill="#EF4444" />
+
+                    <!-- Card 2 -->
+                    <rect x="36" y="148" width="128" height="50" rx="8" fill="#F8FAFC" stroke="#E2E8F0"
+                        stroke-width="1" />
+                    <circle cx="56" cy="173" r="12" fill="#FEF3C7" />
+                    <rect x="76" y="162" width="50" height="6" rx="3" fill="#1E293B" />
+                    <rect x="76" y="174" width="35" height="4" rx="2" fill="#64748B" />
+                    <rect x="140" y="166" width="16" height="16" rx="8" fill="#F59E0B" />
+
+                    <!-- Card 3 -->
+                    <rect x="36" y="206" width="128" height="50" rx="8" fill="#F8FAFC" stroke="#E2E8F0"
+                        stroke-width="1" />
+                    <circle cx="56" cy="231" r="12" fill="#D1FAE5" />
+                    <rect x="76" y="220" width="55" height="6" rx="3" fill="#1E293B" />
+                    <rect x="76" y="232" width="45" height="4" rx="2" fill="#64748B" />
+                    <rect x="140" y="224" width="16" height="16" rx="8" fill="#10B981" />
+
+                    <!-- Bottom Navigation -->
+                    <rect x="36" y="288" width="128" height="34" rx="8" fill="#F1F5F9" />
+                    <circle cx="60" cy="305" r="6" fill="#14B8A6" />
+                    <circle cx="100" cy="305" r="6" fill="#94A3B8" />
+                    <circle cx="140" cy="305" r="6" fill="#94A3B8" />
+
+                    <!-- Floating Download Button -->
+                    <circle cx="160" cy="280" r="20" fill="url(#fabGradient)" filter="url(#shadow)" />
+                    <path d="M152 280L160 288L168 280" stroke="white" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <line x1="160" y1="272" x2="160" y2="288" stroke="white" stroke-width="2.5"
+                        stroke-linecap="round" />
+
+                    <!-- Gradients -->
+                    <defs>
+                        <linearGradient id="headerGradient" x1="36" y1="46" x2="164" y2="82"
+                            gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#14B8A6" />
+                            <stop offset="1" stop-color="#2DD4BF" />
+                        </linearGradient>
+                        <linearGradient id="fabGradient" x1="140" y1="260" x2="180" y2="300"
+                            gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#14B8A6" />
+                            <stop offset="1" stop-color="#2DD4BF" />
+                        </linearGradient>
+                        <filter id="shadow" x="130" y="250" width="60" height="60" filterUnits="userSpaceOnUse"
+                            color-interpolation-filters="sRGB">
+                            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#14B8A6"
+                                flood-opacity="0.3" />
+                        </filter>
+                    </defs>
+                </svg>
+            </div>
+
+            <a href="https://ffpqkdzpcfrgngldsfdz.supabase.co/storage/v1/object/public/app-releases/DataCerta.apk"
+                class="download-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Baixar para Android
+            </a>
+
+            <div class="instructions">
+                <h3 class="instructions-title">Como instalar</h3>
+                <div class="instruction-steps">
+                    <div class="instruction-step">
+                        <span class="step-number">1</span>
+                        <span>Clique no botão acima para fazer o download do arquivo APK</span>
+                    </div>
+                    <div class="instruction-step">
+                        <span class="step-number">2</span>
+                        <span>Abra o arquivo <strong>DataCerta.apk</strong> no seu dispositivo</span>
+                    </div>
+                    <div class="instruction-step">
+                        <span class="step-number">3</span>
+                        <span>Se solicitado, autorize a instalação de apps de fontes desconhecidas</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="version-info">
+                Versão mais recente sempre disponível aqui
+            </div>
+
+            <a href="dashboard.html" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Voltar para o Dashboard
+            </a>
         </div>
     </div>
 </body>
