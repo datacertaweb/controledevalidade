@@ -2,6 +2,13 @@
  * DataCerta App - Controle de Validade
  */
 
+// Função auxiliar para formatar datas sem problemas de fuso horário
+function formatarData(dataString) {
+    if (!dataString) return '-';
+    const [ano, mes, dia] = dataString.split('-');
+    return `${dia.padStart(2, '0')}/${mes.padStart(2, '0')}/${ano}`;
+}
+
 let userData = null;
 let lojas = [];
 let locais = [];
@@ -512,7 +519,7 @@ function renderEstoque(lista, hoje) {
                 <td>${item.lojas?.nome || empresaNome || '-'}</td>
                 <td>${item.base?.categoria || '-'}</td>
                 <td>${item.quantidade}</td>
-                <td>${val.toLocaleDateString('pt-BR')}</td>
+                <td>${formatarData(item.validade)}</td>
                 <td>
                     <span class="validity-badge ${status}">
                         ${diff < 0 ? 'VENCIDO' : diff === 0 ? 'VENCE HOJE' : diff === 1 ? 'VENCE EM 1 DIA' : `VENCE EM ${diff} DIAS`}
@@ -835,7 +842,7 @@ async function exportarEstoque() {
             csv += `${item.loja_nome || ''};`;
             csv += `${item.local_nome || ''};`;
             csv += `${item.quantidade || ''};`;
-            csv += `${val.toLocaleDateString('pt-BR')};`;
+            csv += `${formatarData(item.validade)};`;
             csv += `${item.lote || ''};`;
             csv += `${item.valor_unitario || ''};`;
             csv += `${statusText};`;
@@ -1187,14 +1194,14 @@ function renderDeposito() {
                     ${isChecked ? 'checked' : ''} onchange="toggleDepositoCheck('${item.id}')"></td>
                 <td><strong>${item.codigo_produto}</strong></td>
                 <td>${item.descricao_produto || '-'}</td>
-                <td>${validade.toLocaleDateString('pt-BR')}</td>
+                <td>${formatarData(item.data_vencimento)}</td>
                 <td>
                     <span class="validity-badge ${statusClass}">
                         ${diasVencer < 0 ? 'VENCIDO' : diasVencer === 0 ? 'HOJE' : diasVencer + ' dias'}
                     </span>
                 </td>
                 <td>${item.usuario_nome || '-'}</td>
-                <td>${dataColeta.toLocaleDateString('pt-BR')} ${dataColeta.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>${formatarData(item.data_coleta)} ${dataColeta.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="action-btn" title="Editar" onclick="abrirModalEditarDeposito('${item.id}')">
@@ -1407,7 +1414,7 @@ window.imprimirComFormato = function (formato) {
                         ${item.descricao_produto || item.codigo_produto || '-'}
                     </div>
                     <div style="font-size: 12px; color: var(--text-muted); font-family: monospace;">
-                        ${item.codigo_produto || '-'} • Venc: ${new Date(item.data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
+                        ${item.codigo_produto || '-'} • Venc: ${formatarData(item.data_vencimento)}
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0; flex-shrink: 0;">
@@ -1479,9 +1486,9 @@ function prepararItensParaImpressao(itens) {
             dia = String(validadeDate.getDate()).padStart(2, '0');
             mes = String(validadeDate.getMonth() + 1).padStart(2, '0');
             ano = validadeDate.getFullYear();
-            dataValidade = validadeDate.toLocaleDateString('pt-BR');
+            dataValidade = formatarData(item.data_vencimento);
         }
-        const dataColeta = item.data_coleta ? new Date(item.data_coleta).toLocaleDateString('pt-BR') : '-';
+        const dataColeta = item.data_coleta ? formatarData(item.data_coleta) : '-';
         return { ...item, dia, mes, ano, dataValidade, dataColeta };
     });
 }
